@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+
+enum Role {
+  USER
+  ADMIN
+  BUSINESS
+}
+
+model User {
+  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String
+  email                   String         @unique
+  imageUrl                String?
+  zipcode                 String
+  state                   String
+  phone                   String
+  password                String
+  isVerified              Boolean        @default(false)
+  resetToken              String?
+  resetTokenExpiry        DateTime?
+  verificationToken       String?
+  verificationTokenExpiry DateTime?
+  role                    Role
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  SimpleReport            SimpleReport[]    
+
+  @@map("users")
+}
+
+
+enum PaymentStatus {
+  SUCCEEDED
+  FAILED
+  PENDING
+  REFUNDED
+}
+
+model Payment {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  invoiceNumber  String        @unique
+  name           String
+  amount         Float
+  currency       String
+  status         PaymentStatus
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+
+
+model ServicePlan {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  pacakagesName      String
+  timeApprox         String
+  cost               Float
+  duration           Int
+  coverage           String[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt 
+
+  bookings           Booking[]
+  SimpleReport       SimpleReport[]    
+
+  @@map("ServicesPlan")
+}
+
+model Booking {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  servicePlanId String   @db.ObjectId
+  servicePlan  ServicePlan @relation(fields: [servicePlanId], references: [id])
+  firstName     String 
+  lastName      String
+  emailAddress  String
+  phoneNumber   String
+  serviceName   String
+  scheduleAt    DateTime  
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("bookings")
+}
+
+
+model ContactUs {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String
+  message       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("contactus")
+}
+
+
+enum ScanType {
+  BLOOD_TEST
+  URINE_TEST
+  X_RAY
+  MRI
+  CT_SCAN
+}
+
+enum Status {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+model SimpleReport {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+
+  servicePlanId String   @db.ObjectId
+  servicePlan   ServicePlan @relation(fields: [servicePlanId], references: [id])
+
+  userId        String   @db.ObjectId
+  user          User     @relation(fields: [userId], references: [id])
+  
+  scanType      ScanType
+  appointmentDate DateTime
+  status        Status
+  notes         String
+  message       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("simplereport")
+}
+
+
+model Testimonial {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String
+  message       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("testimonials")
+}
+
