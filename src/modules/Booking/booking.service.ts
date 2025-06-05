@@ -3,12 +3,12 @@ import { Ibooking } from "./booking.interface";
 
 const createBooking=async(payload:Ibooking)=>{
     return await prisma.booking.create({
-        data:payload
+        data:{...payload}
     })
 }
+
 const getAllBooking=async()=>{
-    return await prisma.booking.findMany(
-    )
+    return await prisma.booking.findMany()
 }
 
 const getSingleBooking=async(bookingId:string)=>{

@@ -6,4 +6,6 @@ const router=Router();
 
 //sent email for contact
 router.post('/send',ContactController.contact);
+
+
 export const ContactRoutes=router;

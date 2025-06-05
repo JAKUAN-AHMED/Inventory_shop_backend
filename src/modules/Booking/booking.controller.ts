@@ -27,6 +27,7 @@ const getSingleBooking = catchAsync(async (req, res) => {
     })
 
 })
+
 const getAllBooking = catchAsync(async (req, res) => {
     const result = await BookinServices.getAllBooking();
     const isOk = result ? true : false;
@@ -38,8 +39,6 @@ const getAllBooking = catchAsync(async (req, res) => {
     })
 
 })
-
-
 
 
 export const BookingController = {

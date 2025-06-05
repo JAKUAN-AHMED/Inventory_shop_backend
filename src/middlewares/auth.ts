@@ -11,7 +11,10 @@ import { TuserRole } from '../modules/User/user.interface';
 
 const auth = (...requiredRoles: TuserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    console.log(token,"checking ------>");
+
     //check if token sent from the client
     if (!token) {
       throw new AppError(
@@ -27,6 +30,8 @@ const auth = (...requiredRoles: TuserRole[]) => {
       token,
       config.access_token_secret as string,
     ) as JwtPayload;
+
+    console.log(decoded,"checking decode =======>");
 
 
 

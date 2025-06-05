@@ -14,7 +14,8 @@ const contact = async (contactInfo : Icontact) => {
     data:{
       ...contactInfo,
     }
-  })
+  });
+  
 
   return result;
 };

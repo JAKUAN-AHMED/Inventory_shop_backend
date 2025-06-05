@@ -13,8 +13,6 @@ router.post(
   AuthController.register,
 );
 
-
-
 router.post(
   '/login',
   validateRequest(authValidation.UserLoginValidationSchema),

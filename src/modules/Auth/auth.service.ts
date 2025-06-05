@@ -17,9 +17,10 @@ const register = async (payload: IUser) => {
   );
 
 payload.password=password;
+console.log(payload,'checking paylod');
   // Create the user
   const result = await prisma.user.create({
-    data: payload
+    data: {...payload}
   })
   return result;
 };
@@ -35,7 +36,8 @@ const login = async (payload: ILoginUser) => {
       email:true,
       id: true,
       name: true,
-      password:true
+      password:true,
+      role: true
     },
   });
 
@@ -52,7 +54,8 @@ const login = async (payload: ILoginUser) => {
     throw new Error('Invalid credentials');
   }
   const JwtPayload={
-    email:user.email
+    email:user.email,
+    role: user.role
   }
 
 
@@ -62,9 +65,11 @@ const login = async (payload: ILoginUser) => {
 
 
 const forgotPassword = async (email: string) => {
+
   if (!email) {
     throw new Error('Email is required');
   }
+
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -74,11 +79,10 @@ const forgotPassword = async (email: string) => {
   if (!user) {
     throw new Error('User not found with this email');
   }
-
   
   const token = crypto.randomBytes(32).toString('hex');
   const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
-  const res=await sendPasswordResetEmail(email, link);
+  const res = await sendPasswordResetEmail(email, link);
 
   return res;
 };
