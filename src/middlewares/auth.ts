@@ -1,18 +1,17 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { NextFunction, Response, Request } from 'express';
-import { IUser, TuserRole } from '../modules/User/user.interface';
 import catchAsync from '../utils/catchAsync';
 import AppError from '../errors/AppError';
 import config from '../config';
 import { prisma } from '../prisma/client';
 
 import httpStatus from 'http-status';
+import { TuserRole } from '../modules/User/user.interface';
+
 
 const auth = (...requiredRoles: TuserRole[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    console.log(token);
+    const token = req.headers.authorization;
     //check if token sent from the client
     if (!token) {
       throw new AppError(
@@ -22,11 +21,15 @@ const auth = (...requiredRoles: TuserRole[]) => {
       );
     }
 
+
     // Verify the token asynchronously
     const decoded = jwt.verify(
       token,
       config.access_token_secret as string,
     ) as JwtPayload;
+
+
+
     //check if the user has the required role to access the route
 
     const { role, email, iat } = decoded;

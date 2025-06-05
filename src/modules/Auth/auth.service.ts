@@ -5,119 +5,25 @@ import { ILoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
 import { IUser } from '../User/user.interface';
-import { Role } from '@prisma/client';
 import { createToken, verifyToken } from './auth.utils';
-import {
-  sendPasswordResetEmail,
-  sendVerificationEmail,
-} from '../../helpers/emailSender/emails';
 import AppError from '../../errors/AppError';
+import { sendPasswordResetEmail } from '../../helpers/emailSender/emails';
 
 const register = async (payload: IUser) => {
-  // Optional: check if user already exists
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: payload.email,
-    },
-  });
-
-  if (existingUser) {
-    throw new Error('User already exists with this email');
-  }
-
   // Hash the password
   const password = await bcrypt.hash(
     payload.password,
     Number(config.salt_round),
   );
 
-  // Update payload with hashed password
-  payload.password = password;
-
-  const verificationToken = Math.floor(
-    100000 + Math.random() * 900000,
-  ).toString();
-
-  const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
-
-  sendVerificationEmail(payload.email, verificationToken);
-
+payload.password=password;
   // Create the user
   const result = await prisma.user.create({
-    data: {
-      ...payload,
-      role: payload.role as Role,
-      verificationToken,
-      verificationTokenExpiry,
-    },
-  });
-  // console.log('result', result);
+    data: payload
+  })
   return result;
 };
 
-const verifyEmail = async (email: string, token: string) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-
-  if (!user) {
-    throw new Error('User not found');
-  }
-
-  if (user.verificationToken !== token || !user.verificationTokenExpiry) {
-    throw new Error('Invalid verification token');
-  }
-
-  if (user?.verificationTokenExpiry < new Date()) {
-    throw new Error('Verification token has expired');
-  }
-
-  const updatedUser = await prisma.user.update({
-    where: {
-      email,
-    },
-    data: {
-      isVerified: true,
-      verificationToken: null,
-      verificationTokenExpiry: null,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      imageUrl: true,
-    },
-  });
-
-  const JwtPayload = {
-    email: user.email,
-    userId: user?.id,
-    role: user.role,
-  };
-
-  //create toke and send to the client
-  const accessToken = createToken(
-    JwtPayload,
-    config.access_token_secret as string,
-    config.access_token_expires as string,
-  );
-
-  const refreshToken = createToken(
-    JwtPayload,
-    config.refress_token_secret as string,
-    config.refresh_token_expires as string,
-  );
-
-  return {
-    message: 'User verified successfully',
-    updatedUser,
-    accessToken,
-    refreshToken,
-  };
-};
 
 
 const login = async (payload: ILoginUser) => {
@@ -129,9 +35,6 @@ const login = async (payload: ILoginUser) => {
       email:true,
       id: true,
       name: true,
-      isVerified: true,
-      role:true,
-      imageUrl: true,
       password:true
     },
   });
@@ -140,50 +43,21 @@ const login = async (payload: ILoginUser) => {
     throw new Error('Invalid credentials');
   }
 
-
-  // const isPasswordMatched: boolean = await bcrypt.compare(
-  //   payload.password,
-  //   user.password,
-  // );
-
-
-  // if (!isPasswordMatched) {
-  //   throw new Error('Invalid credentials');
-  // }
-
-  const JwtPayload = {
-    email: user.email,
-    userId: user?.id,
-    role: user.role,
-  };
-
-  //create toke and send to the client
-  const accessToken = createToken(
-    JwtPayload,
-    config.access_token_secret as string,
-    config.access_token_expires as string,
+  const isPasswordMatched: boolean = await bcrypt.compare(
+    payload.password,
+    user.password,
   );
 
-  //refresh token
-  const refreshToken = createToken(
-    JwtPayload,
-    config.refress_token_secret as string,
-    config.refresh_token_expires as string,
-  );
-
-  const userData={
-    userId:user.id,
-    name:user.name,
-    email:user.email,
-    role:user.role,
-    
+  if (!isPasswordMatched) {
+    throw new Error('Invalid credentials');
+  }
+  const JwtPayload={
+    email:user.email
   }
 
-  return {
-    user: userData,
-    accessToken,
-    refreshToken,
-  };
+
+  const accessToken=await createToken(JwtPayload,config.access_token_secret as string,config.access_token_expires);
+  return accessToken;
 };
 
 
@@ -201,24 +75,12 @@ const forgotPassword = async (email: string) => {
     throw new Error('User not found with this email');
   }
 
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const tokenExpiry = new Date(Date.now() + 1000 * 60 * 30); //30 minutes
+  
+  const token = crypto.randomBytes(32).toString('hex');
+  const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
+  const res=await sendPasswordResetEmail(email, link);
 
-  const link = `${config.live_url}/reset-password?email=${email}&token=${resetToken}`;
-
-  await sendPasswordResetEmail(email, link);
-
-  await prisma.user.update({
-    where: {
-      email,
-    },
-    data: {
-      resetToken,
-      resetTokenExpiry: tokenExpiry,
-    },
-  });
-
-  return true;
+  return res;
 };
 
 export const resetPassword = async (
@@ -236,13 +98,6 @@ export const resetPassword = async (
     throw new Error('User not found with this email');
   }
 
-  if (user.resetToken !== token || !user.resetTokenExpiry) {
-    throw new Error('Invalid reset token');
-  }
-
-  if (user?.resetTokenExpiry < new Date()) {
-    throw new Error('Reset token has expired');
-  }
 
   const hashedPassword = await bcrypt.hash(password, Number(config.salt_round));
 
@@ -252,8 +107,6 @@ export const resetPassword = async (
     },
     data: {
       password: hashedPassword,
-      resetToken: null,
-      resetTokenExpiry: null,
     },
   });
 
@@ -325,9 +178,7 @@ const refreshToken = async (refreshToken: string) => {
   }
 
   const JwtPayload = {
-    id: user.id,
     email: user.email,
-    role: user.role,
   };
   const accessToken = createToken(
     JwtPayload,
@@ -338,49 +189,17 @@ const refreshToken = async (refreshToken: string) => {
   return { accessToken };
 };
 
-const resendVerifyEmail = async (email: string) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-  });
-  if (!user) {
-    throw new AppError(400, 'User not found with this email');
-  }
-
-  if (user.isVerified) {
-    throw new AppError(400, 'User is already verified');
-  }
-
-  const verificationToken = Math.floor(
-    100000 + Math.random() * 900000,
-  ).toString();
-  const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000);
-
-  await prisma.user.update({
-    where: { email },
-    data: {
-      verificationToken,
-      verificationTokenExpiry,
-    },
-  });
-
-  // sendVerificationEmail(user.email, verificationToken);
-
-  return true;
-};
 
 interface IMakeAdmin {
   name: string;
   password: string;
   email: string;
-  state: string;
   phone: string;
-  zipcode: string;
+
 }
 
 const makeAdmin = async (payload: IMakeAdmin) => {
-  const { name, email, password, state, phone, zipcode } = payload;
+  const { name, email, password, phone } = payload;
   const user = await prisma.user.findUnique({
     where: {
       email,
@@ -395,12 +214,9 @@ const makeAdmin = async (payload: IMakeAdmin) => {
     data: {
       name,
       email,
+      role:"ADMIN",
       password: await bcrypt.hash(password, Number(config.salt_round)),
-      isVerified: true,
-      state,
-      phone,
-      zipcode,
-      role: 'ADMIN',
+      phone
     },
   });
 
@@ -409,12 +225,10 @@ const makeAdmin = async (payload: IMakeAdmin) => {
 
 export const AuthServices = {
   register,
-  verifyEmail,
   login,
   forgotPassword,
   resetPassword,
   changePassword,
   refreshToken,
-  resendVerifyEmail,
   makeAdmin,
 };

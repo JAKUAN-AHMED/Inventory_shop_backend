@@ -17,22 +17,6 @@ const register = catchAsync(async (req, res) => {
   });
 });
 
-const verifyEmail = catchAsync(async (req, res) => {
-  const { token, email } = req.body;
-
-  const result = await AuthServices.verifyEmail(email, token);
-
-  const isok = result ? true : false;
-
-  sendResponse(res, {
-    statusCode: isok ? 200 : 400,
-    success: isok,
-    message: isok
-      ? 'Email Verification Successfull'
-      : 'Email Verification Failed',
-    Data: isok ? result : [],
-  });
-});
 
 
 const login = catchAsync(async (req, res) => {
@@ -52,15 +36,11 @@ const login = catchAsync(async (req, res) => {
 
 const forgotPassword = catchAsync(async (req, res) => {
   const { email } = req.body;
-  const result = await AuthServices.forgotPassword(email);
-  const isok = result ? true : false;
-
-  sendResponse(res, {
-    statusCode: isok ? 200 : 400,
-    success: isok,
-    message: isok
-      ? 'Password Reset Link Sent To Your Email Successfully!'
-      : 'Password Reset Link Sent To Your Email Failed',
+   await AuthServices.forgotPassword(email);
+   sendResponse(res, {
+    statusCode:200 ,
+    success: true,
+    message: "Check email",
   });
 });
 
@@ -111,21 +91,6 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
-const resendVerifyEmail = catchAsync(async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    throw new AppError(400, 'Email is required');
-  }
-  const result = await AuthServices.resendVerifyEmail(email);
-  const isok = result ? true : false;
-  sendResponse(res, {
-    statusCode: isok ? 200 : 400,
-    success: isok,
-    message: isok
-      ? 'Verification Email Sent Successfully!'
-      : 'Verification Email Sending Failed',
-  });
-});
 
 const makeAdmin = catchAsync(async (req, res) => {
   const { name, email, password, zipcode, state, phone } = req.body;
@@ -145,12 +110,10 @@ const makeAdmin = catchAsync(async (req, res) => {
 
 export const AuthController = {
   register,
-  verifyEmail,
   login,
   forgotPassword,
   resetPassword,
   changePassword,
   refreshToken,
-  resendVerifyEmail,
   makeAdmin,
 };

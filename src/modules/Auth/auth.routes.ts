@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import validateRequest from '../../middlewares/validateRequest';
 import { authValidation } from './auth.validation';
 import auth from '../../middlewares/auth';
+import { USER_ROLE } from '../User/user.constant';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.post(
   AuthController.register,
 );
 
-router.post('/verify-email', AuthController.verifyEmail);
+
 
 router.post(
   '/login',
@@ -25,12 +26,11 @@ router.post('/reset-password/:token', AuthController.resetPassword);
 
 router.post(
   '/change-password',
-  auth('ADMIN', 'BUSINESS', 'USER'),
+  auth('ADMIN'),
   AuthController.changePassword,
 );
 
 router.post('/refresh-token', AuthController.refreshToken);
-router.post('/resend-verify-email-token', AuthController.resendVerifyEmail);
 router.post('/make-admin', AuthController.makeAdmin);
 
 export const AuthRoutes = router;

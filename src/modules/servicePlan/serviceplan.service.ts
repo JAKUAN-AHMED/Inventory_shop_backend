@@ -5,11 +5,8 @@ import { IServicePlan } from "./servicePlan.interface";
 
 const createServicePlan = async (servicePlan: IServicePlan): Promise<IServicePlan | null > => {
 
-
      const result = await prisma.servicePlan.create({
-        data: {
-             ...servicePlan
-        }
+        data: servicePlan
      });
 
      return result;

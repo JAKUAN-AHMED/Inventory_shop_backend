@@ -9,54 +9,17 @@ datasource db {
 
 
 
-enum Role {
-  USER
-  ADMIN
-  BUSINESS
-}
 
 model User {
   id                      String         @id @default(auto()) @map("_id") @db.ObjectId
   name                    String
   email                   String         @unique
-  imageUrl                String?
-  zipcode                 String
-  state                   String
   phone                   String
   password                String
-  isVerified              Boolean        @default(false)
-  resetToken              String?
-  resetTokenExpiry        DateTime?
-  verificationToken       String?
-  verificationTokenExpiry DateTime?
-  role                    Role
+  role                    userStatus
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
-
-  SimpleReport            SimpleReport[]    
-
   @@map("users")
-}
-
-
-enum PaymentStatus {
-  SUCCEEDED
-  FAILED
-  PENDING
-  REFUNDED
-}
-
-model Payment {
-  id             String        @id @default(auto()) @map("_id") @db.ObjectId
-  invoiceNumber  String        @unique
-  name           String
-  amount         Float
-  currency       String
-  status         PaymentStatus
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
-  @@map("payments")
 }
 
 
@@ -70,43 +33,43 @@ model ServicePlan {
   coverage           String[]
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt 
-
-  bookings           Booking[]
   SimpleReport       SimpleReport[]    
 
   @@map("ServicesPlan")
 }
 
-model Booking {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  servicePlanId String   @db.ObjectId
-  servicePlan  ServicePlan @relation(fields: [servicePlanId], references: [id])
-  firstName     String 
-  lastName      String
-  emailAddress  String
-  phoneNumber   String
-  serviceName   String
-  scheduleAt    DateTime  
 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model Booking {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  email       String
+  phoneNumber String
+  service     String
+  day         String
+  hours       Int
+  min         Int
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("bookings")
 }
-
 
 model ContactUs {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   email         String
   message       String
+  role          String @default("ADMIN")
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   @@map("contactus")
 }
 
-
+enum userStatus{
+  ADMIN
+}
 enum ScanType {
   BLOOD_TEST
   URINE_TEST
@@ -128,7 +91,6 @@ model SimpleReport {
   servicePlan   ServicePlan @relation(fields: [servicePlanId], references: [id])
 
   userId        String   @db.ObjectId
-  user          User     @relation(fields: [userId], references: [id])
   
   scanType      ScanType
   appointmentDate DateTime
