@@ -1,4 +1,5 @@
-import { sendEmail } from './brevo.config';
+
+import { sendEmail } from '../../utils/sendEmail';
 import {
   VERIFICATION_EMAIL_TEMPLATE,
   PASSWORD_RESET_REQUEST_TEMPLATE,

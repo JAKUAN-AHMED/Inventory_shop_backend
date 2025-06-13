@@ -24,37 +24,6 @@ model User {
 
 
 
-model ServicePlan {
-  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
-  pacakagesName      String
-  timeApprox         String
-  cost               Float
-  duration           Int
-  coverage           String[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt 
-  SimpleReport       SimpleReport[]    
-
-  @@map("ServicesPlan")
-}
-
-
-model Booking {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  name        String
-  email       String
-  phoneNumber String
-  service     String
-  day         String
-  hours       Int
-  min         Int
-  date        DateTime
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("bookings")
-}
-
 model ContactUs {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String
@@ -69,13 +38,7 @@ model ContactUs {
 enum userStatus{
   ADMIN
 }
-enum ScanType {
-  BLOOD_TEST
-  URINE_TEST
-  X_RAY
-  MRI
-  CT_SCAN
-}
+
 
 enum Status {
   PENDING
@@ -83,36 +46,3 @@ enum Status {
   CANCELLED
 }
 
-model SimpleReport {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-
-  servicePlanId String   @db.ObjectId
-  servicePlan   ServicePlan @relation(fields: [servicePlanId], references: [id])
-
-  userId        String   @db.ObjectId
-  
-  scanType      ScanType
-  appointmentDate DateTime
-  status        Status
-  notes         String
-  message       String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("simplereport")
-}
-
-model Testimonial {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String
-  message       String
-  image         String?
-  facebookURL   String?
-  linkLindeURL  String?
-  instragramURL String? 
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("testimonials")
-}
