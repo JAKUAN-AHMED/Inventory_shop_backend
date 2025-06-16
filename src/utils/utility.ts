@@ -1,35 +1,35 @@
 import AppError from "../errors/AppError"
-import handlePrismaDuplicateError from "../errors/handleDuplicateError"
 import { prisma } from "../prisma/client"
 
-export type ModelName = keyof typeof prisma
 
-export async function isExist(
-    model: ModelName,
-    where: object
-): Promise<boolean> {
-    const modelDelegate = prisma[String(model) as ModelName] as any
 
-    if (typeof modelDelegate.findFirst !== 'function') {
-        throw new Error(`${String(model)} does not support findFirst`)
-    }
+export  async function isExistByEmail(email:string){
+    const existingUser=await prisma.user.findUnique({
+        where:{
+            email:email
+        }
+    })
+    return existingUser;
+}
 
-    const result = await modelDelegate.findFirst({ where })
-    return !!result
+export async function alreadyExist(param:any){
+   if(param)
+   {
+    throw new AppError(409,'AlreadY Exist Same Data')
+   }
+}
+
+export async function isExistUserById(id:string) {
+    return await prisma.user.findUnique({
+        where:{
+            id
+        }
+    })
 }
 
 
-
-
-
-export async function isExistUserById(name: ModelName,id:string) {
-    const exists = await isExist(name, {
-        id,
-    })
-
-    if (exists) {
-        console.log(`${String(name)} already exists`)
-    } else {
-        console.log(`${String(name)} doesn't exists`)
+export async function NotFound (value:any,msg?:string){
+    if(!value){
+        throw new AppError(404,`${msg} Not Found`)
     }
 }

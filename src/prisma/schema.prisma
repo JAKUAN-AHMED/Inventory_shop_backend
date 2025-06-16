@@ -7,9 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
-
 model User {
   id                      String         @id @default(auto()) @map("_id") @db.ObjectId
   name                    String
@@ -17,6 +14,10 @@ model User {
   phone                   String
   password                String
   role                    userStatus
+  imgUrl                  String?
+  isVerified              Boolean @default(false)
+  verificationTokenExpiry DateTime?
+  verificationToken       String?
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
   @@map("users")
@@ -37,6 +38,7 @@ model ContactUs {
 
 enum userStatus{
   ADMIN
+  USER
 }
 
 

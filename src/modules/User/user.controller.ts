@@ -3,12 +3,6 @@ import sendResponse from '../../utils/sendResponse';
 import { UserServices } from './user.service';
 
 
-
-
-
-
-
-
 const getSingleUser = catchAsync(async (req, res) => {
     const result = await UserServices.getingSigleuser(req.params.id);
     const isOk = result ? true : false;
@@ -19,12 +13,6 @@ const getSingleUser = catchAsync(async (req, res) => {
         Data: isOk ? result : [],
     });
 });
-
-
-
-
-
-
 
 const deleteUser = catchAsync(async (req, res) => {
     const result = await UserServices.deleteduser(req.params.id);

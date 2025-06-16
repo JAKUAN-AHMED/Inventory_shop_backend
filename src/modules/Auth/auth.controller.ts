@@ -17,6 +17,39 @@ const register = catchAsync(async (req, res) => {
   });
 });
 
+const verifyEmail = catchAsync(async (req, res) => {
+  const { token, email } = req.body;
+
+  const result = await AuthServices.verifyEmail(email, token);
+
+  const isok = result ? true : false;
+
+  sendResponse(res, {
+    statusCode: isok ? 200 : 400,
+    success: isok,
+    message: isok
+      ? 'Email Verification Successfull'
+      : 'Email Verification Failed',
+    Data: isok ? result : [],
+  });
+});
+
+
+const resendVerifyEmail = catchAsync(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    throw new AppError(400, 'Email is required');
+  }
+  const result = await AuthServices.resendVerifyEmail(email);
+  const isok = result ? true : false;
+  sendResponse(res, {
+    statusCode: isok ? 200 : 400,
+    success: isok,
+    message: isok
+      ? 'Verification Email Sent Successfully!'
+      : 'Verification Email Sending Failed',
+  });
+});
 
 
 const login = catchAsync(async (req, res) => {
@@ -40,15 +73,16 @@ const forgotPassword = catchAsync(async (req, res) => {
    sendResponse(res, {
     statusCode:200 ,
     success: true,
-    message: "Check email",
+    message: "Check Your email",
   });
 });
 
 const resetPassword = catchAsync(async (req, res) => {
-  const token = req.params.token;
-  const { email, newPassword } = req.body;
+  const token = req.headers.authorization;
+  const email=req.user.email;
+  const { newPassword } = req.body;
 
-  const result = await AuthServices.resetPassword(email, token, newPassword);
+  const result = await AuthServices.resetPassword(email, token as string, newPassword);
   const isok = result ? true : false;
 
   sendResponse(res, {
@@ -60,12 +94,7 @@ const resetPassword = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const { email } = (req as any).user;
-
-  const { oldPassword, newPassword } =
-    authValidation.changePasswordValidationSchema.parse(req.body);
-
-  console.log(email, oldPassword, newPassword);
-
+  const {newPassword,oldPassword } =req.body;
   const result = await AuthServices.changePassword(
     email,
     oldPassword,
@@ -116,4 +145,6 @@ export const AuthController = {
   changePassword,
   refreshToken,
   makeAdmin,
+  verifyEmail,
+  resendVerifyEmail
 };

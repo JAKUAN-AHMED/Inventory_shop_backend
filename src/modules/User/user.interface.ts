@@ -5,7 +5,7 @@ export type TuserRole = keyof typeof USER_ROLE;
 // Assuming USER_ROLE is defined in user.constants.ts
 
 // Role type matching Prisma's Role enum
-export type TRole = 'ADMIN';
+export type TRole = 'ADMIN' | 'USER';
 
 // Type for keys of USER_ROLE
 export type TUserRole = keyof typeof USER_ROLE;
@@ -17,4 +17,8 @@ export interface IUser {
   role : TRole;
   phone: string;
   password: string;
+  verificationToken?:string;
+  isVerified:boolean,
+  verificationTokenExpiry?:Date
+  imgUrl?:string
 }
