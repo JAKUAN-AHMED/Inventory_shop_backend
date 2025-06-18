@@ -9,13 +9,8 @@ const app = express();
 
 export const corsOptions = {
   origin: [
-	  'https://ruebj-dashboard-nabil.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5000',
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://ruebzj-frontend.vercel.app',
-    "https://ruebj-dashboard-nabil.vercel.app"
+    'http://localhost:8090',
+   
   ],
 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],

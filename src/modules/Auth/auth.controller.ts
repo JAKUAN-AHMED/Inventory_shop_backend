@@ -54,7 +54,7 @@ const resendVerifyEmail = catchAsync(async (req, res) => {
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
+  // console.log(email, password);
   const result = await AuthServices.login({ email, password });
   const isok = result ? true : false;
 

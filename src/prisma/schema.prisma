@@ -9,19 +9,184 @@ datasource db {
 
 model User {
   id                      String         @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String
-  email                   String         @unique
-  phone                   String
-  password                String
-  role                    userStatus
+  username    String     @unique
+  email       String     @unique
+  password    String
+  role        String     @default("student")
+  joinDate    DateTime   @default(now())
+  lastLogin   DateTime?
+  progress    Progress[]
+  bookmarks   Bookmark[]
+  comments    Comment[]
+  reviews     Review[]
+  payments    Payment[]
+  subscription Subscription?
   imgUrl                  String?
   isVerified              Boolean @default(false)
   verificationTokenExpiry DateTime?
   verificationToken       String?
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
+  @@index([email])
   @@map("users")
 }
+
+
+
+
+
+model License {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  name        String      // "PPL & LAPL (A)", "SPL", etc.
+  description String?
+  type        String?     // "A", "H", "C"
+  categories  Category[]
+  plans       Plan[]
+  
+  @@unique([name])
+}
+
+model Category {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  license     License     @relation(fields: [licenseId], references: [id])
+  licenseId   String      @db.ObjectId
+  code        String      // "10-ALW" for Air Law
+  name        String
+  description String?
+  questions   Question[]
+  
+  @@index([licenseId])
+  @@unique([code])
+}
+
+model Question {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  category    Category    @relation(fields: [categoryId], references: [id])
+  categoryId  String      @db.ObjectId
+  text        String
+  explanation String?
+  difficulty  Int?        @default(1)
+  answers     Answer[]
+  bookmarks   Bookmark[]
+  comments    Comment[]
+  progress    Progress[]
+  
+  @@index([categoryId])
+}
+
+model Answer {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  question    Question    @relation(fields: [questionId], references: [id])
+  questionId  String      @db.ObjectId
+  text        String
+  isCorrect   Boolean     @default(false)
+  
+  @@index([questionId])
+}
+
+model Plan {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  license     License       @relation(fields: [licenseId], references: [id])
+  licenseId   String        @db.ObjectId
+  duration    Int           // Months
+  price       Float
+  autoRenew   Boolean       @default(true)
+  features    String[]
+  subscriptions Subscription[]
+  
+  @@index([licenseId])
+}
+
+model Subscription {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  plan        Plan        @relation(fields: [planId], references: [id])
+  planId      String      @db.ObjectId
+  startDate   DateTime
+  endDate     DateTime
+  status      String      @default("active") // active, expired, canceled
+  payments    Payment[]
+  
+  @@index([userId, planId])
+}
+
+model Payment {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String      @db.ObjectId
+  subscription  Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscriptionId String?     @db.ObjectId
+  amount        Float
+  date          DateTime    @default(now())
+  method        String      // card, paypal
+  transactionId String      @unique
+}
+
+model Review {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  license     License?    @relation(fields: [licenseId], references: [id])
+  licenseId   String?     @db.ObjectId
+  rating      Int
+  content     String?
+  date        DateTime    @default(now())
+  
+  @@index([userId, licenseId])
+}               
+
+model Progress {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  question    Question    @relation(fields: [questionId], references: [id])
+  questionId  String      @db.ObjectId
+  attempts    Int         @default(0)
+  mastered    Boolean     @default(false)
+  lastAttempt DateTime?   @updatedAt
+  
+  @@unique([userId, questionId])
+  @@index([userId, questionId])
+}
+
+model Bookmark {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  question    Question    @relation(fields: [questionId], references: [id])
+  questionId  String      @db.ObjectId
+  createdAt   DateTime    @default(now())
+  
+  @@unique([userId, questionId])
+  @@index([userId, questionId])
+}
+
+model Comment {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  question    Question    @relation(fields: [questionId], references: [id])
+  questionId  String      @db.ObjectId
+  content     String
+  createdAt   DateTime    @default(now())
+  replies     Reply[]
+  
+  @@index([userId, questionId])
+}
+
+model Reply {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  comment     Comment     @relation(fields: [commentId], references: [id])
+  commentId   String      @db.ObjectId
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @db.ObjectId
+  content     String
+  createdAt   DateTime    @default(now())
+  
+  @@index([commentId, userId])
+}
+
 
 
 

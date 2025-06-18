@@ -14,7 +14,7 @@ const register = async (payload: IUser) => {
 
   //check user is already exist or not 
   const existingUser = await isExistByEmail(payload.email);
-  await alreadyExist(existingUser);
+  await alreadyExist(existingUser,'Already Exist This Email');
 
   // Hash the password
   const password = await bcrypt.hash(
@@ -184,7 +184,7 @@ const forgotPassword = async (email: string) => {
     config.access_token_expires as string
   );
   const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
-  console.log('token : ', token);
+  // console.log('token : ', token);
 
   const res = await sendPasswordResetEmail(email, link);
   return true;
@@ -265,10 +265,10 @@ const refreshToken = async (refreshToken: string) => {
   if (!decoded) {
     throw new Error('Invalid or expired refresh token!');
   }
-
+  // console.log('decoded id',decoded)
   const user = await prisma.user.findUnique({
     where: {
-      id: decoded?.id,
+      id: decoded?.userId,
     },
   });
 
@@ -284,7 +284,7 @@ const refreshToken = async (refreshToken: string) => {
   const accessToken = createToken(
     JwtPayload,
     config.access_token_secret as string,
-    Number(config.access_token_expires),
+    config.access_token_expires,
   );
 
   return { accessToken };
