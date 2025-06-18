@@ -2,7 +2,6 @@ import config from '../../config';
 import { prisma } from '../../prisma/client';
 import { ILoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { IUser } from '../User/user.interface';
 import { createToken, verifyToken } from './auth.utils';
 import AppError from '../../errors/AppError';
@@ -33,7 +32,7 @@ const register = async (payload: IUser) => {
   const result = await prisma.user.create({
     data: {
       ...payload,
-      role: "USER",
+      role: "STUDENT",
       password,
       verificationToken,
       verificationTokenExpiry
@@ -68,7 +67,7 @@ const verifyEmail = async (email: string, token: string) => {
       email: true,
       name: true,
       role: true,
-      imgUrl: true,
+      profileImage: true,
     },
   });
 
@@ -110,7 +109,7 @@ const login = async (payload: ILoginUser) => {
       name: true,
       password: true,
       role: true,
-      imgUrl: true
+      profileImage: true
     },
   });
 
@@ -153,7 +152,7 @@ const login = async (payload: ILoginUser) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    imgUrl: user?.imgUrl ? user?.imgUrl : null
+    imgUrl: user?.profileImage ? user?.profileImage : null
 
   }
   return {

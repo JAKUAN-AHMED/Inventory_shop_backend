@@ -20,11 +20,11 @@ router.post(
 );
 
 router.post('/forgot-password', AuthController.forgotPassword);
-router.post('/reset-password',auth('USER'), AuthController.resetPassword);
+router.post('/reset-password',auth('STUDENT'), AuthController.resetPassword);
 
 router.post(
   '/change-password',
-  auth('ADMIN','USER'),
+  auth('ADMIN','STUDENT'),
   AuthController.changePassword,
 );
 
