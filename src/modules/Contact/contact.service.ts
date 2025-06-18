@@ -1,23 +1,15 @@
-import { prisma } from '../../prisma/client';
 import { sendEmail } from '../../utils/sendEmail';
 import { Icontact } from './contact.interface';
 
-const contact = async (contactInfo : Icontact) => {
-  // return await sendEmail(
-  //   [{ email: 'azizultushar98@gmail.com' }],
-  //   subject,
-  //   htmlContent,
-  // );
+const contact = async (contactInfo : Icontact,htmlContent:any) => {
 
-
-  const result = await prisma.contactUs.create({
-    data:{
-      ...contactInfo,
-    }
-  });
-  
-
-  return result;
+  const {email,name}=contactInfo;
+  const subject:string=`Message From ${name}`;
+  return await sendEmail(
+    [{ email}],
+    subject,
+    htmlContent,
+  );
 };
 
 export const ConatactService = { contact };

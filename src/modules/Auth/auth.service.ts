@@ -353,26 +353,22 @@ interface IMakeAdmin {
 
 }
 
-const makeAdmin = async (payload: IMakeAdmin) => {
-  const { name, email, password, phone } = payload;
+const makeAdmin = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      email,
+      email
     },
   });
 
-  if (user) {
-    throw new AppError(400, 'User already exists with this email');
-  }
+  await NotFound(user,'User')
 
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
-      role: "ADMIN",
-      password: await bcrypt.hash(password, Number(config.salt_round)),
-      phone
+  const result = await prisma.user.update({
+    where:{
+      email
     },
+    data:{
+      role:"ADMIN"
+    }
   });
 
   return result;

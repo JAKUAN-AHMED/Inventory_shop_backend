@@ -1,15 +1,16 @@
 import { prisma } from '../../prisma/client';
+import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import { IUser } from './user.interface';
 
 
 
 // get user by user id
 const getingSigleuser = async (userId: string) => {
-        return await prisma.user.findUnique({
+    return await prisma.user.findUnique({
         where: {
             id: userId,
         },
-        });
+    });
 };
 
 
@@ -20,22 +21,37 @@ const deleteduser = async (userId: string) => {
         },
     });
 }
-
-
-const updateProfile=async(id:string,payload:Partial<IUser>)=>{
-    const result=await prisma.user.update({
-where:{
-    id
-},
-data:{
-    ...payload
+const getAllUser = async () => {
+    return await prisma.user.findMany();
 }
+
+const updateProfile = async (file:any,id: string, payload: Partial<IUser>) => {
+
+    let imageUrls: string = '';
+      if ( file ) {
+        const { location: secure_url } = await uploadToDigitalOceanAWS(file);
+        imageUrls=secure_url as string;
+      }
+      if(imageUrls){
+        payload.profileImage=imageUrls;
+      }
+    const result = await prisma.user.update({
+        where: {
+            id
+        },
+        data: {
+            ...payload
+        }
     })
+
+    return result;
 }
 
 export const UserServices = {
-    
+
     getingSigleuser,
-    deleteduser
+    deleteduser,
+    updateProfile,
+    getAllUser
 };
 

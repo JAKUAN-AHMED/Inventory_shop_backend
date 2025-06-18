@@ -40,7 +40,7 @@ const contact = catchAsync(async (req, res) => {
     </html>
   `;
 
-  const result = await ConatactService.contact(req.body);
+  const result = await ConatactService.contact(req.body,htmlContent);
 
   sendResponse(res, {
     statusCode: 200,

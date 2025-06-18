@@ -1,10 +1,9 @@
-import { Multer } from 'multer';
 import AppError from '../../errors/AppError';
 import catchAsync from '../../utils/catchAsync';
-import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
-import { authValidation } from './auth.validation';
+
 
 const register = catchAsync(async (req, res) => {
  
@@ -128,11 +127,11 @@ const refreshToken = catchAsync(async (req, res) => {
 
 
 const makeAdmin = catchAsync(async (req, res) => {
-  const { name, email, password, zipcode, state, phone } = req.body;
-  if (!email || !name || !password || !zipcode || !state || !phone) {
-    throw new AppError(400, 'All fields is required! Please try again');
+  const {email } = req.body;
+  if (!email ) {
+    throw new AppError(400, 'Email is required! Please try again');
   }
-  const result = await AuthServices.makeAdmin(req.body);
+  const result = await AuthServices.makeAdmin(email);
   const isok = result ? true : false;
   sendResponse(res, {
     statusCode: isok ? 200 : 400,

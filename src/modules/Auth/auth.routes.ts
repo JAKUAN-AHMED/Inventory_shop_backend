@@ -28,17 +28,17 @@ router.post(
 );
 
 router.post('/forgot-password', AuthController.forgotPassword);
-router.post('/reset-password',auth('STUDENT'), AuthController.resetPassword);
+router.post('/reset-password',auth('STUDENT','INSTRUCTOR','ADMIN'), AuthController.resetPassword);
 
 router.post(
   '/change-password',
-  auth('ADMIN','STUDENT'),
+  auth('ADMIN','STUDENT','INSTRUCTOR'),
   AuthController.changePassword,
 );
 
 router.post('/verify-email', AuthController.verifyEmail);
 router.post('/resend-verify-email-token', AuthController.resendVerifyEmail);
 router.post('/refresh-token', AuthController.refreshToken);
-router.post('/make-admin', AuthController.makeAdmin);
+router.patch('/make-admin',auth('ADMIN'), AuthController.makeAdmin);
 
 export const AuthRoutes = router;
