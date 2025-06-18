@@ -1,11 +1,16 @@
 import AppError from '../../errors/AppError';
 import catchAsync from '../../utils/catchAsync';
+
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
-import { authValidation } from './auth.validation';
+
 
 const register = catchAsync(async (req, res) => {
-  const result = await AuthServices.register(req.body);
+ 
+
+   const file = req.file as Express.Multer.File;
+
+  const result = await AuthServices.register(file,req.body);
   const isok = result ? true : false;
   sendResponse(res, {
     statusCode: isok ? 201 : 400,
@@ -54,7 +59,7 @@ const resendVerifyEmail = catchAsync(async (req, res) => {
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
-  console.log(email, password);
+  // console.log(email, password);
   const result = await AuthServices.login({ email, password });
   const isok = result ? true : false;
 
@@ -122,11 +127,11 @@ const refreshToken = catchAsync(async (req, res) => {
 
 
 const makeAdmin = catchAsync(async (req, res) => {
-  const { name, email, password, zipcode, state, phone } = req.body;
-  if (!email || !name || !password || !zipcode || !state || !phone) {
-    throw new AppError(400, 'All fields is required! Please try again');
+  const {email } = req.body;
+  if (!email ) {
+    throw new AppError(400, 'Email is required! Please try again');
   }
-  const result = await AuthServices.makeAdmin(req.body);
+  const result = await AuthServices.makeAdmin(email);
   const isok = result ? true : false;
   sendResponse(res, {
     statusCode: isok ? 200 : 400,

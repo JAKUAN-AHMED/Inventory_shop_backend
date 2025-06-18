@@ -12,10 +12,10 @@ export  async function isExistByEmail(email:string){
     return existingUser;
 }
 
-export async function alreadyExist(param:any){
+export async function alreadyExist(param:any,msg?:string){
    if(param)
    {
-    throw new AppError(409,'AlreadY Exist Same Data')
+    throw new AppError(409,`${msg}`)
    }
 }
 

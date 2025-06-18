@@ -7,44 +7,220 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String
-  email                   String         @unique
-  phone                   String
-  password                String
-  role                    userStatus
-  imgUrl                  String?
-  isVerified              Boolean @default(false)
-  verificationTokenExpiry DateTime?
-  verificationToken       String?
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  @@map("users")
-}
-
-
-
-model ContactUs {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  email         String
-  message       String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("contactus")
-}
-
-enum userStatus{
+enum UserRole {
   ADMIN
-  USER
+  INSTRUCTOR
+  STUDENT
 }
 
+enum LicenseType {
+  AIRPLANE
+  HELICOPTER
+  GAS_BALLOON
+  HOT_AIR_BALLOON
+  GLIDER
+}
 
-enum Status {
-  PENDING
+enum TestStatus {
+  IN_PROGRESS
   COMPLETED
+  PAUSED
   CANCELLED
 }
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING
+}
+
+model User {
+  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                String         @unique
+  email                   String         @unique
+  password                String
+  
+  phone                   String
+  role                    UserRole       @default(STUDENT)
+  isVerified              Boolean        @default(false)
+  verificationToken       String?        @unique
+  verificationTokenExpiry DateTime?
+  profileImage            String?        @default("https://ibb.co/q36v3f9w")
+  joinDate                DateTime       @default(now())
+  lastLogin               DateTime?
+
+  subscriptions           Subscription[]
+  testResults             TestResult[]
+  bookmarks               Bookmark[]
+  comments                Comment[]
+  replies                 Reply[]
+  tests                   Test[]
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  @@map("users")
+
+}
+
+model License {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String         @unique
+  type          LicenseType?
+  description   String?
+  price         Float?
+  topics        Topic[]
+  subscriptions Subscription[]
+  tests         Test[]
+  @@map("licenses")
+
+}
+
+model Topic {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  license       License        @relation(fields: [licenseId], references: [id])
+  licenseId     String         @db.ObjectId
+  code          String         @unique
+  name          String
+  description   String?
+  questions     Question[]
+  tests         Test[]
+  testResults   TestResult[]
+  @@map("topics")
+
+}
+
+model Question {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  topic         Topic           @relation(fields: [topicId], references: [id])
+  topicId       String          @db.ObjectId
+  text          String
+  explanation   String?
+  difficulty    Int             @default(1)
+  answers       Answer[]
+  bookmarks     Bookmark[]
+  comments      Comment[]
+  testQuestions TestQuestion[]
+
+  @@map("questions")
+
+}
+
+model Answer {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  question      Question       @relation(fields: [questionId], references: [id])
+  questionId    String         @db.ObjectId
+  text          String
+  isCorrect     Boolean        @default(false)
+  testQuestions TestQuestion[]
+
+  @@map("answers")
+
+}
+
+model Test {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  user          User           @relation(fields: [userId], references: [id])
+  userId        String         @db.ObjectId
+  license       License        @relation(fields: [licenseId], references: [id])
+  licenseId     String         @db.ObjectId
+  topic         Topic          @relation(fields: [topicId], references: [id])
+  topicId       String         @db.ObjectId
+  date          DateTime       @default(now())
+  score         Float?
+  total         Int
+  status        TestStatus     @default(IN_PROGRESS)
+  questions     TestQuestion[]
+  bookmarks     Bookmark[]
+  testResults   TestResult[]
+  @@map("tests")
+
+}
+
+model TestQuestion {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  test        Test      @relation(fields: [testId], references: [id])
+  testId      String    @db.ObjectId
+  question    Question  @relation(fields: [questionId], references: [id])
+  questionId  String    @db.ObjectId
+  selected    Int?
+  isCorrect   Boolean?
+  answer      Answer?   @relation(fields: [answerId], references: [id])
+  answerId    String?   @db.ObjectId
+
+  @@unique([testId, questionId])
+  @@map("testQuestions")
+
+}
+
+model TestResult {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  test      Test     @relation(fields: [testId], references: [id])
+  testId    String   @db.ObjectId
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  topicId   String   @db.ObjectId
+  date      DateTime @default(now())
+  score     Float
+  @@map("testResults")
+
+}
+
+model Bookmark {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.ObjectId
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String   @db.ObjectId
+  test       Test?    @relation(fields: [testId], references: [id])
+  testId     String?  @db.ObjectId
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@map("bookmarks")
+
+}
+
+model Comment {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  user       User      @relation(fields: [userId], references: [id])
+  userId     String    @db.ObjectId
+  question   Question  @relation(fields: [questionId], references: [id])
+  questionId String    @db.ObjectId
+  text       String
+  downVote   Int       @default(0)
+  upVote     Int       @default(0)
+  createdAt  DateTime  @default(now())
+  replies    Reply[]
+  @@map("comments")
+
+}
+
+model Reply {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  comment    Comment  @relation(fields: [commentId], references: [id])
+  commentId  String   @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.ObjectId
+  text       String
+  createdAt  DateTime @default(now())
+  @@map("replies")
+
+}
+
+model Subscription {
+  id         String             @id @default(auto()) @map("_id") @db.ObjectId
+  user       User               @relation(fields: [userId], references: [id])
+  userId     String             @db.ObjectId
+  license    License            @relation(fields: [licenseId], references: [id])
+  licenseId  String             @db.ObjectId
+  startDate  DateTime
+  endDate    DateTime
+  amount     Float
+  status     SubscriptionStatus @default(ACTIVE)
+  @@map("subscriptions")
+
+}
+
 

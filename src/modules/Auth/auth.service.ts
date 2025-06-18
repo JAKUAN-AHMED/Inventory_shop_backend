@@ -2,20 +2,25 @@ import config from '../../config';
 import { prisma } from '../../prisma/client';
 import { ILoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { IUser } from '../User/user.interface';
 import { createToken, verifyToken } from './auth.utils';
 import AppError from '../../errors/AppError';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../../helpers/emailSender/emails';
 import { alreadyExist, isExistByEmail, NotFound } from '../../utils/utility';
+import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 
 
-const register = async (payload: IUser) => {
+const register = async (file:any,payload: IUser) => {
 
   //check user is already exist or not 
   const existingUser = await isExistByEmail(payload.email);
-  await alreadyExist(existingUser);
+  await alreadyExist(existingUser, 'Already Exist This Email');
 
+  let imageUrls: string = '';
+  if ( file ) {
+    const { location: secure_url } = await uploadToDigitalOceanAWS(file);
+    imageUrls=secure_url as string;
+  }
   // Hash the password
   const password = await bcrypt.hash(
     payload.password,
@@ -33,10 +38,11 @@ const register = async (payload: IUser) => {
   const result = await prisma.user.create({
     data: {
       ...payload,
-      role: "USER",
+      role: "STUDENT",
       password,
       verificationToken,
-      verificationTokenExpiry
+      verificationTokenExpiry,
+      profileImage: imageUrls ? imageUrls : "https://ibb.co/q36v3f9w"
     },
   });
   return result;
@@ -68,7 +74,7 @@ const verifyEmail = async (email: string, token: string) => {
       email: true,
       name: true,
       role: true,
-      imgUrl: true,
+      profileImage: true,
     },
   });
 
@@ -110,9 +116,23 @@ const login = async (payload: ILoginUser) => {
       name: true,
       password: true,
       role: true,
-      imgUrl: true
+      profileImage: true,
+      isVerified: true
     },
   });
+
+
+  if (!user?.isVerified) {
+    throw new AppError(403, 'Please Verify Your Email');
+  }
+  const updatedUserLastLogin = await prisma.user.update({
+    where: {
+      email: payload.email
+    },
+    data: {
+      lastLogin: new Date()
+    }
+  })
 
   if (!user) {
     throw new Error('Invalid credentials');
@@ -127,7 +147,7 @@ const login = async (payload: ILoginUser) => {
     throw new Error('Invalid credentials');
   }
   const JwtPayload = {
-    userId:user?.id,
+    userId: user?.id,
     email: user.email,
     role: user.role
   }
@@ -153,7 +173,7 @@ const login = async (payload: ILoginUser) => {
     name: user.name,
     email: user.email,
     role: user.role,
-    imgUrl: user?.imgUrl ? user?.imgUrl : null
+    imgUrl: user?.profileImage ? user?.profileImage : null
 
   }
   return {
@@ -173,8 +193,8 @@ const forgotPassword = async (email: string) => {
   if (!user?.id || !user?.email || !user?.role) {
     throw new Error('User data is incomplete for token generation');
   }
-   const JwtPayload = {
-    userId:user?.id,
+  const JwtPayload = {
+    userId: user?.id,
     email: user?.email,
     role: user?.role
   }
@@ -184,7 +204,7 @@ const forgotPassword = async (email: string) => {
     config.access_token_expires as string
   );
   const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
-  console.log('token : ', token);
+  // console.log('token : ', token);
 
   const res = await sendPasswordResetEmail(email, link);
   return true;
@@ -200,7 +220,7 @@ export const resetPassword = async (
   const user = await isExistByEmail(email)
   await NotFound(user);
 
-  const verification=verifyToken(token,config.access_token_secret as string);
+  const verification = verifyToken(token, config.access_token_secret as string);
   await NotFound(verification);
 
   const hashedPassword = await bcrypt.hash(password, Number(config.salt_round));
@@ -219,11 +239,11 @@ export const resetPassword = async (
 
 const changePassword = async (
   email: string,
-  oldPassword:string,
+  oldPassword: string,
   newPassword: string,
 ) => {
-  const user =await isExistByEmail(email)
-  await NotFound(user,'User not found with this email');
+  const user = await isExistByEmail(email)
+  await NotFound(user, 'User not found with this email');
   if (!user?.password) {
     throw new Error('User password is missing');
   }
@@ -265,10 +285,10 @@ const refreshToken = async (refreshToken: string) => {
   if (!decoded) {
     throw new Error('Invalid or expired refresh token!');
   }
-
+  // console.log('decoded id',decoded)
   const user = await prisma.user.findUnique({
     where: {
-      id: decoded?.id,
+      id: decoded?.userId,
     },
   });
 
@@ -276,15 +296,15 @@ const refreshToken = async (refreshToken: string) => {
     throw new Error('User not found with this refresh token');
   }
 
- const JwtPayload = {
-    userId:user?.id,
+  const JwtPayload = {
+    userId: user?.id,
     email: user?.email,
     role: user?.role
   }
   const accessToken = createToken(
     JwtPayload,
     config.access_token_secret as string,
-    Number(config.access_token_expires),
+    config.access_token_expires,
   );
 
   return { accessToken };
@@ -333,26 +353,22 @@ interface IMakeAdmin {
 
 }
 
-const makeAdmin = async (payload: IMakeAdmin) => {
-  const { name, email, password, phone } = payload;
+const makeAdmin = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      email,
+      email
     },
   });
 
-  if (user) {
-    throw new AppError(400, 'User already exists with this email');
-  }
+  await NotFound(user,'User')
 
-  const result = await prisma.user.create({
-    data: {
-      name,
-      email,
-      role: "ADMIN",
-      password: await bcrypt.hash(password, Number(config.salt_round)),
-      phone
+  const result = await prisma.user.update({
+    where:{
+      email
     },
+    data:{
+      role:"ADMIN"
+    }
   });
 
   return result;
