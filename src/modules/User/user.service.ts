@@ -1,4 +1,5 @@
 import { prisma } from '../../prisma/client';
+import { IUser } from './user.interface';
 
 
 
@@ -21,6 +22,16 @@ const deleteduser = async (userId: string) => {
 }
 
 
+const updateProfile=async(id:string,payload:Partial<IUser>)=>{
+    const result=await prisma.user.update({
+where:{
+    id
+},
+data:{
+    ...payload
+}
+    })
+}
 
 export const UserServices = {
     

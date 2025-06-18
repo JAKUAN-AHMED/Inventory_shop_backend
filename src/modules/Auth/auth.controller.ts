@@ -1,11 +1,17 @@
+import { Multer } from 'multer';
 import AppError from '../../errors/AppError';
 import catchAsync from '../../utils/catchAsync';
+import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 import { authValidation } from './auth.validation';
 
 const register = catchAsync(async (req, res) => {
-  const result = await AuthServices.register(req.body);
+ 
+
+   const file = req.file as Express.Multer.File;
+
+  const result = await AuthServices.register(file,req.body);
   const isok = result ? true : false;
   sendResponse(res, {
     statusCode: isok ? 201 : 400,

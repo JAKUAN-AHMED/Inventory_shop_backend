@@ -27,6 +27,8 @@ const deleteUser = catchAsync(async (req, res) => {
 
 
 
+
+
 export const UserController = {
         getSingleUser,
         deleteUser,

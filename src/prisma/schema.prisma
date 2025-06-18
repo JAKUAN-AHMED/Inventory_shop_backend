@@ -46,7 +46,7 @@ model User {
   isVerified              Boolean        @default(false)
   verificationToken       String?        @unique
   verificationTokenExpiry DateTime?
-  profileImage            String?        @default("default-avatar.jpg")
+  profileImage            String?        @default("https://ibb.co/q36v3f9w")
   joinDate                DateTime       @default(now())
   lastLogin               DateTime?
 
@@ -72,7 +72,7 @@ model License {
   topics        Topic[]
   subscriptions Subscription[]
   tests         Test[]
-  @@map("license")
+  @@map("licenses")
 
 }
 
@@ -86,7 +86,7 @@ model Topic {
   questions     Question[]
   tests         Test[]
   testResults   TestResult[]
-  @@map("topic")
+  @@map("topics")
 
 }
 
@@ -102,7 +102,7 @@ model Question {
   comments      Comment[]
   testQuestions TestQuestion[]
 
-  @@map("question")
+  @@map("questions")
 
 }
 
@@ -114,7 +114,7 @@ model Answer {
   isCorrect     Boolean        @default(false)
   testQuestions TestQuestion[]
 
-  @@map("answer")
+  @@map("answers")
 
 }
 
@@ -133,7 +133,7 @@ model Test {
   questions     TestQuestion[]
   bookmarks     Bookmark[]
   testResults   TestResult[]
-  @@map("test")
+  @@map("tests")
 
 }
 
@@ -149,7 +149,7 @@ model TestQuestion {
   answerId    String?   @db.ObjectId
 
   @@unique([testId, questionId])
-  @@map("testQuestion")
+  @@map("testQuestions")
 
 }
 
@@ -163,7 +163,7 @@ model TestResult {
   topicId   String   @db.ObjectId
   date      DateTime @default(now())
   score     Float
-  @@map("testResult")
+  @@map("testResults")
 
 }
 
@@ -178,7 +178,7 @@ model Bookmark {
   createdAt  DateTime @default(now())
 
   @@unique([userId, questionId])
-  @@map("bookmark")
+  @@map("bookmarks")
 
 }
 
@@ -193,7 +193,7 @@ model Comment {
   upVote     Int       @default(0)
   createdAt  DateTime  @default(now())
   replies    Reply[]
-  @@map("comment")
+  @@map("comments")
 
 }
 
@@ -205,7 +205,7 @@ model Reply {
   userId     String   @db.ObjectId
   text       String
   createdAt  DateTime @default(now())
-  @@map("reply")
+  @@map("replies")
 
 }
 
@@ -219,7 +219,7 @@ model Subscription {
   endDate    DateTime
   amount     Float
   status     SubscriptionStatus @default(ACTIVE)
-  @@map("subscription")
+  @@map("subscriptions")
 
 }
 

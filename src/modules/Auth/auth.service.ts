@@ -7,14 +7,20 @@ import { createToken, verifyToken } from './auth.utils';
 import AppError from '../../errors/AppError';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../../helpers/emailSender/emails';
 import { alreadyExist, isExistByEmail, NotFound } from '../../utils/utility';
+import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 
 
-const register = async (payload: IUser) => {
+const register = async (file:any,payload: IUser) => {
 
   //check user is already exist or not 
   const existingUser = await isExistByEmail(payload.email);
-  await alreadyExist(existingUser,'Already Exist This Email');
+  await alreadyExist(existingUser, 'Already Exist This Email');
 
+  let imageUrls: string = '';
+  if ( file ) {
+    const { location: secure_url } = await uploadToDigitalOceanAWS(file);
+    imageUrls=secure_url as string;
+  }
   // Hash the password
   const password = await bcrypt.hash(
     payload.password,
@@ -35,7 +41,8 @@ const register = async (payload: IUser) => {
       role: "STUDENT",
       password,
       verificationToken,
-      verificationTokenExpiry
+      verificationTokenExpiry,
+      profileImage: imageUrls ? imageUrls : "https://ibb.co/q36v3f9w"
     },
   });
   return result;
@@ -109,9 +116,23 @@ const login = async (payload: ILoginUser) => {
       name: true,
       password: true,
       role: true,
-      profileImage: true
+      profileImage: true,
+      isVerified: true
     },
   });
+
+
+  if (!user?.isVerified) {
+    throw new AppError(403, 'Please Verify Your Email');
+  }
+  const updatedUserLastLogin = await prisma.user.update({
+    where: {
+      email: payload.email
+    },
+    data: {
+      lastLogin: new Date()
+    }
+  })
 
   if (!user) {
     throw new Error('Invalid credentials');
@@ -126,7 +147,7 @@ const login = async (payload: ILoginUser) => {
     throw new Error('Invalid credentials');
   }
   const JwtPayload = {
-    userId:user?.id,
+    userId: user?.id,
     email: user.email,
     role: user.role
   }
@@ -172,8 +193,8 @@ const forgotPassword = async (email: string) => {
   if (!user?.id || !user?.email || !user?.role) {
     throw new Error('User data is incomplete for token generation');
   }
-   const JwtPayload = {
-    userId:user?.id,
+  const JwtPayload = {
+    userId: user?.id,
     email: user?.email,
     role: user?.role
   }
@@ -199,7 +220,7 @@ export const resetPassword = async (
   const user = await isExistByEmail(email)
   await NotFound(user);
 
-  const verification=verifyToken(token,config.access_token_secret as string);
+  const verification = verifyToken(token, config.access_token_secret as string);
   await NotFound(verification);
 
   const hashedPassword = await bcrypt.hash(password, Number(config.salt_round));
@@ -218,11 +239,11 @@ export const resetPassword = async (
 
 const changePassword = async (
   email: string,
-  oldPassword:string,
+  oldPassword: string,
   newPassword: string,
 ) => {
-  const user =await isExistByEmail(email)
-  await NotFound(user,'User not found with this email');
+  const user = await isExistByEmail(email)
+  await NotFound(user, 'User not found with this email');
   if (!user?.password) {
     throw new Error('User password is missing');
   }
@@ -275,8 +296,8 @@ const refreshToken = async (refreshToken: string) => {
     throw new Error('User not found with this refresh token');
   }
 
- const JwtPayload = {
-    userId:user?.id,
+  const JwtPayload = {
+    userId: user?.id,
     email: user?.email,
     role: user?.role
   }
