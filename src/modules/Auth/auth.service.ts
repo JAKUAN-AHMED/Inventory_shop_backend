@@ -24,7 +24,7 @@ const register = async (file:any,payload: IUser) => {
   // Hash the password
   const password = await bcrypt.hash(
     payload.password,
-    Number(config.salt_round),
+    10,
   );
 
   //verification token
@@ -223,7 +223,7 @@ export const resetPassword = async (
   const verification = verifyToken(token, config.access_token_secret as string);
   await NotFound(verification);
 
-  const hashedPassword = await bcrypt.hash(password, Number(config.salt_round));
+  const hashedPassword = await bcrypt.hash(password,10);
 
   await prisma.user.update({
     where: {
