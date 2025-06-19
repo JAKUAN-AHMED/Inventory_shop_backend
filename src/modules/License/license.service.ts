@@ -1,8 +1,11 @@
+import AppError from "../../errors/AppError";
 import { prisma } from "../../prisma/client"
 import { ILicense } from "./license.interface"
 
+
+//create
 const createLicense = async (payload: ILicense) => {
-    const {name,type,description,price}=payload;
+    const { name, type, description, price } = payload;
     const result = await prisma.license.create({
         data: {
             name,
@@ -14,36 +17,42 @@ const createLicense = async (payload: ILicense) => {
     return result;
 }
 
-
-const getAllLicense=async()=>{
-     return await prisma.license.findMany();
+//get all
+const getAllLicense = async () => {
+    const result = await prisma.license.findMany({
+        include: {
+            topics:true
+        }
+    });
+    return result; 
 }
 
-
-const getSingleLicense=async(id:string)=>{
+//get single
+const getSingleLicense = async (id: string) => {
     return await prisma.license.findUnique({
-    where:{
-        id
-    }
+        where: {
+            id
+        },
+        include:{
+            topics:true
+        }
     })
 }
 
 
-const deleteLicense=async(id:string)=>{
+//delete single
+
+const deleteLicense = async (id: string) => {
     /**
      * first  delete licence id from topics
      * delete licence from license collection
      */
 
-    // const topics=-await prisma.topic.delete({
-    //     where:{
-    //         licenseId:["id"]
-    //     }
-    // })
+    
 
-
+   
     return await prisma.license.delete({
-        where:{
+        where: {
             id
         }
     })
@@ -51,7 +60,7 @@ const deleteLicense=async(id:string)=>{
 
 }
 
-export const LicenseService={
+export const LicenseService = {
     createLicense,
     getAllLicense,
     getSingleLicense,
