@@ -1,10 +1,11 @@
-import AppError from "../../errors/AppError";
+import { License } from "@prisma/client";
 import { prisma } from "../../prisma/client"
-import { ILicense } from "./license.interface"
+import { NotFound } from "../../utils/utility";
+
 
 
 //create
-const createLicense = async (payload: ILicense) => {
+const createLicense = async (payload: License) => {
     const { name, type, description, price } = payload;
     const result = await prisma.license.create({
         data: {
@@ -20,6 +21,32 @@ const createLicense = async (payload: ILicense) => {
 //get all
 const getAllLicense = async () => {
     const result = await prisma.license.findMany({
+        select: {
+            id: true,
+            name: true,
+            type: true,
+            description: true,
+            licenseTopics: {
+                where: {
+                    topic: {
+                        isNot: null
+                    }
+                },
+                select: {
+                    topic: true
+                }
+            }
+        }
+    });
+
+    return result;
+}
+//get single
+const getSingleLicense = async (id: string) => {
+    return await prisma.license.findUnique({
+        where: {
+            id
+        },
         include: {
             licenseTopics: {
                 include: {
@@ -27,24 +54,27 @@ const getAllLicense = async () => {
                 }
             }
         }
-    });
-    return result;
+    })
 }
 
-//get single
-const getSingleLicense = async (id: string) => {
-    return await prisma.license.findUnique({
+
+//update license
+const updateLicense = async (id: string, payload: Partial<License>) => { 
+
+    // check if license exists
+    const licenseExists = await prisma.license.findUnique({
+        where: {
+            id
+        }
+    });
+    await NotFound(licenseExists, "License");
+
+    return await prisma.license.update({
         where: {
             id
         },
-       include:{
-        licenseTopics:{
-             include: {
-            topic: true
-        }
-        }
-       }
-    })
+        data:payload
+    });
 }
 
 
@@ -52,13 +82,35 @@ const getSingleLicense = async (id: string) => {
 
 const deleteLicense = async (id: string) => {
     /**
-     * first  delete licence id from topics
+     * first  delete licence id from licenseTopic
      * delete licence from license collection
      */
+    // check if license exists
+    const licenseExists = await prisma.license.findUnique({
+        where: {
+            id
+        }
+    });
+    await NotFound(licenseExists, "License");
 
 
+    // find the license topics associated with the license and remove the license id
+    const licenseTopics = await prisma.licenseTopic.findMany({
+        where: {
+            licenseId: id
+        }
+    });
 
+    if (licenseTopics.length > 0) {
+        // delete the license topics
+        await prisma.licenseTopic.deleteMany({
+            where: {
+                licenseId: id
+            }
+        });
+    }
 
+    //now delete the license safely
     return await prisma.license.delete({
         where: {
             id
@@ -72,5 +124,6 @@ export const LicenseService = {
     createLicense,
     getAllLicense,
     getSingleLicense,
-    deleteLicense
+    deleteLicense,
+    updateLicense
 }

@@ -27,6 +27,21 @@ const getAllLicense = catchAsync(async (req, res) => {
 })
 
 
+
+//update License
+const updateLicense = catchAsync(async (req, res) => {
+    const result = await LicenseService.updateLicense(req.params.id, req.body);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Updated a License' : 'Failed to Update a License',
+        Data: isOk ? result : [],
+    });
+}
+);
+
+
 //single license
 const singleLicense = catchAsync(async (req, res) => {
     const result = await LicenseService.getSingleLicense(req.params.id);
@@ -56,6 +71,7 @@ export const LicenseController = {
     createLicense,
     getAllLicense,
     singleLicense,
-    deleteLicense
+    deleteLicense,
+    updateLicense
 
 }

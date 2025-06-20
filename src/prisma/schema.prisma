@@ -19,7 +19,10 @@ enum LicenseType {
   GAS_BALLOON
   HOT_AIR_BALLOON
   GLIDER
+  RADIO_CERTIFICATE 
 }
+
+
 
 enum TestStatus {
   IN_PROGRESS
@@ -77,8 +80,8 @@ model LicenseTopic {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
   licenseId String  @db.ObjectId
   license   License @relation(fields: [licenseId], references: [id])
-  topicId   String  @db.ObjectId
-  topic     Topic   @relation(fields: [topicId], references: [id])
+  topicId   String?  @db.ObjectId
+  topic     Topic?   @relation(fields: [topicId], references: [id])
 
   @@map("licenses_topics")
 }

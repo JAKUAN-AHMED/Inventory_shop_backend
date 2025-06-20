@@ -1,7 +1,7 @@
 import { HttpStatusCode } from "axios"
-import AppError from "../../errors/AppError"
 import { prisma } from "../../prisma/client"
 import { Topic } from "@prisma/client"
+import { isExistUserById, NotFound } from "../../utils/utility";
 
 const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
   const { licenseIds, ...topicData } = payload;
@@ -20,6 +20,29 @@ const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
   await prisma.licenseTopic.createMany({ data: relations });
 
   return topic;
+};
+
+
+const addAnotherLixenseToTopic = async (topicId: string, licenseId: string) => {
+    // Check if the topic exists
+    const topic = await isExistUserById(topicId);
+    await NotFound(topic, `Topic Id`);
+    
+    // Check if the license exists
+    const license = await prisma.license.findUnique({
+        where: { id: licenseId }
+    });
+    if (!license) {
+        throw new Error(`License with ID ${licenseId} not found`);
+    }
+    // Create the relation
+    const relation = await prisma.licenseTopic.create({
+        data: {
+            topicId,
+            licenseId
+        }
+    });
+    return relation;
 };
 
 const allTopics=async()=>{
