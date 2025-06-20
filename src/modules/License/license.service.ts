@@ -21,10 +21,14 @@ const createLicense = async (payload: ILicense) => {
 const getAllLicense = async () => {
     const result = await prisma.license.findMany({
         include: {
-            topics:true
+            licenseTopics: {
+                include: {
+                    topic: true
+                }
+            }
         }
     });
-    return result; 
+    return result;
 }
 
 //get single
@@ -33,9 +37,13 @@ const getSingleLicense = async (id: string) => {
         where: {
             id
         },
-        include:{
-            topics:true
+       include:{
+        licenseTopics:{
+             include: {
+            topic: true
         }
+        }
+       }
     })
 }
 
@@ -48,9 +56,9 @@ const deleteLicense = async (id: string) => {
      * delete licence from license collection
      */
 
-    
 
-   
+
+
     return await prisma.license.delete({
         where: {
             id

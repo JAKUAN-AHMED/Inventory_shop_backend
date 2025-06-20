@@ -22,37 +22,37 @@ const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
   return topic;
 };
 
-// const allTopics=async()=>{
-//     return await prisma.topic.findMany({
-//        include:{
-//         licenseTopics:{
-//             include:{
-//                 license:true
-//             }
-//         }
-//        }
-//     })
-// }
+const allTopics=async()=>{
+    return await prisma.topic.findMany({
+       include:{
+        licenseTopics:{
+            include:{
+                license:true
+            }
+        }
+       }
+    })
+}
 
-// const singleTopic=async(id:string)=>{
-//     return await prisma.topic.findUnique({
-//         where:{
-//             id
-//         }
-//     })
-// }
+const singleTopic=async(id:string)=>{
+    return await prisma.topic.findUnique({
+        where:{
+            id
+        }
+    })
+}
 
 
-// const deleteTopic = async (id: string) => {
-//     return await prisma.topic.delete({
-//         where: {
-//             id
-//         }
-//     })
-// }
+const deleteTopic = async (id: string) => {
+    return await prisma.topic.delete({
+        where: {
+            id
+        }
+    })
+}
 export const TopicService = {
     createTopic,
-    // allTopics,
-    // singleTopic,
-    // deleteTopic
+    allTopics,
+    singleTopic,
+    deleteTopic
 }

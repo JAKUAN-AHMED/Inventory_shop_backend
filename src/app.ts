@@ -9,7 +9,7 @@ const app = express();
 
 export const corsOptions = {
   origin: [
-    'http://localhost:8090',
+    'http://localhost:8090','https://justuska-2.vercel.app',
    
   ],
 
