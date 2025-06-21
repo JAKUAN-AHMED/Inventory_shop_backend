@@ -17,7 +17,7 @@ router.get('/License/:id',auth('ADMIN','INSTRUCTOR','STUDENT'),LicenseController
 
 
 //update license
-router.patch('/License/:id',auth('ADMIN'),LicenseController.updateLicense);
+router.patch('/updateLicense/:id',auth('ADMIN'),LicenseController.updateLicense);
 
 
 export const LicenseRoutes=router;

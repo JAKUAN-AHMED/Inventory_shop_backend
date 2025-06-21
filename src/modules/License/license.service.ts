@@ -5,16 +5,23 @@ import { NotFound } from "../../utils/utility";
 
 
 //create
-const createLicense = async (payload: License) => {
-    const { name, type, description, price } = payload;
+const createLicense = async (payload: License & { topicIds: string[] }) => {
+    const { topicIds, ...licenseData } = payload;
+    // 1. Create the topic
     const result = await prisma.license.create({
-        data: {
-            name,
-            type,
-            description,
-            price
-        }
+        data: licenseData
     });
+
+    // 2. Create many-to-many relations
+    if (topicIds && topicIds.length > 0) {
+        const relations = topicIds.map((topicId: string) => ({
+            topicId,
+            licenseId: result.id
+        }));
+
+        await prisma.licenseTopic.createMany({ data: relations });
+    }
+
     return result;
 }
 
@@ -59,7 +66,7 @@ const getSingleLicense = async (id: string) => {
 
 
 //update license
-const updateLicense = async (id: string, payload: Partial<License>) => { 
+const updateLicense = async (id: string, payload: Partial<License>) => {
 
     // check if license exists
     const licenseExists = await prisma.license.findUnique({
@@ -73,7 +80,7 @@ const updateLicense = async (id: string, payload: Partial<License>) => {
         where: {
             id
         },
-        data:payload
+        data: payload
     });
 }
 

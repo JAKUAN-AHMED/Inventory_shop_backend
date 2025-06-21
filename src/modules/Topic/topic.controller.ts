@@ -47,11 +47,25 @@ const deleteTopic = catchAsync(async (req, res) => {
     });
 })
 
+const updateTopic = catchAsync(async (req, res) => {
+    const result = await TopicService.updateTopic(req.params.id, req.body); 
+    const isOk = result ? true : false;
+    sendResponse(res, { 
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Updated Topic' : 'Failed to Update Topic',
+        Data: isOk ? result : [],
+    });
+}
+);
+
+
 
 
 export const TopicController = {
 createTopic,
 getAllTopics,
 getSingleTopic,
-deleteTopic
+deleteTopic,
+updateTopic 
 }
