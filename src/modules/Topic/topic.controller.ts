@@ -1,13 +1,25 @@
+import AppError from "../../errors/AppError";
+import { prisma } from "../../prisma/client";
 import catchAsync from "../../utils/catchAsync"
 import sendResponse from "../../utils/sendResponse";
 import { TopicService } from "./topic.service"
 
 
 const createTopic = catchAsync(async (req, res) => {
+
+    const isExists=await prisma.license.findFirst({
+        where: {
+            name: req.body.name 
+        }
+    });
+
+    if (isExists) {
+        throw new AppError(409,'Topic with this name already exists');
+    }
   const result = await TopicService.createTopic(req.body);
   const isOk = !!result;
 
-  sendResponse(res, {
+    sendResponse(res, {
     statusCode: isOk ? 201 : 400,
     success: isOk,
     message: isOk ? 'Topic created successfully' : 'Failed to create topic',

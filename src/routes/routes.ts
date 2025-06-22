@@ -4,13 +4,16 @@ import { UserRoutes } from '../modules/User/user.routes';
 import { ContactRoutes } from '../modules/Contact/contact.routes';
 import { LicenseRoutes } from '../modules/License/licence.route';
 import { TopicRoutes } from '../modules/Topic/topic.route';
+import { questionRouter } from '../modules/Questions/question.route';
+import { AnswerRoutes } from '../modules/Answers/answer.route';
+import { TestRoutes } from '../modules/Test/test.route';
 
 
 const router = express.Router();
 
 const moduleRoutes = [
   {
-    path: '/user',  
+    path: '/user',
     route: UserRoutes,
   },
   {
@@ -29,7 +32,18 @@ const moduleRoutes = [
     path: '/topic',
     route: TopicRoutes,
   },
- 
+  {
+    path: '/question',
+    route: questionRouter,
+  },
+  {
+    path: '/answer',
+    route: AnswerRoutes,
+  },
+  {
+    path: '/test',
+    route: TestRoutes
+  }
 
 ];
 

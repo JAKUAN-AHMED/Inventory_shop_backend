@@ -1,9 +1,21 @@
+import AppError from "../../errors/AppError";
+import { prisma } from "../../prisma/client";
 import catchAsync from "../../utils/catchAsync"
 import sendResponse from "../../utils/sendResponse";
 import { LicenseService } from "./license.service"
 
 //create
 const createLicense = catchAsync(async (req, res) => {
+
+    const isExists=await prisma.license.findFirst({
+        where: {
+            name: req.body.name 
+        }
+    });
+
+    if (isExists) {
+        throw new AppError(409,'License with this name already exists');
+    }
     const result = await LicenseService.createLicense(req.body);
     const isOk = result ? true : false;
     sendResponse(res, {

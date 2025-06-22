@@ -26,7 +26,12 @@ const allTopics=async()=>{
        include:{
         licenseTopics:{
             include:{
-                license:true
+                license:true,
+                topic:{
+                    include:{
+                        questions:true
+                    }
+                }
             }
         }
        }
