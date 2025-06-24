@@ -55,14 +55,38 @@ const deleteTopic = async (id: string) => {
     })
 }
 
-const updateTopic = async (id: string, payload: Partial<Topic>) => {
-    return await prisma.topic.update({
-        where: {
-            id
-        },
-        data: payload
-    })
-}
+const updateTopic = async (
+  id: string,
+  payload: Partial<Topic> & { licenseIds?: string[] | string }
+) => {
+  const { licenseIds, ...topicData } = payload;
+
+  // Update the topic base fields
+  const updatedTopic = await prisma.topic.update({
+    where: { id },
+    data: topicData,
+  });
+
+  // Handle licenseIds if provided
+  if (licenseIds) {
+    // Normalize to array
+    const ids = Array.isArray(licenseIds) ? licenseIds : [licenseIds];
+
+    // Map to relation objects
+    const relations = ids.map(licenseId => ({
+      topicId: id,
+      licenseId,
+    }));
+
+    // Push relations
+    await prisma.licenseTopic.createMany({
+      data: relations
+    });
+  }
+
+  return updatedTopic;
+};
+
     
 export const TopicService = {
     createTopic,

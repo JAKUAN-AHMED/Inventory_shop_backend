@@ -9,11 +9,18 @@ const addToBookmarks = (payload:Bookmark) => {
 }
 
 
-const getMyBookmarks=async(id:string,userId:string)=>{
+const getMyBookmarks=async(userId:string)=>{
     return prisma.bookmark.findMany({
         where:{
-            id:id,
             userId:userId
+        },
+        include:{
+            question:{
+                include:{
+                    answers:true
+                }
+            },
+            test:true
         }
     })
 }

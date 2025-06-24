@@ -31,8 +31,22 @@ const AllQuestions = async () => {
             include: {
                 answers: true,
                 bookmarks: true,
-                comments: true,
-                testQuestions: true
+                comments:{
+                    include:{
+                        upVote:{
+                            select:{
+                                vote:true
+                            }
+                        },
+                        downVote:{
+                            select:{
+                                vote:true
+                            }
+                        }
+                    }
+                },
+                testQuestions: true,
+                explanation:true,
             }
         }
     )

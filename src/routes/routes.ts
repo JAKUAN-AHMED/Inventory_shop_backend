@@ -10,6 +10,8 @@ import { TestRoutes } from '../modules/Test/test.route';
 import { testQRouter } from '../modules/TestQuestions/testQ.route';
 import { testResultRoute } from '../modules/TestResult/testR.route';
 import { explanationsRouter } from '../modules/Explanations/explanations.route';
+import { bookmarkRoute } from '../modules/Bookmarks/bookmark.route';
+import { CommentRoutes } from '../modules/Comments/comment.route';
 
 
 const router = express.Router();
@@ -56,6 +58,14 @@ const moduleRoutes = [
   {
     path:'/explanation',
     route:explanationsRouter
+  },
+  {
+    path:'/bookmark',
+    route:bookmarkRoute
+  },
+  {
+    path:'/comment',
+    route:CommentRoutes
   }
 ];
 

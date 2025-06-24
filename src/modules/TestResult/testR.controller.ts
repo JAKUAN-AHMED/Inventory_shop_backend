@@ -4,6 +4,7 @@ import { NotFound } from "../../utils/utility";
 import { TestResultService } from "./testR.service"
 
 const createTestResult = catchAsync(async (req, res) => {
+    req.body.userId=req.user.id;
     const result = await TestResultService.createTestResult(req.body)
     const isOk = result ? true : false;
     sendResponse(res, {

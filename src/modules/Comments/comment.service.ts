@@ -2,8 +2,8 @@ import { Comment, DownVote } from "@prisma/client";
 import { prisma } from "../../prisma/client";
 
 
-const createCommnent = async (payload: Comment) => {
-    const { questionId, userId, text } = payload;
+const createCommnent = async (userId:string,payload: Comment) => {
+    const { questionId,text } = payload;
     return await prisma.comment.create({
         data: {
             questionId,

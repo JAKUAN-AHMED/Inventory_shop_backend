@@ -20,6 +20,7 @@ enum LicenseType {
   HOT_AIR_BALLOON
   GLIDER
   RADIO_CERTIFICATE 
+  SAILPLANE
 }
 
 
@@ -193,7 +194,7 @@ model TestResult {
   topic   Topic    @relation(fields: [topicId], references: [id])
   topicId String   @db.ObjectId
   date    DateTime @default(now())
-  score   Float
+  score   Float? @default(0)
 
   @@map("testResults")
 }

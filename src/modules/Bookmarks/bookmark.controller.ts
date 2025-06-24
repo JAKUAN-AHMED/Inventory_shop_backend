@@ -23,9 +23,8 @@ const addBookmark = catchAsync(async(req,res)=>{
 })
 
 const getMyBookmarks = catchAsync(async(req,res)=>{
-    const { id } = req.params;
     const userId = req?.user?.id;
-    const result = await bookmarkService.getMyBookmarks(id, userId as string);
+    const result = await bookmarkService.getMyBookmarks(userId as string);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,

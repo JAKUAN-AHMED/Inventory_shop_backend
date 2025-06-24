@@ -1,8 +1,8 @@
 import { Explanation, ExplanationRating } from "@prisma/client"
 import { prisma } from "../../prisma/client";
 
-const addExplanation = async(payload:Explanation) => {
-    const {questionId,userId,text}=payload;
+const addExplanation = async(userId:string,payload:Explanation) => {
+    const {questionId,text}=payload;
     return await prisma.explanation.create({
         data: {
             questionId: questionId,

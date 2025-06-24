@@ -3,6 +3,7 @@ import sendResponse from "../../utils/sendResponse";
 import { ReplyService } from "./reply.service";
 
 const createReply=catchAsync(async(req,res)=>{
+    req.body
     const result = await ReplyService.createReply(req.body);
     const isOk = result ? true : false;
     sendResponse(res, {

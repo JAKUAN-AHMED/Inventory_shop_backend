@@ -3,7 +3,7 @@ import sendResponse from "../../utils/sendResponse";
 import { explanationsService } from "./explanations.service"
 
 const addExplanation = catchAsync(async (req, res) => {
-    const result = await explanationsService.addExplanation(req.body)
+    const result = await explanationsService.addExplanation(req?.user?.id as string,req.body)
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,

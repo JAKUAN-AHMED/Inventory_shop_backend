@@ -1,30 +1,47 @@
 import { TestResult } from "@prisma/client"
 import { prisma } from "../../prisma/client"
+import AppError from "../../errors/AppError";
 
 
 
 const createTestResult = async (payload: TestResult) => {
+//   console.log("payload", payload);
 
+  // Get the latest test for this user (assuming 1 test at a time)
+  const latestTest = await prisma.test.findFirst({
+    where: { userId: payload.userId },
+    select: { score: true },
+  });
 
-    const score = await prisma.test.findMany({
-        where: {
-            userId: payload.userId,
-        },
-        select: {
-            score: true
-        }
-    })
-    payload.score = score[0].score as number;
+  if (!latestTest) {
+    throw new AppError(404, "No test found for this user");
+  }
 
-    return await prisma.testResult.create({
-        data: payload
-    })
-}
+  payload.score = latestTest.score ?? 0;
+
+//   console.log("payload score", payload.score);
+
+  return await prisma.testResult.create({
+    data: payload,
+  });
+};
+
 const getTestResult = async (id: string, userId: string) => {
     return await prisma.testResult.findUnique({
         where: {
             id: id,
             userId: userId
+        },
+        include:{
+            topic:{
+                include:{
+                    licenseTopics:{
+                        include:{
+                            license:true
+                        }
+                    }
+                }
+            }
         }
     })
 }

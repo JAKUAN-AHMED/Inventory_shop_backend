@@ -1,46 +1,65 @@
 import { Test } from "@prisma/client";
 import { prisma } from "../../prisma/client";
+import AppError from "../../errors/AppError";
 
-const createTest = async (payload: Test) => {
+const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
+  console.log("payload ", payload);
 
-    const questions=await prisma.question.findMany({
-        where:{
-            topicId:payload.topicId
-        },
-        include:{
-            answers:true,
-            bookmarks:true,
-            testQuestions:true,
-            comments:true
+  // 1. Fetch random questions from the topic
+  const questions = await prisma.question.findMany({
+    where: {
+      topicId: payload.topicId,
+    },
+    select: {
+      id: true,
+      explanation: true,
+      answers: true,
+      comments: true,
+      // topicId is not needed unless you need it later
+    },
+    take: payload.total,
+  });
 
-        },
-        take:payload.total
-    })
+  console.log("questions", questions);
 
+  if (questions.length === 0) {
+    throw new AppError(404, "No questions found for this topic.");
+  }
 
-    //create test questions
-    const testQuestions=await prisma.testQuestion.createMany({
-        data: questions.map((question) => ({
-            questionId: question.id,
-            testId: payload.id
-        })) 
-    });
+  // 2. Create the Test (must come BEFORE using testId)
+  const test = await prisma.test.create({
+    data: payload,
+  });
 
-    // Logic to create a test
-    const result= await prisma.test.create({
-        data: payload
-    });
+  if (!test) {
+    throw new AppError(400, "Failed to create Test.");
+  }
 
-    return {
-        ...result,
-        questions: questions
-    }
+  // 3. Create related TestQuestions
+  const testQuestions = await prisma.testQuestion.createMany({
+    data: questions.map((question) => ({
+      questionId: question.id,
+      testId: test.id,         // use newly created test's ID
+    })),
+  });
+
+//   console.log("testQuestions", testQuestions);
+
+  if (!testQuestions || testQuestions.count === 0) {
+    throw new AppError(400, "Failed to create Test Questions.");
+  }
+
+  // 4. Return test and selected questions
+  return {
+    ...test,
+    questions,
+  };
 };
 
 const updateTest = async (id: string, payload: Partial<Test>) => {
 
 
-   
+
 
     // Check if the test exists
     const isExists = await prisma.test.findUnique({
@@ -72,8 +91,8 @@ const AllTests = async () => {
     return await prisma.test.findMany({
         include: {
             bookmarks: true,
-            questions:true,
-            testResults:true,
+            questions: true,
+            testResults: true,
         }
     });
 };
@@ -84,8 +103,8 @@ const TestById = async (id: string) => {
         where: { id },
         include: {
             bookmarks: true,
-            questions:true,
-            testResults:true
+            questions: true,
+            testResults: true
         }
     });
 };

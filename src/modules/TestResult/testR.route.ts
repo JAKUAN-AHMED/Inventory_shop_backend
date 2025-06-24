@@ -6,5 +6,5 @@ const router=Router();
 
 
 router.post('/generate-result',auth('ADMIN','STUDENT'),testRcontroller.createTestResult);
-router.get('/generate-results',auth('ADMIN','STUDENT'),testRcontroller.getTestResult);
+router.get('/reports/:id',auth('ADMIN','STUDENT'),testRcontroller.getTestResult);
 export const testResultRoute = router;

@@ -28,22 +28,13 @@ const createLicense = async (payload: License & { topicIds: string[] }) => {
 //get all
 const getAllLicense = async () => {
     const result = await prisma.license.findMany({
-        select: {
-            id: true,
-            name: true,
-            type: true,
-            description: true,
-            licenseTopics: {
-                where: {
-                    topic: {
-                        isNot: null
-                    }
-                },
-                select: {
-                    topic: true
+        include: {
+            licenseTopics:{
+                include:{
+                    topic:true
                 }
             }
-        }
+        },
     });
 
     return result;
@@ -57,7 +48,8 @@ const getSingleLicense = async (id: string) => {
         include: {
             licenseTopics: {
                 include: {
-                    topic: true
+                   topic:true,
+                   license:true
                 }
             }
         }
