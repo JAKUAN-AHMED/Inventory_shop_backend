@@ -23,70 +23,64 @@ const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
   return topic;
 };
 
-const allTopics=async(query:any)=>{
+const allTopics = async (query: any) => {
 
-  const builder=new QueryBuilder(query,prisma.topic);
-  const result=await builder
-  .paginate()
-  .include({
-        licenseTopics:{
-            include:{
-                license:true,
-                topic:{
-                    include:{
-                        questions:true
-                    }
-                }
+  const builder = new QueryBuilder(query, prisma.topic);
+  const result = await builder
+    .paginate()
+    .include({
+      licenseTopics: {
+        include: {
+          license: true,
+          topic: {
+            include: {
+              questions: true
             }
+          }
         }
-       })
-       .execute();
-
-       const meta=await builder.countTotal();
-    // return await prisma.topic.findMany({
-    //    include:{
-    //     licenseTopics:{
-    //         include:{
-    //             license:true,
-    //             topic:{
-    //                 include:{
-    //                     questions:true
-    //                 }
-    //             }
-    //         }
-    //     }
-    //    }
-    // })
-
-    return ({
-      data:result,
-      meta
+      }
     })
+    .execute();
+
+  const meta = await builder.countTotal();
+
+  return ({
+    data: result,
+    meta
+  })
 }
 
-const singleTopic=async(id:string)=>{
-    return await prisma.topic.findUnique({
-        where:{
-            id
-        }
-    })
+const singleTopic = async (id: string) => {
+  return await prisma.topic.findUnique({
+    where: {
+      id
+    }
+  })
 }
 
 
 const deleteTopic = async (id: string) => {
 
-  const isExist=await prisma.topic.findUnique({
-    where:{
+  const isExist = await prisma.topic.findUnique({
+    where: {
       id
     }
   })
 
-  await NotFound(isExist,'Which Topic You are trying to Delete This is');
-    return await prisma.topic.delete({
-        where: {
-            id
-        }
-    })
+  await NotFound(isExist, 'Which Topic You are trying to Delete This is');
+
+  //delete relation from license topic
+  await prisma.licenseTopic.deleteMany({
+    where: {
+      topicId: id
+    }
+  })
+
+  return await prisma.topic.delete({
+    where: {
+      id
+    }
+  })
 }
 
 const updateTopic = async (
@@ -121,11 +115,11 @@ const updateTopic = async (
   return updatedTopic;
 };
 
-    
+
 export const TopicService = {
-    createTopic,
-    allTopics,
-    singleTopic,
-    deleteTopic,
-    updateTopic
+  createTopic,
+  allTopics,
+  singleTopic,
+  deleteTopic,
+  updateTopic
 }

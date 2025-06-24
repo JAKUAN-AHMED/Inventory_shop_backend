@@ -1,6 +1,7 @@
 import { Question } from "@prisma/client"
 import { prisma } from "../../prisma/client"
 import QueryBuilder from "../../builder/QueryBuilder"
+import { NotFound } from "../../utils/utility"
 
 const createQuestion = async (payload: Question) => {
     return await prisma.question.create({
@@ -19,6 +20,26 @@ const updateQuestion = async (id: string, payload: Partial<Question>) => {
 
 
 const deleteQuestion = async (id: string) => {
+
+    const isExistQuestions=await prisma.question.findUnique({
+        where:{
+            id
+        }
+    })
+
+    await NotFound(404,"Questions You are trying to Delete ,Its Already Deleted and Id");
+
+    await prisma.answer.deleteMany({
+        where:{
+            questionId:id
+        }
+    })
+
+    await prisma.testQuestion.deleteMany({
+        where:{
+            questionId:id
+        }
+    })
     return await prisma.question.delete({
         where: { id }
     })
@@ -53,32 +74,7 @@ const AllQuestions = async (query:any) => {
             }
     )
     .execute();
-    const meta = await builder.countTotal(); 
-    // return await prisma.question.findMany(
-    //     {
-           
-    //         include: {
-    //             answers: true,
-    //             bookmarks: true,
-    //             comments:{
-    //                 include:{
-    //                     upVote:{
-    //                         select:{
-    //                             vote:true
-    //                         }
-    //                     },
-    //                     downVote:{
-    //                         select:{
-    //                             vote:true
-    //                         }
-    //                     }
-    //                 }
-    //             },
-    //             testQuestions: true,
-    //             explanation:true,
-    //         }
-    //     }
-    // )
+    const meta = await builder.countTotal();
 
     return {
         data:result,
