@@ -1,0 +1,32 @@
+import catchAsync from "../../utils/catchAsync"
+import sendResponse from "../../utils/sendResponse";
+import { NotFound } from "../../utils/utility";
+import { TestResultService } from "./testR.service"
+
+const createTestResult = catchAsync(async (req, res) => {
+    const result = await TestResultService.createTestResult(req.body)
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully add User Result' : 'Failed toadd User Result',
+        Data: isOk ? result : [],
+    });
+})
+
+
+const getTestResult = catchAsync(async (req, res) => {
+    const { id } = req.params;
+    const userId = req?.user?.id;
+    await NotFound(userId, 'User');
+
+    const result = await TestResultService.getTestResult(id, userId as string)
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully get User Result' : 'Failed to get User Result',
+        Data: isOk ? result : [],
+    });
+})
+export const testRcontroller = { createTestResult, getTestResult }

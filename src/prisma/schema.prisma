@@ -53,8 +53,12 @@ model User {
   lastLogin               DateTime?
   subscriptions           Subscription[]
   testResults             TestResult[]
+  rating                 ExplanationRating[]
   bookmarks               Bookmark[]
   comments                Comment[]
+  explanations           Explanation[]
+  downVotes               DownVote[]
+  upVotes        UpVotes[]
   replies                 Reply[]
   tests                   Test[]
   createdAt               DateTime       @default(now())
@@ -104,7 +108,7 @@ model Question {
   topic         Topic          @relation(fields: [topicId], references: [id])
   topicId       String         @db.ObjectId
   text          String
-  explanation   String?
+  explanation   Explanation[]
   difficulty    Int            @default(1)
   answers       Answer[]
   bookmarks     Bookmark[]
@@ -112,6 +116,27 @@ model Question {
   testQuestions TestQuestion[]
 
   @@map("questions")
+}
+
+model Explanation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  question    Question @relation(fields: [questionId], references: [id])
+  questionId  String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
+  text        String
+  rating    ExplanationRating[]      
+}
+
+model ExplanationRating {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  explanation Explanation @relation(fields: [explanationId], references: [id])
+  explanationId String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String   @db.ObjectId
+  rating      Int
+  @@map("explanationRatings")
+
 }
 
 model Answer {
@@ -194,12 +219,30 @@ model Comment {
   question   Question @relation(fields: [questionId], references: [id])
   questionId String   @db.ObjectId
   text       String
-  downVote   Int      @default(0)
-  upVote     Int      @default(0)
+  downVote  DownVote[]      
+  upVote  UpVotes[]      
   createdAt  DateTime @default(now())
   replies    Reply[]
 
   @@map("comments")
+}
+model DownVote{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String   @db.ObjectId
+  vote     Int
+  @@map("downVotes")
+}
+model UpVotes{
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String   @db.ObjectId
+vote     Int
+  @@map("upVotes")
 }
 
 model Reply {

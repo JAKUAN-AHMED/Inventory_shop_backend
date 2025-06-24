@@ -7,6 +7,9 @@ import { TopicRoutes } from '../modules/Topic/topic.route';
 import { questionRouter } from '../modules/Questions/question.route';
 import { AnswerRoutes } from '../modules/Answers/answer.route';
 import { TestRoutes } from '../modules/Test/test.route';
+import { testQRouter } from '../modules/TestQuestions/testQ.route';
+import { testResultRoute } from '../modules/TestResult/testR.route';
+import { explanationsRouter } from '../modules/Explanations/explanations.route';
 
 
 const router = express.Router();
@@ -43,8 +46,17 @@ const moduleRoutes = [
   {
     path: '/test',
     route: TestRoutes
+  },{
+    path:'/test-questions',
+    route:testQRouter
+  },{
+    path:'/test-result',
+    route:testResultRoute
+  },
+  {
+    path:'/explanation',
+    route:explanationsRouter
   }
-
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

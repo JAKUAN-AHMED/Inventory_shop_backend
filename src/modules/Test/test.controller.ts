@@ -2,19 +2,23 @@ import AppError from "../../errors/AppError";
 import { prisma } from "../../prisma/client";
 import catchAsync from "../../utils/catchAsync"
 import sendResponse from "../../utils/sendResponse";
+import { NotFound } from "../../utils/utility";
 import { TestService } from "./test.service"
 
 const createTest = catchAsync(async (req, res) => {
 
-    const userId=req.user.id;
+    const userId = req.user.id;
+    await NotFound(userId, 'User');
+
     req.body.userId = userId;
+
     const isExists = await prisma.test.findFirst({
         where: {
             userId: userId
         }
     });
     if (isExists) {
-       throw new AppError(409, 'You already have a test created. Please update it instead of creating a new one.');
+        throw new AppError(409, 'You already have a test created. Please update it instead of creating a new one.');
     }
 
     const result = await TestService.createTest(req.body);
