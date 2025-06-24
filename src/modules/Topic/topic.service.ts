@@ -1,3 +1,4 @@
+import QueryBuilder from "../../builder/QueryBuilder";
 import { prisma } from "../../prisma/client"
 import { Topic } from "@prisma/client"
 
@@ -21,9 +22,12 @@ const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
   return topic;
 };
 
-const allTopics=async()=>{
-    return await prisma.topic.findMany({
-       include:{
+const allTopics=async(query:any)=>{
+
+  const builder=new QueryBuilder(query,prisma.topic);
+  const result=await builder
+  .paginate()
+  .include({
         licenseTopics:{
             include:{
                 license:true,
@@ -34,7 +38,28 @@ const allTopics=async()=>{
                 }
             }
         }
-       }
+       })
+       .execute();
+
+       const meta=await builder.countTotal();
+    // return await prisma.topic.findMany({
+    //    include:{
+    //     licenseTopics:{
+    //         include:{
+    //             license:true,
+    //             topic:{
+    //                 include:{
+    //                     questions:true
+    //                 }
+    //             }
+    //         }
+    //     }
+    //    }
+    // })
+
+    return ({
+      data:result,
+      meta
     })
 }
 

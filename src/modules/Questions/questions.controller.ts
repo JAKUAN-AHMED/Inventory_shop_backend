@@ -32,7 +32,7 @@ const createQuestion = catchAsync(async (req, res) => {
 
 
 const getAllQuestions = catchAsync(async (req, res) => {
-    const result = await QuestionService.AllQuestions();
+    const result = await QuestionService.AllQuestions(req.query);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,

@@ -28,7 +28,7 @@ const createLicense = catchAsync(async (req, res) => {
 
 //get all
 const getAllLicense = catchAsync(async (req, res) => {
-    const result = await LicenseService.getAllLicense();
+    const result = await LicenseService.getAllLicense(req.query);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,

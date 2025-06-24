@@ -19,11 +19,9 @@ enum LicenseType {
   GAS_BALLOON
   HOT_AIR_BALLOON
   GLIDER
-  RADIO_CERTIFICATE 
+  RADIO_CERTIFICATE
   SAILPLANE
 }
-
-
 
 enum TestStatus {
   IN_PROGRESS
@@ -39,31 +37,32 @@ enum SubscriptionStatus {
   PENDING
 }
 
+
 model User {
-  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String         @unique
-  email                   String         @unique
+  id                      String              @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String              @unique
+  email                   String              @unique
   password                String
   phone                   String
-  role                    UserRole       @default(STUDENT)
-  isVerified              Boolean        @default(false)
-  verificationToken       String?        @unique
+  role                    UserRole            @default(STUDENT)
+  isVerified              Boolean             @default(false)
+  verificationToken       String?             @unique
   verificationTokenExpiry DateTime?
-  profileImage            String?        @default("https://ibb.co/q36v3f9w")
-  joinDate                DateTime       @default(now())
+  profileImage            String?             @default("https://ibb.co/q36v3f9w")
+  joinDate                DateTime            @default(now())
   lastLogin               DateTime?
   subscriptions           Subscription[]
   testResults             TestResult[]
-  rating                 ExplanationRating[]
+  rating                  ExplanationRating[]
   bookmarks               Bookmark[]
   comments                Comment[]
-  explanations           Explanation[]
+  explanations            Explanation[]
   downVotes               DownVote[]
-  upVotes        UpVotes[]
+  upVotes                 UpVotes[]
   replies                 Reply[]
   tests                   Test[]
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
 
   @@map("users")
 }
@@ -85,8 +84,8 @@ model LicenseTopic {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
   licenseId String  @db.ObjectId
   license   License @relation(fields: [licenseId], references: [id])
-  topicId   String?  @db.ObjectId
-  topic     Topic?   @relation(fields: [topicId], references: [id])
+  topicId   String? @db.ObjectId
+  topic     Topic?  @relation(fields: [topicId], references: [id])
 
   @@map("licenses_topics")
 }
@@ -99,7 +98,6 @@ model Topic {
   questions     Question[]
   tests         Test[]
   testResults   TestResult[]
-
 
   @@map("topics")
 }
@@ -120,24 +118,24 @@ model Question {
 }
 
 model Explanation {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  question    Question @relation(fields: [questionId], references: [id])
-  questionId  String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String   @db.ObjectId
-  text        String
-  rating    ExplanationRating[]      
+  id         String              @id @default(auto()) @map("_id") @db.ObjectId
+  question   Question            @relation(fields: [questionId], references: [id])
+  questionId String              @db.ObjectId
+  user       User                @relation(fields: [userId], references: [id])
+  userId     String              @db.ObjectId
+  text       String
+  rating     ExplanationRating[]
 }
 
 model ExplanationRating {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  explanation Explanation @relation(fields: [explanationId], references: [id])
-  explanationId String   @db.ObjectId
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String   @db.ObjectId
-  rating      Int
-  @@map("explanationRatings")
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  explanation   Explanation @relation(fields: [explanationId], references: [id])
+  explanationId String      @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id])
+  userId        String      @db.ObjectId
+  rating        Int
 
+  @@map("explanationRatings")
 }
 
 model Answer {
@@ -194,7 +192,7 @@ model TestResult {
   topic   Topic    @relation(fields: [topicId], references: [id])
   topicId String   @db.ObjectId
   date    DateTime @default(now())
-  score   Float? @default(0)
+  score   Float?   @default(0)
 
   @@map("testResults")
 }
@@ -214,35 +212,39 @@ model Bookmark {
 }
 
 model Comment {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id])
-  questionId String   @db.ObjectId
+  id         String     @id @default(auto()) @map("_id") @db.ObjectId
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String     @db.ObjectId
+  question   Question   @relation(fields: [questionId], references: [id])
+  questionId String     @db.ObjectId
   text       String
-  downVote  DownVote[]      
-  upVote  UpVotes[]      
-  createdAt  DateTime @default(now())
+  downVote   DownVote[]
+  upVote     UpVotes[]
+  createdAt  DateTime   @default(now())
   replies    Reply[]
 
   @@map("comments")
 }
-model DownVote{
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
-  comment   Comment  @relation(fields: [commentId], references: [id])
-  commentId String   @db.ObjectId
-  vote     Int
+
+model DownVote {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @db.ObjectId
+  comment   Comment @relation(fields: [commentId], references: [id])
+  commentId String  @db.ObjectId
+  vote      Int
+
   @@map("downVotes")
 }
-model UpVotes{
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
-  comment   Comment  @relation(fields: [commentId], references: [id])
-  commentId String   @db.ObjectId
-vote     Int
+
+model UpVotes {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @db.ObjectId
+  comment   Comment @relation(fields: [commentId], references: [id])
+  commentId String  @db.ObjectId
+  vote      Int
+
   @@map("upVotes")
 }
 

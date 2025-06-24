@@ -3,7 +3,7 @@ import { prisma } from "../../prisma/client";
 import AppError from "../../errors/AppError";
 
 const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
-  console.log("payload ", payload);
+  // console.log("payload ", payload);
 
   // 1. Fetch random questions from the topic
   const questions = await prisma.question.findMany({
@@ -12,9 +12,19 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     },
     select: {
       id: true,
-      explanation: true,
+      explanation: {
+        select:{
+          text:true,
+          rating:true
+        }
+      },
       answers: true,
-      comments: true,
+      comments: {
+        select:{
+          upVote:true,
+          downVote:true
+        }
+      },
       // topicId is not needed unless you need it later
     },
     take: payload.total,

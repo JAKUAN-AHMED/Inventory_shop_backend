@@ -29,7 +29,7 @@ const createTopic = catchAsync(async (req, res) => {
 
 
 const getAllTopics = catchAsync(async (req, res) => {
-    const result = await TopicService.allTopics();
+    const result = await TopicService.allTopics(req.query);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,

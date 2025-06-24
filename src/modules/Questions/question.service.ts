@@ -1,5 +1,6 @@
 import { Question } from "@prisma/client"
 import { prisma } from "../../prisma/client"
+import QueryBuilder from "../../builder/QueryBuilder"
 
 const createQuestion = async (payload: Question) => {
     return await prisma.question.create({
@@ -24,11 +25,13 @@ const deleteQuestion = async (id: string) => {
 }
 
 
-const AllQuestions = async () => {
-    return await prisma.question.findMany(
+const AllQuestions = async (query:any) => {
+
+    const builder=new QueryBuilder(query,prisma.question);
+    const result=await builder
+    .paginate()
+    .include(
         {
-           
-            include: {
                 answers: true,
                 bookmarks: true,
                 comments:{
@@ -48,8 +51,39 @@ const AllQuestions = async () => {
                 testQuestions: true,
                 explanation:true,
             }
-        }
     )
+    .execute();
+    const meta = await builder.countTotal(); 
+    // return await prisma.question.findMany(
+    //     {
+           
+    //         include: {
+    //             answers: true,
+    //             bookmarks: true,
+    //             comments:{
+    //                 include:{
+    //                     upVote:{
+    //                         select:{
+    //                             vote:true
+    //                         }
+    //                     },
+    //                     downVote:{
+    //                         select:{
+    //                             vote:true
+    //                         }
+    //                     }
+    //                 }
+    //             },
+    //             testQuestions: true,
+    //             explanation:true,
+    //         }
+    //     }
+    // )
+
+    return {
+        data:result,
+        meta
+    }
 }
 
 
