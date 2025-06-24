@@ -1,6 +1,7 @@
 import QueryBuilder from "../../builder/QueryBuilder";
 import { prisma } from "../../prisma/client"
 import { Topic } from "@prisma/client"
+import { NotFound } from "../../utils/utility";
 
 
 const createTopic = async (payload: Topic & { licenseIds: string[] }) => {
@@ -73,6 +74,14 @@ const singleTopic=async(id:string)=>{
 
 
 const deleteTopic = async (id: string) => {
+
+  const isExist=await prisma.topic.findUnique({
+    where:{
+      id
+    }
+  })
+
+  await NotFound(isExist,'Which Topic You are trying to Delete This is');
     return await prisma.topic.delete({
         where: {
             id
