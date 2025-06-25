@@ -142,7 +142,7 @@ model Answer {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   question      Question       @relation(fields: [questionId], references: [id])
   questionId    String         @db.ObjectId
-  text          String
+  text          String          @unique
   isCorrect     Boolean        @default(false)
   testQuestions TestQuestion[]
 
