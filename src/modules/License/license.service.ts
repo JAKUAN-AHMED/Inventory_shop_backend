@@ -59,7 +59,12 @@ const getSingleLicense = async (id: string) => {
             licenseTopics: {
                 include: {
                     topic: true,
-                    license: true
+                    license: {
+                        select:{
+                            name:true,
+                            price:true,
+                        description:true                        }
+                    }
                 }
             }
         }

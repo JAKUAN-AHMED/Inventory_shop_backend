@@ -7,7 +7,7 @@ if (!config.stripe_api_secret) {
 }
 
 const stripe = new Stripe(config.stripe_api_secret, {
-    apiVersion: '2025-04-30.basil',
+    apiVersion: '2025-05-28.basil',
 });
   
 export default stripe;

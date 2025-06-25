@@ -8,6 +8,9 @@ export default {
   brevo: {
     api_key: process.env.BREVO_API_KEY || '',
   },
+   stripe: {
+    subscription_webhook_sec: process.env.STRIPE_WEBHOOK_SECRET,
+  },
   aws: {
     do_space_endpoint: process.env.DO_SPACE_ENDPOINT!,
     do_space_bucket: process.env.DO_SPACE_BUCKET!,

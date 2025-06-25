@@ -36,6 +36,7 @@ const ratingExplanation=async(payload:ExplanationRating)=>{
 }
 
 const deleteExplanation = async(id:string) => {
+
     return await prisma.explanation.delete({
         where: {
             id

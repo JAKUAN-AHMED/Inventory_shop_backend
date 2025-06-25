@@ -14,6 +14,7 @@ import { bookmarkRoute } from '../modules/Bookmarks/bookmark.route';
 import { CommentRoutes } from '../modules/Comments/comment.route';
 import { ReplyRoutes } from '../modules/Reply/reply.route';
 import { VoteRoutes } from '../modules/Vote/vote.route';
+import { PayementRoutes } from '../modules/Payment/payment.route';
 
 
 const router = express.Router();
@@ -74,6 +75,10 @@ const moduleRoutes = [
   },{
     path:'/vote',
     route:VoteRoutes
+  }
+  ,{
+    path:"/payment",
+    route:PayementRoutes
   }
 ];
 

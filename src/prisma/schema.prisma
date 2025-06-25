@@ -30,11 +30,10 @@ enum TestStatus {
   CANCELLED
 }
 
-enum SubscriptionStatus {
-  ACTIVE
-  EXPIRED
+enum PaymentStatus {
+  PAID
+  UNPAID
   CANCELLED
-  PENDING
 }
 
 
@@ -51,7 +50,7 @@ model User {
   profileImage            String?             @default("https://ibb.co/q36v3f9w")
   joinDate                DateTime            @default(now())
   lastLogin               DateTime?
-  subscriptions           Subscription[]
+  payment                 Payment[]
   testResults             TestResult[]
   rating                  ExplanationRating[]
   bookmarks               Bookmark[]
@@ -73,7 +72,8 @@ model License {
   type          LicenseType?
   description   String?
   price         Float?
-  subscriptions Subscription[]
+  // productId     String?
+  payments      Payment[]
   tests         Test[]
   licenseTopics LicenseTopic[]
 
@@ -260,16 +260,34 @@ model Reply {
   @@map("replies")
 }
 
-model Subscription {
-  id        String             @id @default(auto()) @map("_id") @db.ObjectId
-  user      User               @relation(fields: [userId], references: [id])
-  userId    String             @db.ObjectId
-  license   License            @relation(fields: [licenseId], references: [id])
-  licenseId String             @db.ObjectId
-  startDate DateTime
-  endDate   DateTime
-  amount    Float
-  status    SubscriptionStatus @default(ACTIVE)
+model Payment {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id])
 
-  @@map("subscriptions")
+  licenseId       String   @db.ObjectId
+  license         License  @relation(fields: [licenseId], references: [id])
+
+  stripeSessionId String   @unique
+  stripePaymentId String?
+  amount          Float @default(0)
+  currency        String
+  // productId       String
+  status          PaymentStatus   // 'paid', 'unpaid', 'cancelled', etc.
+  createdAt       DateTime @default(now())
+
+  @@map("payments")
 }
+
+
+model Product{
+  id String   @id @default(auto()) @map("_id") @db.ObjectId
+  productPrice Float?
+  productName  String ? @unique
+  productId     String? @unique
+  licenseId     String? @unique
+  priceId      String?
+
+  @@map("product")
+}
+
