@@ -4,37 +4,41 @@ import AppError from "../../errors/AppError";
 
 const createAnswer = async (payload: Answer) => {
 
-    const isExist:any = await prisma.answer.findFirst({
+
+
+    const isExistQuestions = await prisma.answer.findFirst({
         where: {
-            questionId: payload?.questionId
+            questionId: payload?.questionId,
         }
     })
 
-
-    if (isExist) {
-        throw new Error("Already Exist");
+    if (isExistQuestions && isExistQuestions?.isCorrect && payload.isCorrect) {
+        throw new AppError(409, 'Already isCorrect True assigned');
     }
 
-    if (isExist && isExist.isCorrect  && payload.isCorrect)
-    {
-        throw new AppError(409,'Already isCorrect True assigned');
-    }
 
-    
     const isFour = await prisma.answer.count({
         where: {
-            questionId: payload.id
+            questionId: payload.questionId,
         }
     })
-    if(isFour==3 && payload.isCorrect===false)
-    {
-        throw new AppError(400,'At least one answer should be isCorrect true');
+
+    if (isFour === 3 && payload.isCorrect === false) {
+        const count = await prisma.answer.count({
+            where: {
+                questionId: payload.questionId,
+                isCorrect: true
+            }
+        })
+
+        if (count == 0) {
+            throw new AppError(400, 'At least one answer should be isCorrect true');
+        }
     }
 
-   
-    if(isFour==4)
-    {
-        throw new AppError(409,'Already have 4 Answered');
+
+    if (isFour == 4) {
+        throw new AppError(409, 'Already have 4 Answered');
     }
     return await prisma.answer.create({
         data: payload
