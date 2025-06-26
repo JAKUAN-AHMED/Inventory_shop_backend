@@ -5,21 +5,23 @@ import AppError from "../../errors/AppError";
 
 
 const createTestResult = async (payload: TestResult) => {
-//   console.log("payload", payload);
+  //   console.log("payload", payload);
 
   // Get the latest test for this user (assuming 1 test at a time)
   const latestTest = await prisma.test.findFirst({
     where: { userId: payload.userId },
+    orderBy: { createdAt: 'desc' },
     select: { score: true },
+    take:2
   });
 
   if (!latestTest) {
     throw new AppError(404, "No test found for this user");
   }
 
-  payload.score = latestTest.score ?? 0;
+  payload.score = latestTest?.score! ?? 0;
 
-//   console.log("payload score", payload.score);
+  //   console.log("payload score", payload.score);
 
   return await prisma.testResult.create({
     data: payload,
@@ -27,26 +29,26 @@ const createTestResult = async (payload: TestResult) => {
 };
 
 const getTestResult = async (id: string, userId: string) => {
-    return await prisma.testResult.findUnique({
-        where: {
-            id: id,
-            userId: userId
-        },
-        include:{
-            topic:{
-                include:{
-                    licenseTopics:{
-                        include:{
-                            license:true
-                        }
-                    }
-                }
-            }
-        }
-    })
+  return await prisma.testResult.findUnique({
+    where: {
+      id: id,
+      userId: userId
+    }
+    // include:{
+    //     topic:{
+    //         include:{
+    //             licenseTopics:{
+    //                 include:{
+    //                     license:true
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+  })
 }
 
 export const TestResultService = {
-    createTestResult,
-    getTestResult
+  createTestResult,
+  getTestResult
 }

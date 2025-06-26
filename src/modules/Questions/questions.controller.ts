@@ -9,7 +9,7 @@ import { QuestionService } from "./question.service"
 
 const createQuestion = catchAsync(async (req, res) => {
 
-    const isExists=await prisma.question.findFirst({
+    const isExists=await prisma.question.findUnique({
         where: {
             text: req.body.text 
         }
