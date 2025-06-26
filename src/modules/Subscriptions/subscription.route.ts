@@ -8,7 +8,7 @@ const router=Router();
 router.post('/create-product',auth('ADMIN'), SubscriptionController.createProduct);
 router.get('/all-plans',auth('ADMIN','STUDENT'), SubscriptionController.allProducts);
 router.patch('/update-product/:id', SubscriptionController.updateProduct);
-router.post('/create-session',auth('ADMIN'),SubscriptionController.createSession);
+router.post('/create-session',auth('ADMIN','STUDENT'),SubscriptionController.createSession);
 router.delete('/delete-product/:id',auth('ADMIN'),SubscriptionController.deleteProduct);
 
 
