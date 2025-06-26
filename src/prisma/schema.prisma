@@ -49,7 +49,7 @@ model User {
   profileImage            String?             @default("https://ibb.co/q36v3f9w")
   joinDate                DateTime            @default(now())
   lastLogin               DateTime?
-  payment                 Payment[]
+  subscriptions                 Subscription[]
   testResults             TestResult[]
   rating                  ExplanationRating[]
   bookmarks               Bookmark[]
@@ -72,7 +72,7 @@ model License {
   description   String?
   price         Float?
   // productId     String?
-  payments      Payment[]
+  subscriptions      Subscription[]
   tests         Test[]
   licenseTopics LicenseTopic[]
 
@@ -262,11 +262,19 @@ model Reply {
   @@map("replies")
 }
 
-model Payment {
+enum BillingInterval {
+  day
+  week
+  month
+  year
+}
+
+model Subscription {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
   user   User   @relation(fields: [userId], references: [id])
-
+  Duration  Int?
+  interval  BillingInterval?
   licenseId String  @db.ObjectId
   license   License @relation(fields: [licenseId], references: [id])
 
@@ -277,9 +285,11 @@ model Payment {
   // productId       String
   status          PaymentStatus // 'paid', 'unpaid', 'cancelled', etc.
   createdAt       DateTime      @default(now())
-
-  @@map("payments")
+  updatedAt    DateTime @updatedAt
+  @@map("subscriptions")
 }
+
+
 
 model Product {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId

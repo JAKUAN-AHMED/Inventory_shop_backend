@@ -14,7 +14,7 @@ import { bookmarkRoute } from '../modules/Bookmarks/bookmark.route';
 import { CommentRoutes } from '../modules/Comments/comment.route';
 import { ReplyRoutes } from '../modules/Reply/reply.route';
 import { VoteRoutes } from '../modules/Vote/vote.route';
-import { PayementRoutes } from '../modules/Payment/payment.route';
+import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route';
 
 
 const router = express.Router();
@@ -77,8 +77,8 @@ const moduleRoutes = [
     route:VoteRoutes
   }
   ,{
-    path:"/payment",
-    route:PayementRoutes
+    path:"/subscription",
+    route:SubscriptionRoutes
   }
 ];
 

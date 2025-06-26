@@ -11,7 +11,7 @@ import stripe from "../../config/stripe";
 
 //create product
 const createProduct = catchAsync(async (req, res) => {
-    const { name, amount, currency = 'usd' } = req.body;
+    const { name, amount, currency = 'usd', interval, Duraion } = req.body;
 
 
     const isExist = await prisma.license.findUnique({
@@ -42,7 +42,11 @@ const createProduct = catchAsync(async (req, res) => {
     const product = await stripe.products.create({ name });
     const price = await stripe.prices.create({
         unit_amount: amount * 100,
-        currency,
+        currency: currency,
+        recurring: {
+            interval: interval, // e.g., 'month'
+            interval_count: Duraion || 1, // e.g., 3 for every 3 months
+        },
         product: product.id,
     });
     if (product) {
@@ -53,7 +57,7 @@ const createProduct = catchAsync(async (req, res) => {
             data: {
                 productId: product.id,
                 priceId: price.id,
-                licenseId:isExist?.id
+                licenseId: isExist?.id
             }
         })
     }
@@ -69,6 +73,24 @@ const createProduct = catchAsync(async (req, res) => {
     });
 })
 
+
+
+const allProducts = catchAsync(async (req, res) => {
+    const result = await prisma.product.findMany({
+        select: {
+            productName: true,
+            productId: true
+        }
+    })
+
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Retrived All Plans' : 'Failed to Get  Plans',
+        Data: isOk ? result : [],
+    });
+})
 const updateProduct = catchAsync(async (req, res) => {
     const { name, price } = req.body;
     let isExist = null;
@@ -142,21 +164,20 @@ const createSession = async (req: Request, res: Response): Promise<void> => {
 
 
     const session = await stripe.checkout.sessions.create({
-        mode: 'payment',
-        payment_method_types: ['card'],
+        mode: "subscription",
+        payment_method_types: ["card"],
         line_items: [
             {
-                // price_data: {
-                //     currency: 'usd',
-                //     product_data: { name: product.productName! },
-                //     unit_amount: product.productPrice! * 100,
-                // },
                 price: product.priceId!,
                 quantity: 1,
             },
         ],
         success_url: `http://localhost:3000/payment/success`,
         cancel_url: `http://localhost:3000/payment/cancel`,
+        metadata: {
+            userId,
+            licenseId: product.licenseId!,
+        },
     });
 
     // const Data = {
@@ -169,7 +190,7 @@ const createSession = async (req: Request, res: Response): Promise<void> => {
     // }
 
     // console.log('data',Data)
-    const paymentData = await prisma.payment.create({
+    const paymentData = await prisma.subscription.create({
         data: {
             userId,
             licenseId: product.licenseId!,
@@ -247,7 +268,7 @@ export const webhook = async (req: Request, res: Response) => {
             case 'checkout.session.completed':
                 const session = event.data.object;
 
-                const payementData = await prisma.payment.update({
+                const payementData = await prisma.subscription.update({
                     where: { stripeSessionId: session.id },
                     data: {
                         stripePaymentId: session.payment_intent as string,
@@ -273,10 +294,11 @@ export const webhook = async (req: Request, res: Response) => {
     }
 };
 
-export const PayementController = {
+export const SubscriptionController = {
     createProduct,
     updateProduct,
     createSession,
     webhook,
-    deleteProduct
+    deleteProduct,
+    allProducts
 }

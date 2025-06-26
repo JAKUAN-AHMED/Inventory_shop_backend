@@ -4,7 +4,7 @@ import globalErrorHandler from './middlewares/globalErrorHandler';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import NotFound from './middlewares/NotFound';
-import { PayementController } from './modules/Payment/payment.controller';
+import { SubscriptionController } from './modules/Subscriptions/subscription.controller';
 import path from 'path';
 
 const app = express();
@@ -24,7 +24,7 @@ export const corsOptions = {
 app.post(
   '/api/webhook',
   express.raw({ type: 'application/json' }),
-  PayementController.webhook,
+  SubscriptionController.webhook,
 );
 //middleware
 app.use(cors(corsOptions));
