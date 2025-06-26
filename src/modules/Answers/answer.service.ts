@@ -4,9 +4,9 @@ import AppError from "../../errors/AppError";
 
 const createAnswer = async (payload: Answer) => {
 
-    const isExist:any = await prisma.answer.findUnique({
+    const isExist:any = await prisma.answer.findFirst({
         where: {
-            text: payload?.text
+            questionId: payload?.questionId
         }
     })
 

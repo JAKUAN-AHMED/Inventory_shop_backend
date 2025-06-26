@@ -140,8 +140,8 @@ model ExplanationRating {
 model Answer {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   question      Question       @relation(fields: [questionId], references: [id])
-  questionId    String         @db.ObjectId
-  text          String         @unique
+  questionId    String         @db.ObjectId 
+  text          String         
   isCorrect     Boolean        @default(false)
   testQuestions TestQuestion[]
 
