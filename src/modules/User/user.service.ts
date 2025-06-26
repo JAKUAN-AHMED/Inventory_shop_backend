@@ -1,3 +1,4 @@
+import AppError from '../../errors/AppError';
 import { prisma } from '../../prisma/client';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import { IUser } from './user.interface';
@@ -34,6 +35,15 @@ const updateProfile = async (file:any,id: string, payload: Partial<IUser>) => {
       }
       if(imageUrls){
         payload.profileImage=imageUrls;
+      }
+
+      if(payload.password )
+      {
+        throw new AppError(403,'You can change your password here');
+      }
+      if(payload.email )
+      {
+        throw new AppError(403,'You can change your email here');
       }
     const result = await prisma.user.update({
         where: {

@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import NotFound from './middlewares/NotFound';
 import { PayementController } from './modules/Payment/payment.controller';
+import path from 'path';
 
 const app = express();
 
@@ -32,6 +33,10 @@ app.use(express.json());
 app.use('/api', router);
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+
+
+app.use("/uploads", express.static(path.join("/var/www/uploads")));
+// app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); // Serve static files from the "uploads" directory
 
 
 //test route
