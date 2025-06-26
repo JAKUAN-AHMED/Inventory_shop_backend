@@ -30,7 +30,7 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     take: payload.total,
   });
 
-  console.log("questions", questions);
+  // console.log("questions", questions);
 
   if (questions.length === 0) {
     throw new AppError(404, "No questions found for this topic.");

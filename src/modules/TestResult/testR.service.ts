@@ -8,24 +8,30 @@ const createTestResult = async (payload: TestResult) => {
   //   console.log("payload", payload);
 
   // Get the latest test for this user (assuming 1 test at a time)
-  const latestTest = await prisma.test.findFirst({
+  
+  const latestTest = await prisma.test.findMany({
     where: { userId: payload.userId },
     orderBy: { createdAt: 'desc' },
-    select: { score: true },
     take:2
   });
 
+
+  console.log('result ',latestTest)
   if (!latestTest) {
     throw new AppError(404, "No test found for this user");
   }
 
-  payload.score = latestTest?.score! ?? 0;
+  // payload.score = latestTest?.score! ?? 0;
 
   //   console.log("payload score", payload.score);
 
-  return await prisma.testResult.create({
-    data: payload,
-  });
+  // return await prisma.testResult.create({
+  //   data: payload,
+  // });
+
+  return {
+
+  }
 };
 
 const getTestResult = async (id: string, userId: string) => {
