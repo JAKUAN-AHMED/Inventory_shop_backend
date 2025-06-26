@@ -265,13 +265,13 @@ export const webhook = async (req: Request, res: Response) => {
 
     try {
         switch (event.type) {
-            case 'checkout.session.completed':
-                const session = event.data.object;
-
+            case 'invoice.payment_succeeded':
+                const invoice = event.data.object;
+                const stripePaymentId = invoice.id as string;
                 const payementData = await prisma.subscription.update({
-                    where: { stripeSessionId: session.id },
+                    where: { stripeSessionId: invoice.id },
                     data: {
-                        stripePaymentId: session.payment_intent as string,
+                        stripePaymentId: invoice.id as string,
                         status: 'PAID',
                     },
                 });
@@ -280,7 +280,7 @@ export const webhook = async (req: Request, res: Response) => {
                     success: true,
                     message: 'Payment  created successfully',
                 });
-                console.log(`✅ Payment confirmed for session: ${session.id}`);
+                console.log(`✅ Payment confirmed for session: ${invoice.id}`);
                 break;
 
             default:
