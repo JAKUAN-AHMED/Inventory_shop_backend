@@ -20,18 +20,18 @@ const createAnswer = async (payload: Answer) => {
         throw new AppError(409,'Already isCorrect True assigned');
     }
 
+    
     const isFour = await prisma.answer.count({
         where: {
             questionId: payload.id
         }
     })
-
-    if(isFour==3)
+    if(isFour==3 && payload.isCorrect===false)
     {
-        const res=await prisma.answer.count({
-
-        })
+        throw new AppError(400,'At least one answer should be isCorrect true');
     }
+
+   
     if(isFour==4)
     {
         throw new AppError(409,'Already have 4 Answered');
