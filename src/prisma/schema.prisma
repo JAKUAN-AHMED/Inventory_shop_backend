@@ -112,7 +112,7 @@ model Question {
   topic         Topic          @relation(fields: [topicId], references: [id],onDelete:Cascade)
   topicId       String         @db.ObjectId
   text          String @unique
-  explanation   String?
+  explanation   Json
   options       Json[]
   correctAnswer  SelectedOption
   answer         Answer[]

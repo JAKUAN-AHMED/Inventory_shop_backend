@@ -10,7 +10,12 @@ type optionsType = {
     value: string
 }
 
-const createQuestion = async (payload: Question & { options: optionsType[] }) => {
+type ExplanationType={
+    text:string,
+    img:string
+}
+
+const createQuestion = async (file:any,payload: Question & { options: optionsType[] }) => {
     const { options, explanation, topicId, text, correctAnswer } = payload;
 
     if (!options || !explanation || !text || !correctAnswer || !topicId) {
@@ -23,6 +28,8 @@ const createQuestion = async (payload: Question & { options: optionsType[] }) =>
     if (options.length > 4 || options.length < 4) {
         throw new AppError(400, "Options would not be greater than 4 or Less than 4");
     }
+
+   if(explanation.text)
     return await prisma.question.create({
         data: {
             options,

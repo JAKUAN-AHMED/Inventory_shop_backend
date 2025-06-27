@@ -1,3 +1,4 @@
+import { SelectedOption } from "@prisma/client";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../prisma/client";
 import catchAsync from "../../utils/catchAsync"
@@ -6,6 +7,8 @@ import { AnswerService } from "./answer.service";
 
 
 const createAnswer = catchAsync(async (req, res) => {
+
+
     const isExists = await prisma.answer.findFirst({
         where: {
             SelectedOption: req.body.SelectedOption,
@@ -17,6 +20,24 @@ const createAnswer = catchAsync(async (req, res) => {
         throw new AppError(409,'Answer with this text already exists for this question');
     }
 
+
+    const question=await prisma.question.findUnique({
+        where:{
+            id:req.body.questionId
+        }
+    })
+
+    if(question?.correctAnswer===req.body.SelectedOption)
+    {
+           //update score of the user test result
+    }
+
+
+    // const subscriptions=await prisma.subscription.findUnique({
+    //     where:{
+    //         userId:req.user.id
+    //     }
+    // })
     const result = await AnswerService.createAnswer(req.body);
     const isOk = result ? true : false;
     sendResponse(res, {

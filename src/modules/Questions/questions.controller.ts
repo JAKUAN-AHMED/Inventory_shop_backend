@@ -19,7 +19,7 @@ const createQuestion = catchAsync(async (req, res) => {
         throw new AppError(409,'Question with this name already exists');
     }
 
-    const result = await QuestionService.createQuestion(req.body);
+    const result = await QuestionService.createQuestion(req?.file as Express.Multer.File,req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 201 : 400,
