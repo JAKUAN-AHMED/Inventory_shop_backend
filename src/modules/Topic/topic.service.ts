@@ -35,14 +35,14 @@ const allTopics = async (query: any) => {
   const result = await builder
     .paginate()
     .include({
-      include: {
-        license: true,
-        topic: {
-          include: {
-            questions: true
-          }
-        }
-      }
+      // include: {
+      //   license: true,
+      //   // topic: {
+      //   //   include: {
+      //   //     questions: true
+      //   //   }
+      //   // }
+      // }
 
     })
     .execute();
