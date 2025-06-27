@@ -9,12 +9,12 @@ import { AnswerRoutes } from '../modules/Answers/answer.route';
 import { TestRoutes } from '../modules/Test/test.route';
 import { testQRouter } from '../modules/TestQuestions/testQ.route';
 import { testResultRoute } from '../modules/TestResult/testR.route';
-import { explanationsRouter } from '../modules/Explanations/explanations.route';
 import { bookmarkRoute } from '../modules/Bookmarks/bookmark.route';
 import { CommentRoutes } from '../modules/Comments/comment.route';
 import { ReplyRoutes } from '../modules/Reply/reply.route';
 import { VoteRoutes } from '../modules/Vote/vote.route';
 import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route';
+import { LicenseTypesRouter } from '../modules/LicenseTypes/lstypes.routes';
 
 
 const router = express.Router();
@@ -59,10 +59,6 @@ const moduleRoutes = [
     route:testResultRoute
   },
   {
-    path:'/explanation',
-    route:explanationsRouter
-  },
-  {
     path:'/bookmark',
     route:bookmarkRoute
   },
@@ -79,6 +75,9 @@ const moduleRoutes = [
   ,{
     path:"/subscription",
     route:SubscriptionRoutes
+  },{
+    path:"/licenseType",
+    route:LicenseTypesRouter
   }
 ];
 

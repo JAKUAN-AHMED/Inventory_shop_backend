@@ -1,3 +1,4 @@
+
 import AppError from "../errors/AppError"
 import { prisma } from "../prisma/client"
 
@@ -32,4 +33,22 @@ export async function NotFound (value:any,msg?:string){
     if(!value){
         throw new AppError(404,`${msg} Not Found`)
     }
+}
+
+
+type optionsType = {
+    label: "A" | "B" | "C" | "D",
+    value: string
+}
+
+
+export function isValidOptions(options: any): options is optionsType[] {
+  if (!Array.isArray(options)) return false;
+
+  return options.every(opt => 
+    typeof opt === "object" &&
+    opt !== null &&
+    (opt.label === "A" || opt.label === "B" || opt.label === "C" || opt.label === "D") &&
+    typeof opt.value === "string"
+  );
 }

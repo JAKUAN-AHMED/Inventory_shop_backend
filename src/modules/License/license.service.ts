@@ -7,22 +7,12 @@ import QueryBuilder from "../../builder/QueryBuilder";
 
 
 //create
-const createLicense = async (payload: License & { topicIds: string[] }) => {
-    const { topicIds, ...licenseData } = payload;
+const createLicense = async (payload: License) => {
+
     // 1. Create the topic
     const result = await prisma.license.create({
-        data: licenseData
+        data: payload
     });
-
-    // 2. Create many-to-many relations
-    if (topicIds && topicIds.length > 0) {
-        const relations = topicIds.map((topicId: string) => ({
-            topicId,
-            licenseId: result.id
-        }));
-
-        await prisma.licenseTopic.createMany({ data: relations });
-    }
 
     return result;
 }
@@ -34,11 +24,7 @@ const getAllLicense = async (query: any) => {
     const result = await builder
         .paginate()
         .include({
-            licenseTopics: {
-                include: {
-                    topic: true,
-                },
-            },
+            topics:true
         })
         .execute();
 
@@ -55,19 +41,10 @@ const getSingleLicense = async (id: string) => {
         where: {
             id
         },
-        include: {
-            licenseTopics: {
-                include: {
-                    topic: true,
-                    license: {
-                        select:{
-                            name:true,
-                            price:true,
-                        description:true                        }
-                    }
-                }
-            }
+        include:{
+            topics:true
         }
+        
     })
 }
 
@@ -75,9 +52,9 @@ const getSingleLicense = async (id: string) => {
 //update license
 const updateLicense = async (
   id: string,
-  payload: Partial<License> & { topicIds: string[] }
+  payload: Partial<License>
 ) => {
-  const { topicIds, ...licenseData } = payload;
+  
 
   // 1. Check if license exists
   const licenseExists = await prisma.license.findUnique({
@@ -85,34 +62,11 @@ const updateLicense = async (
   });
   await NotFound(licenseExists, "License");
 
-  // 2. Add only new topic relations
-  if (topicIds && topicIds.length > 0) {
-    // Get existing topicIds already related to the license
-    const existingRelations = await prisma.licenseTopic.findMany({
-      where: { licenseId: id },
-      select: { topicId: true },
-    });
-
-    const existingTopicIds = new Set(existingRelations.map((rel) => rel.topicId));
-
-    // Filter topicIds that are not yet related
-    const newRelations = topicIds
-      .filter((topicId) => !existingTopicIds.has(topicId))
-      .map((topicId) => ({
-        licenseId: id,
-        topicId,
-      }));
-
-    // Only create new ones
-    if (newRelations.length > 0) {
-      await prisma.licenseTopic.createMany({ data: newRelations });
-    }
-  }
-
+  
   // 3. Update the license data
   return await prisma.license.update({
     where: { id },
-    data: licenseData,
+    data: payload,
   });
 };
 
@@ -132,23 +86,6 @@ const deleteLicense = async (id: string) => {
         }
     });
     await NotFound(licenseExists, "License");
-
-
-    // find the license topics associated with the license and remove the license id
-    const licenseTopics = await prisma.licenseTopic.findMany({
-        where: {
-            licenseId: id
-        }
-    });
-
-    if (licenseTopics.length > 0) {
-        // delete the license topics
-        await prisma.licenseTopic.deleteMany({
-            where: {
-                licenseId: id
-            }
-        });
-    }
 
     //now delete the license safely
     return await prisma.license.delete({

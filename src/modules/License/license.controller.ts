@@ -1,4 +1,3 @@
-import stripe from "../../config/stripe";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../prisma/client";
 import catchAsync from "../../utils/catchAsync"
@@ -18,16 +17,6 @@ const createLicense = catchAsync(async (req, res) => {
         throw new AppError(409, 'License with this name already exists');
     }
     const result = await LicenseService.createLicense(req.body);
-
-    // if (result) {
-    
-    //     const product = await stripe.products.create({ name:req.body.name });
-    //     const price = await stripe.prices.create({
-    //         unit_amount: req.body.price * 100,
-    //         currency:"usd",
-    //         product: product.id,
-    //     });
-    // }
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 201 : 400,

@@ -14,7 +14,7 @@ enum UserRole {
 
 model LicenseType {
   id  String              @id @default(auto()) @map("_id") @db.ObjectId
-  title   String
+  title   String @unique
   @@map("licenseTypes")
 }
 
@@ -46,14 +46,14 @@ model User {
   lastLogin               DateTime?
   subscriptions           Subscription[]
   testResults             TestResult[]
-  rating                  ExplanationRating[]
   bookmarks               Bookmark[]
   comments                Comment[]
-  explanations            Explanation[]
   downVotes               DownVote[]
   upVotes                 UpVotes[]
   replies                 Reply[]
   tests                   Test[]
+  answer                  Answer[]
+  payment                  Payment[]
   // Report                  MyReport?
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
@@ -78,7 +78,7 @@ model License {
   price         Float?
   subscriptions      Subscription[]
   tests         Test[]
-  
+  topics         Topic[]
 
   @@map("licenses")
 }
@@ -89,62 +89,53 @@ model Topic {
   name          String
   description   String?
   questions     Question[]
+  license        License  @relation(fields: [licenseId],references: [id],onDelete:Cascade)
+  licenseId     String  @db.ObjectId
   tests         Test[]
   testResults   TestResult[]
-
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
   @@map("topics")
 }
 
+
+enum SelectedOption{
+  A
+  B
+  C
+  D
+}
 model Question {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  topic         Topic          @relation(fields: [topicId], references: [id])
+  topic         Topic          @relation(fields: [topicId], references: [id],onDelete:Cascade)
   topicId       String         @db.ObjectId
   text          String @unique
-  explanation   Explanation[]
-  difficulty    Int            @default(1)
-  answers       Answer[]
+  explanation   String?
+  options       String[]
+  correctAnswer  String
+  Answer         Answer[]
   bookmarks     Bookmark[]
   comments      Comment[]
   testQuestions TestQuestion[]
-
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
   @@map("questions")
 }
 
-model Explanation {
-  id         String              @id @default(auto()) @map("_id") @db.ObjectId
-  question   Question            @relation(fields: [questionId], references: [id])
-  questionId String              @db.ObjectId
-  user       User                @relation(fields: [userId], references: [id])
-  userId     String              @db.ObjectId
-  text       String
-  rating     ExplanationRating[]
-}
 
-model ExplanationRating {
-  id            String      @id @default(auto()) @map("_id") @db.ObjectId
-  explanation   Explanation @relation(fields: [explanationId], references: [id])
-  explanationId String      @db.ObjectId
-  user          User        @relation(fields: [userId], references: [id])
-  userId        String      @db.ObjectId
-  rating        Int
 
-  @@map("explanationRatings")
-}
-
-model Answer {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  question      Question       @relation(fields: [questionId], references: [id])
-  questionId    String         @db.ObjectId 
-  text          String         
-  isCorrect     Boolean        @default(false)
-  testQuestions TestQuestion[]
-
+model Answer{
+  id  String         @id @default(auto()) @map("_id") @db.ObjectId
+  user User @relation(fields: [userId],references: [id],onDelete:Cascade)
+  userId String @db.ObjectId
+  question Question @relation(fields: [questionId],references: [id],onDelete:Cascade)
+  questionId String   @db.ObjectId
+  SelectedOption SelectedOption? 
   @@map("answers")
 }
-
 model Test {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  user        User           @relation(fields: [userId], references: [id])
+  user        User           @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId      String         @db.ObjectId
   license     License        @relation(fields: [licenseId], references: [id])
   licenseId   String         @db.ObjectId
@@ -166,91 +157,95 @@ model TestQuestion {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   test       Test     @relation(fields: [testId], references: [id])
   testId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id],onDelete:Cascade)
   questionId String   @db.ObjectId
   selected   Int?
   isCorrect  Boolean?
-  answer     Answer?  @relation(fields: [answerId], references: [id])
-  answerId   String?  @db.ObjectId
-
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
   @@unique([testId, questionId])
   @@map("testQuestions")
 }
 
 model TestResult {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId    String   @db.ObjectId
-  test      Test     @relation(fields: [testId], references: [id])
+  test      Test     @relation(fields: [testId], references: [id],onDelete:Cascade)
   testId    String   @db.ObjectId
-  topic     Topic    @relation(fields: [topicId], references: [id])
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete:Cascade)
   topicId   String   @db.ObjectId
   date      DateTime @default(now())
   score     Float?   @default(0)
-  createdAt DateTime @default(now())
-
+createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
   @@map("testResults")
 }
 
 model Bookmark {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id])
+  question   Question @relation(fields: [questionId], references: [id],onDelete:Cascade)
   questionId String   @db.ObjectId
-  test       Test?    @relation(fields: [testId], references: [id])
+  test       Test?    @relation(fields: [testId], references: [id],onDelete:Cascade)
   testId     String?  @db.ObjectId
   createdAt  DateTime @default(now())
-
+  updatedAt      DateTime  @updatedAt
   @@unique([userId, questionId])
   @@map("bookmarks")
 }
 
 model Comment {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  user       User       @relation(fields: [userId], references: [id])
+  user       User       @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId     String     @db.ObjectId
-  question   Question   @relation(fields: [questionId], references: [id])
+  question   Question   @relation(fields: [questionId], references: [id],onDelete:Cascade)
   questionId String     @db.ObjectId
   text       String
   downVote   DownVote[]
   upVote     UpVotes[]
   createdAt  DateTime   @default(now())
   replies    Reply[]
-
+  updatedAt      DateTime  @updatedAt
   @@map("comments")
 }
 
 model DownVote {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId    String  @db.ObjectId
-  comment   Comment @relation(fields: [commentId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id],onDelete:Cascade)
   commentId String  @db.ObjectId
   vote      Int
-
+createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
   @@map("downVotes")
 }
 
 model UpVotes {
   id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId    String  @db.ObjectId
-  comment   Comment @relation(fields: [commentId], references: [id])
+  comment   Comment @relation(fields: [commentId], references: [id],onDelete:Cascade)
   commentId String  @db.ObjectId
   vote      Int
+ createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("upVotes")
 }
 
 model Reply {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  comment   Comment  @relation(fields: [commentId], references: [id])
+  comment   Comment  @relation(fields: [commentId], references: [id],onDelete:Cascade)
   commentId String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId    String   @db.ObjectId
   text      String
-  createdAt DateTime @default(now())
+
+ createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("replies")
 }
@@ -265,11 +260,11 @@ enum BillingInterval {
 model Subscription {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
   userId String @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id],onDelete:Cascade)
   Duration  Int?
   interval  BillingInterval?
   licenseId String  @db.ObjectId
-  license   License @relation(fields: [licenseId], references: [id])
+  license   License @relation(fields: [licenseId], references: [id],onDelete:Cascade)
 
   stripeSessionId String        @unique
   stripePaymentId String?
@@ -282,6 +277,18 @@ model Subscription {
   @@map("subscriptions")
 }
 
+
+model Payment{
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  user User  @relation(fields: [userId],references: [id],onDelete:Cascade)
+  userId String  @db.ObjectId
+  PlanName String 
+  amount Float @default(0)
+  transactionId  String @default("Tdx00001x")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime  @updatedAt
+  @@map("payment")
+}
 
 
 model plan {

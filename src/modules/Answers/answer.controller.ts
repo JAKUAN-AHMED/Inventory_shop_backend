@@ -8,7 +8,7 @@ import { AnswerService } from "./answer.service";
 const createAnswer = catchAsync(async (req, res) => {
     const isExists = await prisma.answer.findFirst({
         where: {
-            text: req.body.text,
+            SelectedOption: req.body.SelectedOption,
             questionId: req.body.questionId
         }
     });
