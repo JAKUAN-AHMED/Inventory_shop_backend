@@ -30,30 +30,24 @@ const createTopic = async (payload: Topic) => {
 };
 
 const allTopics = async (query: any) => {
-
+  // Build query with pagination and includes
   const builder = new QueryBuilder(query, prisma.topic);
   const result = await builder
     .paginate()
     .include({
-      // include: {
-      //   license: true,
-      //   // topic: {
-      //   //   include: {
-      //   //     questions: true
-      //   //   }
-      //   // }
-      // }
-
+      questions: true, 
     })
     .execute();
 
+
+  // Get pagination metadata
   const meta = await builder.countTotal();
 
-  return ({
+  return {
     data: result,
     meta
-  })
-}
+  };
+};
 
 const singleTopic = async (id: string) => {
   return await prisma.topic.findUnique({
