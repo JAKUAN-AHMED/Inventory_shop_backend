@@ -9,18 +9,13 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  INSTRUCTOR
   STUDENT
 }
 
-enum LicenseType {
-  AIRPLANE
-  HELICOPTER
-  GAS_BALLOON
-  HOT_AIR_BALLOON
-  GLIDER
-  RADIO_CERTIFICATE
-  SAILPLANE
+model LicenseType {
+  id  String              @id @default(auto()) @map("_id") @db.ObjectId
+  title   String
+  @@map("licenseTypes")
 }
 
 enum TestStatus {
@@ -49,7 +44,7 @@ model User {
   profileImage            String?             @default("https://ibb.co/q36v3f9w")
   joinDate                DateTime            @default(now())
   lastLogin               DateTime?
-  subscriptions                 Subscription[]
+  subscriptions           Subscription[]
   testResults             TestResult[]
   rating                  ExplanationRating[]
   bookmarks               Bookmark[]
@@ -59,41 +54,40 @@ model User {
   upVotes                 UpVotes[]
   replies                 Reply[]
   tests                   Test[]
+  // Report                  MyReport?
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt
 
   @@map("users")
 }
 
+
+// model MyReport{
+//   id  String              @id @default(auto()) @map("_id") @db.ObjectId
+//   user  User              @relation(fields: [userId],references: [id])
+//   userId String @unique @db.ObjectId 
+  
+//   @@map("report")
+
+// }
 model License {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   name          String         @unique
-  type          LicenseType?
+  type          String?
   description   String?
   price         Float?
-  // productId     String?
   subscriptions      Subscription[]
   tests         Test[]
-  licenseTopics LicenseTopic[]
+  
 
   @@map("licenses")
 }
 
-model LicenseTopic {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  licenseId String  @db.ObjectId
-  license   License @relation(fields: [licenseId], references: [id])
-  topicId   String? @db.ObjectId
-  topic     Topic?  @relation(fields: [topicId], references: [id])
-
-  @@map("licenses_topics")
-}
 
 model Topic {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
   name          String
   description   String?
-  licenseTopics LicenseTopic[]
   questions     Question[]
   tests         Test[]
   testResults   TestResult[]
@@ -157,7 +151,6 @@ model Test {
   topic       Topic          @relation(fields: [topicId], references: [id])
   topicId     String         @db.ObjectId
   date        DateTime       @default(now())
-  score       Float?
   total       Int
   status      TestStatus     @default(IN_PROGRESS)
   questions   TestQuestion[]
@@ -291,7 +284,7 @@ model Subscription {
 
 
 
-model Product {
+model plan {
   id           String  @id @default(auto()) @map("_id") @db.ObjectId
   productPrice Float?
   productName  String? @unique
@@ -299,5 +292,5 @@ model Product {
   licenseId    String? @unique
   priceId      String?
 
-  @@map("product")
+  @@map("plans")
 }
