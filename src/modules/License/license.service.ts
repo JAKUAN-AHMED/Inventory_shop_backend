@@ -24,7 +24,7 @@ const getAllLicense = async (query: any) => {
     const result = await builder
         .paginate()
         .include({
-            topics:true
+            topics: true
         })
         .execute();
 
@@ -41,33 +41,33 @@ const getSingleLicense = async (id: string) => {
         where: {
             id
         },
-        include:{
-            topics:true
+        include: {
+            topics: true
         }
-        
+
     })
 }
 
 
 //update license
 const updateLicense = async (
-  id: string,
-  payload: Partial<License>
+    id: string,
+    payload: Partial<License>
 ) => {
-  
 
-  // 1. Check if license exists
-  const licenseExists = await prisma.license.findUnique({
-    where: { id },
-  });
-  await NotFound(licenseExists, "License");
 
-  
-  // 3. Update the license data
-  return await prisma.license.update({
-    where: { id },
-    data: payload,
-  });
+    // 1. Check if license exists
+    const licenseExists = await prisma.license.findUnique({
+        where: { id },
+    });
+    await NotFound(licenseExists, "License");
+
+
+    // 3. Update the license data
+    return await prisma.license.update({
+        where: { id },
+        data: payload,
+    });
 };
 
 

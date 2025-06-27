@@ -86,17 +86,19 @@ model License {
 
 model Topic {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
+  name          String @unique
   description   String?
   questions     Question[]
-  license        License  @relation(fields: [licenseId],references: [id],onDelete:Cascade)
-  licenseId     String  @db.ObjectId
+  license        License  @relation(fields: [licenseIds],references: [id],onDelete:Cascade)
+  licenseIds     String[]  @db.ObjectId
   tests         Test[]
   testResults   TestResult[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime  @updatedAt
   @@map("topics")
 }
+
+
 
 
 enum SelectedOption{
@@ -111,9 +113,9 @@ model Question {
   topicId       String         @db.ObjectId
   text          String @unique
   explanation   String?
-  options       String[]
-  correctAnswer  String
-  Answer         Answer[]
+  options       Json[]
+  correctAnswer  SelectedOption
+  answer         Answer[]
   bookmarks     Bookmark[]
   comments      Comment[]
   testQuestions TestQuestion[]
