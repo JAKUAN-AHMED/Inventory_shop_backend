@@ -24,13 +24,12 @@ const CreatePlan = catchAsync(async (req, res) => {
     licenseId
   } = req.body;
 
-  if(!interval || !Duration || !description || !licenseId || !amount)
-  {
-    throw new AppError(404,'a filed is missing');
+  if (!interval || !Duration || !description || !licenseId || !amount) {
+    throw new AppError(404, 'a filed is missing');
   }
   const isExist = await prisma.license.findUnique({
     where: {
-      id:licenseId,
+      id: licenseId,
     },
   });
 
@@ -53,7 +52,7 @@ const CreatePlan = catchAsync(async (req, res) => {
     throw new Error('Already Created Plan');
   }
 
-  const product = await stripe.products.create({  name: isExist?.name as string });
+  const product = await stripe.products.create({ name: isExist?.name as string });
   const price = await stripe.prices.create({
     unit_amount: amount * 100,
     currency: currency,
@@ -73,13 +72,13 @@ const CreatePlan = catchAsync(async (req, res) => {
         interval,
         Duration,
         licenseId,
-        stripePriceId:price.id as string,
+        stripePriceId: price.id as string,
         productDescription: description,
       },
     });
   }
- 
-  const result=dbplan;
+
+  const result = dbplan;
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 201 : 400,
@@ -95,20 +94,20 @@ const CreatePlan = catchAsync(async (req, res) => {
 const AllPlans = catchAsync(async (req, res) => {
   const result = await prisma.plan.findMany({
     select: {
-      id:true,
+      id: true,
       productName: true,
       productId: true,
       interval: true,
       Duration: true,
-      stripePriceId:true,
-      license:{
-        include:{
-          topics:{
-            include:{
-              questions:{
-                include:{
-                  bookmarks:true,
-                  comments:true
+      stripePriceId: true,
+      license: {
+        include: {
+          topics: {
+            include: {
+              questions: {
+                include: {
+                  bookmarks: true,
+                  comments: true
                 }
               }
             }
@@ -118,8 +117,8 @@ const AllPlans = catchAsync(async (req, res) => {
     },
   });
 
- 
-  const isOk = result.length>0? true : false;
+
+  const isOk = result.length > 0 ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 400,
     success: isOk,
@@ -129,22 +128,22 @@ const AllPlans = catchAsync(async (req, res) => {
 });
 const SinglePlan = catchAsync(async (req, res) => {
   const result = await prisma.plan.findUnique({
-    where:{id:req.params.id},
+    where: { id: req.params.id },
     select: {
-      id:true,
-      stripePriceId:true,
+      id: true,
+      stripePriceId: true,
       productName: true,
       productId: true,
       interval: true,
       Duration: true,
-      license:{
-        include:{
-          topics:{
-            include:{
-              questions:{
-                include:{
-                  bookmarks:true,
-                  comments:true
+      license: {
+        include: {
+          topics: {
+            include: {
+              questions: {
+                include: {
+                  bookmarks: true,
+                  comments: true
                 }
               }
             }
@@ -154,8 +153,8 @@ const SinglePlan = catchAsync(async (req, res) => {
     },
   });
 
- 
-  const isOk = result? true : false;
+
+  const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 400,
     success: isOk,
@@ -164,90 +163,90 @@ const SinglePlan = catchAsync(async (req, res) => {
   });
 });
 const UpdatePlan = catchAsync(async (req, res) => {
-  const { name, price, interval, Duration, description } = req.body;
+  const { planId, name, price, interval, Duration, description } = req.body;
 
+  if (!planId) {
+    throw new AppError(404, "Plan ID is required");
+  }
 
-  let isExist = null;
+  // 1. Find existing plan
+  const plan = await prisma.plan.findUnique({
+    where: { id: planId },
+  });
 
-  // Check if license exists
+  if (!plan) {
+    throw new AppError(404, "Plan not found");
+  }
+
+  let updatedLicenseId = plan.licenseId;
+
+  // 2. If name is provided, find matching license
   if (name) {
-    isExist = await prisma.license.findUnique({
+    const license = await prisma.license.findFirst({
       where: { name },
     });
 
     await NotFound(
-      isExist,
-      'The license name you provided does not exist in the license collection.',
+      license,
+      "The license name you provided does not exist in the license collection.",
     );
 
     await prisma.license.update({
-      where: { id: isExist?.id },
+      where: { id: license?.id },
       data: { name, price },
     });
+
+    updatedLicenseId = license?.id as string;
   }
 
- const hasAny = price !== undefined || interval !== undefined || Duration !== undefined;
-const hasAll = price !== undefined && interval !== undefined && Duration !== undefined;
+  const hasAny = price !== undefined || interval !== undefined || Duration !== undefined || description !== undefined || name !== undefined;
+  const hasAll = price !== undefined && interval !== undefined && Duration !== undefined;
 
-if (hasAny && !hasAll) {
-  throw new AppError(400, 'To update price, interval, or duration, you must provide all three: price, interval, and duration.');
-}
+  if (hasAny && !hasAll) {
+    throw new AppError(400, "To update price, interval, or duration, you must provide all three.");
+  }
 
+  // 3. Update Stripe product name if name is given
+  let product = null;
+  if (name) {
+    product = await stripe.products.update(plan?.productId as string, { name });
+  }
 
-  // Update the product name if provided
-  const product = await stripe.products.update(req.params.id, {
-    name,
-  });
-
+  // 4. If all fields are present, create a new Stripe price
   let newStripePrice = null;
-
-  if (price && interval && Duration) {
-    // ⚠️ Stripe does NOT allow updating an existing price — create a new one
+  if (hasAll) {
     newStripePrice = await stripe.prices.create({
-      unit_amount: price * 100, // price in cents
-      currency: 'usd',
-      product: req.params.id,
+      unit_amount: price * 100,
+      currency: "usd",
+      product: plan?.productId as string,
       recurring: {
-        interval,          // 'day', 'week', 'month', or 'year'
-        interval_count: Duration, // how many of those intervals
+        interval,
+        interval_count: Duration,
       },
     });
-
-     // Update your local DB plan
-  await prisma.plan.create({
-    data: {
-      productPrice: price,
-      productId: product.id,
-      productDescription: description,
-      interval,
-      stripePriceId:newStripePrice.id as string,
-      Duration,
-      licenseId:isExist?.id as string
-    },
-  });
-  }
-  else{
-    // Update your local DB plan
-  await prisma.plan.update({
-    where: { id: req.params.id }, // Assuming 'id' is the unique identifier for the plan
-    data: {
-      productPrice: price,
-      productId: product.id,
-      productDescription: description,
-      interval,
-      Duration,
-    },
-  });
   }
 
-  const isOk = product ? true : false;
+  // 5. Update Plan in DB
+  const updatedPlan = await prisma.plan.update({
+    where: { id: planId },
+    data: {
+      productName: name ?? plan.productName,
+      productDescription: description ?? plan.productDescription,
+      productPrice: price ?? plan.productPrice,
+      interval: interval ?? plan.interval,
+      Duration: Duration ?? plan.Duration,
+      stripePriceId: newStripePrice?.id ?? plan.stripePriceId,
+      productId: product?.id ?? plan.productId,
+      licenseId: updatedLicenseId,
+    },
+  });
 
+  // 6. Response
   sendResponse(res, {
-    statusCode: isOk ? 200 : 400,
-    success: isOk,
-    message: isOk
-      ? 'Successfully Updated Plan'
-      : 'Failed to Update Plan',
+    statusCode: 200,
+    success: true,
+    message: "Successfully updated the plan",
+    Data: updatedPlan,
   });
 });
 
@@ -326,10 +325,10 @@ const createSubscriptionSession = catchAsync(async (req, res) => {
 
 export const webhook = async (req: Request, res: Response) => {
 
-   const sig = req.headers['stripe-signature'];
+  const sig = req.headers['stripe-signature'];
   let event;
 
-console.log('sig',sig);
+  console.log('sig', sig);
   try {
     event = stripe.webhooks.constructEvent(
       req?.body,

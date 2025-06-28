@@ -15,6 +15,7 @@ import { VoteRoutes } from '../modules/Vote/vote.route';
 import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route';
 import { LicenseTypesRouter } from '../modules/LicenseTypes/lstypes.routes';
 import { SaveRoutes } from '../modules/SaveTest/savetest.routes';
+import { PaymentRoutes } from '../modules/Payment/payment.routes';
 
 
 const router = express.Router();
@@ -78,6 +79,10 @@ const moduleRoutes = [
   },{
     path:"/licenseType",
     route:LicenseTypesRouter
+  },
+  {
+    path:'/payment',
+    route:PaymentRoutes
   }
 ];
 
