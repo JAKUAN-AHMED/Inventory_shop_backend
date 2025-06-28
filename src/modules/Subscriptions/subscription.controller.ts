@@ -91,7 +91,20 @@ const AllPlans = catchAsync(async (req, res) => {
       productId: true,
       interval: true,
       Duration: true,
-      license:true
+      license:{
+        include:{
+          topics:{
+            include:{
+              questions:{
+                include:{
+                  bookmarks:true,
+                  comments:true
+                }
+              }
+            }
+          }
+        }
+      }
     },
   });
 
