@@ -17,11 +17,16 @@ const CreatePlan = catchAsync(async (req, res) => {
     licenseId
   } = req.body;
 
+  if(!interval || !Duration || !description || !licenseId || !amount)
+  {
+    throw new AppError(404,'a filed is missing');
+  }
   const isExist = await prisma.license.findUnique({
     where: {
       id:licenseId,
     },
   });
+
 
   await NotFound(
     isExist,
@@ -55,7 +60,7 @@ const CreatePlan = catchAsync(async (req, res) => {
   if (product) {
     dbplan = await prisma.plan.create({
       data: {
-        productName: isExist?.name,
+        productName: isExist?.name as string,
         productPrice: amount,
         productId: product.id,
         interval,
@@ -85,33 +90,18 @@ const AllPlans = catchAsync(async (req, res) => {
       productName: true,
       productId: true,
       interval: true,
-      Duration: true
+      Duration: true,
+      license:true
     },
   });
 
-  const license=await prisma.license.findMany({
-    where:{
-      name:result?.[0]?.productName as string
-    },
-    include:{
-      topics:{
-        include:{
-          questions:true
-        }
-      }
-    }
-  })
-
-  const result1={
-    plan:result,
-    license
-  }
-  const isOk = result1.plan.length && result1?.license? true : false;
+ 
+  const isOk = result.length>0? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 400,
     success: isOk,
     message: isOk ? 'Successfully Retrived All Plans' : 'Failed to Get  Plans',
-    Data: isOk ? result1 : [],
+    Data: isOk ? result : [],
   });
 });
 const UpdatePlan = catchAsync(async (req, res) => {

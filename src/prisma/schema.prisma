@@ -316,7 +316,7 @@ model Plan {
   productId          String?         
   interval           BillingInterval
   license            License  @relation(fields: [licenseId],references: [id])
-  licenseId         String @db.ObjectId
+  licenseId          String @db.ObjectId
   Duration           Int?            @default(0)
   productDescription String
   subscriptions Subscription[]
