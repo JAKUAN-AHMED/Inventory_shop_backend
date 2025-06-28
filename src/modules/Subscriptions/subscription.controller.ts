@@ -6,6 +6,13 @@ import { NotFound } from '../../utils/utility';
 import stripe from '../../config/stripe';
 import AppError from '../../errors/AppError';
 
+import { sendEmail } from '../../utils/sendEmail';
+import { generateEmailTemplate } from './subscription.constans';
+import { HttpStatusCode } from 'axios';
+import config from '../../config';
+import { Request, Response } from 'express';
+import { SubscriptionService } from './subscription.service';
+
 //create produc
 const CreatePlan = catchAsync(async (req, res) => {
   const {
@@ -66,6 +73,7 @@ const CreatePlan = catchAsync(async (req, res) => {
         interval,
         Duration,
         licenseId,
+        stripePriceId:price.id as string,
         productDescription: description,
       },
     });
@@ -87,10 +95,12 @@ const CreatePlan = catchAsync(async (req, res) => {
 const AllPlans = catchAsync(async (req, res) => {
   const result = await prisma.plan.findMany({
     select: {
+      id:true,
       productName: true,
       productId: true,
       interval: true,
       Duration: true,
+      stripePriceId:true,
       license:{
         include:{
           topics:{
@@ -121,6 +131,8 @@ const SinglePlan = catchAsync(async (req, res) => {
   const result = await prisma.plan.findUnique({
     where:{id:req.params.id},
     select: {
+      id:true,
+      stripePriceId:true,
       productName: true,
       productId: true,
       interval: true,
@@ -208,6 +220,7 @@ if (hasAny && !hasAll) {
       productId: product.id,
       productDescription: description,
       interval,
+      stripePriceId:newStripePrice.id as string,
       Duration,
       licenseId:isExist?.id as string
     },
@@ -283,10 +296,153 @@ const deletePlan = catchAsync(async (req, res) => {
 });
 
 
+const createSubscriptionSession = catchAsync(async (req, res) => {
+  const { user } = req;
+  const { name: planName } = req.body;
+
+  if (!planName) {
+    throw new AppError(
+      400,
+      'Plan name is required to create a subscription session',
+    );
+  }
+
+  if (!user || !user.id || !user.email) {
+    throw new AppError(400, 'User information is missing or incomplete');
+  }
+
+  const RESPONSE = await SubscriptionService.createSubscriptionSession(
+    user,
+    planName,
+  );
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: 'Subscription session created successfully',
+    Data: RESPONSE,
+  });
+});
+
+export const webhook = async (req: Request, res: Response) => {
+
+   const sig = req.headers['stripe-signature'];
+  let event;
+
+console.log('sig',sig);
+  try {
+    event = stripe.webhooks.constructEvent(
+      req?.body,
+      sig as string,
+      config.stripe.subscription_webhook_sec as string,
+    );
+  } catch (err: any) {
+    console.error('   Error deserializing webhook:', err.message);
+    throw new AppError(
+      HttpStatusCode.InternalServerError,
+      'internal server error',
+    );
+  }
+  console.log('✅ event type: ' + event.type);
+
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        // await SubscriptionService.handleCheckoutSessionCompleted(
+
+        //   event.data.object as Stripe.Checkout.Session,
+        // );
+        break;
+
+      case 'customer.subscription.updated':
+        await SubscriptionService.handleSubscriptionUpdated(event);
+        break;
+
+      case 'invoice.payment_succeeded':
+        await SubscriptionService.handleInvoicePaymentSucceeded(
+          event.data.object,
+        );
+        break;
+
+      case 'customer.subscription.deleted':
+        await SubscriptionService.deleteSubscription(event);
+        break;
+
+      case 'invoice.payment_failed':
+        await SubscriptionService.handleInvoicePaymentFailed(event);
+        break;
+
+      case 'customer.subscription.trial_will_end':
+        await SubscriptionService.handleSubscriptionWillEnd(event);
+        break;
+
+      default:
+        console.log(`Unhandled event type: ${event.type}`);
+        break;
+    }
+
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: 'Subscription session created successfully',
+    });
+  } catch (error) {
+    console.error('Error processing webhook event:', error);
+  }
+};
+
+
+const subscribers = catchAsync(async (req, res) => {
+  const result = await SubscriptionService.allsubscribers();
+  const isOk = result ? true : false;
+  sendResponse(res, {
+    statusCode: isOk ? 200 : 404,
+    success: isOk,
+    message: isOk ? "Successfully retrived all Staff's " : "Failed to Retrive Staff",
+    Data: isOk ? result : []
+  })
+})
+
+
+//send email to subscripers
+
+const sendEmailToSubscribers = catchAsync(async (req, res) => {
+  const { text, subject, email } = req.body;
+  const user = await prisma.user.findUnique({
+    where: {
+      email
+    }
+  })
+
+  await NotFound(user);
+
+
+
+
+
+  const finalHtmlContent = generateEmailTemplate(text);
+
+  const result = await sendEmail(
+    [{ email: user?.email as string }],
+    subject,
+    finalHtmlContent,
+    text,
+
+  )
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: `Successfully Sent Email to ${user?.name}`,
+  })
+})
+
 export const SubscriptionController = {
   CreatePlan,
   UpdatePlan,
   deletePlan,
   AllPlans,
-  SinglePlan
+  SinglePlan,
+  webhook,
+  createSubscriptionSession
 };

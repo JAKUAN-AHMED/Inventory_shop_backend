@@ -314,7 +314,8 @@ model Plan {
   id                 String          @id @default(auto()) @map("_id") @db.ObjectId
   productPrice       Float?
   productName        String?         @unique
-  productId          String?         
+  productId          String?  
+  stripePriceId     String?       
   interval           BillingInterval
   license            License  @relation(fields: [licenseId],references: [id])
   licenseId          String @db.ObjectId

@@ -6,7 +6,7 @@ if (!config.stripe_api_secret) {
     throw new Error('STRIPE_SECRET_KEY is not defined');
 }
 
-const stripe = new Stripe(config.stripe_api_secret, {
+const stripe = new Stripe(config?.stripe_api_secret!, {
     apiVersion: '2025-05-28.basil',
 });
   
