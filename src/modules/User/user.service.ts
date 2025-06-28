@@ -30,8 +30,7 @@ const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => 
 
     let imageUrls: string = '';
     if (file) {
-        const { location: secure_url } = await uploadToDigitalOceanAWS(file);
-        imageUrls = secure_url as string;
+        imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
     }
     if (imageUrls) {
         payload.profileImage = imageUrls;

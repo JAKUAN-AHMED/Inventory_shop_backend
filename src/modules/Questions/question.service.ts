@@ -7,6 +7,7 @@ import { deleteFromDigitalOceanAWS, uploadToDigitalOceanAWS } from "../../utils/
 
 import { JsonValue } from "@prisma/client/runtime/library"
 import { IQuestion } from "./question.interface"
+import { deleteFile } from "../../helpers/FileDelete"
 
 
 type optionsType = {
@@ -30,10 +31,10 @@ const createQuestion = async (file:any,payload:IQuestion ) => {
         throw new AppError(400, "Options must be an array of exactly 4 items");
     }
 
+    
    if (file) {
-     const {location}=await uploadToDigitalOceanAWS(file);
-     console.log(location)
-     explanation.img=location as string;
+       const imageUrl = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+       explanation.img=imageUrl;
    }
     return await prisma.question.create({
         data: {
@@ -68,9 +69,11 @@ const updateQuestion = async (file:Express.Multer.File,id: string, payload: Part
                 explanationObj = {};
             }
         }
-        const deletImg = await deleteFromDigitalOceanAWS(explanationObj?.img as string);
-
-        const uploaded = await uploadToDigitalOceanAWS(file);
+        const deletImg = await deleteFile(explanationObj?.img as string);
+         const updated = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+         if (explanation) {
+             explanation.img = updated as string;
+         }
     }
     
 
@@ -97,6 +100,24 @@ const deleteQuestion = async (id: string) => {
 
     await NotFound(isExistQuestions, "Questions You are trying to Delete ,Its Already Deleted and Id");
 
+
+    if (
+        isExistQuestions &&
+        isExistQuestions.explanation
+    ) {
+        let explanationObj: any = isExistQuestions.explanation;
+        if (typeof explanationObj === "string") {
+            try {
+                explanationObj = JSON.parse(explanationObj);
+            } catch (e) {
+                explanationObj = {};
+            }
+        }
+        if (explanationObj?.img) {
+            // You can now safely access explanationObj.img here
+            await deleteFile(explanationObj.img)
+        }
+    }
 
     await prisma.testQuestion.deleteMany({
         where: {

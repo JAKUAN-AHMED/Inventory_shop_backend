@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response, Router } from "express";
 import auth from "../../middlewares/auth";
 import { QuestionController } from "./questions.controller";
-import { upload } from "../../utils/sendImageToCloudinary";
+
 import validateRequest from "../../middlewares/validateRequest";
 import { questionSchema, questionUpdateSchema } from "./question.validation";
+import { upload } from "../../helpers/FileUpload";
 
 const router = Router();
 
