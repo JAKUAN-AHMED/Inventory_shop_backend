@@ -162,6 +162,23 @@ const deletePlan = catchAsync(async (req, res) => {
 
   await NotFound(isExistProduct, 'Plan');
 
+  const subscription=await prisma.subscription.findFirst({
+    where:{
+      planId:req.params.id
+    }
+  })
+
+  if(subscription)
+  {
+    await prisma.subscription.deleteMany({
+      where:{
+        planId:req.params.id
+      }
+    })
+  }
+
+
+  //safely delete 
   await prisma.plan.delete({
     where: {
       productId: req.params.id,

@@ -1,6 +1,7 @@
 import { Test } from '@prisma/client';
 import { prisma } from '../../prisma/client';
 import AppError from '../../errors/AppError';
+import { NotFound } from '../../utils/utility';
 
 const createTest = async (payload: Test) => {
   // console.log("payload ", payload);
@@ -93,6 +94,62 @@ const updateTest = async (id: string, payload: Partial<Test>) => {
 };
 
 const deleteTest = async (id: string,userId:string) => {
+
+  const isTestExist=await prisma.test.findUnique({
+    where:{
+      id
+    }
+  })
+
+  await NotFound(isTestExist,'Test');
+
+  const testQ=await prisma.testQuestion.findFirst({
+    where:{
+      testId:id
+    }
+  })
+
+
+  if(testQ)
+  {
+    await prisma.testQuestion.deleteMany({
+      where:{
+        testId:id
+      }
+    })
+  }
+  const bookmark=await prisma.bookmark.findFirst({
+    where:{
+      testId:id
+    }
+  })
+
+
+  if(bookmark)
+  {
+    await prisma.bookmark.deleteMany({
+      where:{
+        testId:id
+      }
+    })
+  }
+  const testR=await prisma.testResult.findFirst({
+    where:{
+      testId:id
+    }
+  })
+
+
+  if(testR)
+  {
+    await prisma.testResult.deleteMany({
+      where:{
+        testId:id
+      }
+    })
+  }
+
+  
   // Logic to delete a test
   return await prisma.test.delete({
     where: { id ,userId},

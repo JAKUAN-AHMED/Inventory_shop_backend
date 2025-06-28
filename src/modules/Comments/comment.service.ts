@@ -1,5 +1,6 @@
 import { Comment, DownVote } from "@prisma/client";
 import { prisma } from "../../prisma/client";
+import { NotFound } from "../../utils/utility";
 
 
 const createCommnent = async (userId:string,payload: Comment) => {
@@ -27,6 +28,63 @@ const updateComment = async (id: string, payload: Partial<Comment>) => {
 }
 
 const deleteComment = async (id: string) => {
+
+    const isExistComment=await prisma.comment.findUnique({
+    where:{
+        id
+    }
+    })
+
+    await NotFound(isExistComment,'Comment');
+
+
+    const upvote=await prisma.upVotes.findFirst({
+        where:{
+            commentId:id
+        }
+    })
+
+    if(upvote)
+    {
+        await prisma.upVotes.deleteMany({
+            where:{
+                commentId:id
+            }
+        })
+    }
+    const downvote=await prisma.downVote.findFirst({
+        where:{
+            commentId:id
+        }
+    })
+
+    if(downvote)
+    {
+        await prisma.downVote.deleteMany({
+            where:{
+                commentId:id
+            }
+        })
+    }
+    const reply=await prisma.reply.findFirst({
+        where:{
+            commentId:id
+        }
+    })
+
+    if(reply)
+    {
+        await prisma.reply.deleteMany({
+            where:{
+                commentId:id
+            }
+        })
+    }
+
+
+
+    //now savely delete
+
     return await prisma.comment.delete({
         where: {
             id

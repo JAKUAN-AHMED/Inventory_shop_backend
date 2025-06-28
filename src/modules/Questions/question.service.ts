@@ -127,6 +127,53 @@ const deleteQuestion = async (id: string) => {
         }
     }
 
+
+
+   const bookmark=await prisma.bookmark.findFirst({
+    where:{
+        questionId:id
+    }
+   })
+
+   if(bookmark)
+   {
+    await prisma.bookmark.deleteMany({
+        where:{
+            questionId:id
+        }
+    })
+   }
+   const comment=await prisma.comment.findFirst({
+    where:{
+        questionId:id
+    }
+   })
+
+   if(comment)
+   {
+    await prisma.bookmark.deleteMany({
+        where:{
+            questionId:id
+        }
+    })
+   }
+   const testQuestion=await prisma.testQuestion.findFirst({
+    where:{
+        questionId:id
+    }
+   })
+
+   if(testQuestion)
+   {
+    await prisma.testQuestion.deleteMany({
+        where:{
+            questionId:id
+        }
+    })
+   }
+
+
+   //now safely delete
     await prisma.testQuestion.deleteMany({
         where: {
             questionId: id

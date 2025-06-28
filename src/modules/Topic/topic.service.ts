@@ -35,7 +35,7 @@ const allTopics = async (query: any) => {
   const result = await builder
     .paginate()
     .include({
-      questions: true, 
+      questions: true,
     })
     .execute();
 
@@ -67,12 +67,53 @@ const deleteTopic = async (id: string) => {
   })
 
   await NotFound(isExist, 'Which Topic You are trying to Delete This is');
+  const questions = await prisma.question.findFirst({ where: { topicId: id } });
+  if(questions)
+  {
+    await prisma.question.deleteMany({
+      where:{
+        topicId:id
+      }
+    })
+  }
+  const test = await prisma.test.findFirst({ where: { topicId: id } });
+  if(test)
+  {
+    await prisma.test.deleteMany({
+      where:{
+        topicId:id
+      }
+    })
+  }
+  const savetest = await prisma.saveTest.findFirst({ where: { topicId: id } });
+  if(savetest)
+  {
+    await prisma.saveTest.deleteMany({
+      where:{
+        topicId:id
+      }
+    })
+  }
+  const testresult = await prisma.testResult.findFirst({ where: { topicId: id } });
+  if(testresult)
+  {
+    await prisma.testResult.deleteMany({
+      where:{
+        topicId:id
+      }
+    })
+  }
+
+  //now safely delete
+
   return await prisma.topic.delete({
     where: {
       id
     }
   })
 }
+
+
 
 const updateTopic = async (
   id: string,
