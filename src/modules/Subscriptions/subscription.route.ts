@@ -5,11 +5,11 @@ import { SubscriptionController } from "./subscription.controller";
 const router=Router();
 
 //create product
-router.post('/create-product',auth('ADMIN'), SubscriptionController.createProduct);
-router.get('/all-plans',auth('ADMIN','STUDENT'), SubscriptionController.allProducts);
-router.patch('/update-product/:id', SubscriptionController.updateProduct);
-router.post('/create-session',auth('ADMIN','STUDENT'),SubscriptionController.createSession);
-router.delete('/delete-product/:id',auth('ADMIN'),SubscriptionController.deleteProduct);
+router.post('/create-plan',auth('ADMIN'), SubscriptionController.CreatePlan);
+router.get('/all-plans',auth('ADMIN','STUDENT'), SubscriptionController.AllPlans);
+router.patch('/update-plan/:id', SubscriptionController.UpdatePlan);
+// router.post('/create-session',auth('ADMIN','STUDENT'),SubscriptionController.createSession);
+router.delete('/delete-plan/:id',auth('ADMIN'),SubscriptionController.deletePlan);
 
 
 export const SubscriptionRoutes=router;

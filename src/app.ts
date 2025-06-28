@@ -21,11 +21,11 @@ export const corsOptions = {
 };
 
 
-app.post(
-  '/api/webhook',
-  express.raw({ type: 'application/json' }),
-  SubscriptionController.webhook,
-);
+// app.post(
+//   '/api/webhook',
+//   express.raw({ type: 'application/json' }),
+//   SubscriptionController.webhook,
+// );
 //middleware
 app.use(cors(corsOptions));
 app.use(cookieParser());
