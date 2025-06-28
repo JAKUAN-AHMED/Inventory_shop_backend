@@ -318,7 +318,7 @@ model Plan {
   license            License  @relation(fields: [licenseId],references: [id])
   licenseId         String @db.ObjectId
   Duration           Int?            @default(0)
-  productDescription String?
+  productDescription String
   subscriptions Subscription[]
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
