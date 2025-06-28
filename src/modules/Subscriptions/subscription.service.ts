@@ -4,6 +4,7 @@
 // import { IUser } from '../User/user.interface';
 // import { getMonth } from 'date-fns';
 // import { sendEmail } from '../../utils/sendEmail';
+// import stripe from '../../config/stripe';
 
 // const createSubscriptionSession = async (user: IUser, planName: string) => {
 //   const plan = await prisma.plan.findUnique({
@@ -12,6 +13,9 @@
 
 //   if (!plan) {
 //     throw new AppError(404, 'Plan not found');
+//   }
+//   if (!user.id) {
+//     throw new AppError(400, 'User ID is required to create a subscription');
 //   }
 //   let existingSubscription = await prisma.subscription.findFirst({
 //     where: {
@@ -27,13 +31,13 @@
 //   ) {
 //     throw new AppError(400, 'You already have an active subscription');
 //   }
-//   const priceId = plan.stripePriceId;
+//   const priceId = plan.productId as string;
 
 //   const result = await prisma.$transaction(async (TX) => {
 //     if (!existingSubscription) {
 //       existingSubscription = await TX.subscription.create({
 //         data: {
-//           userId: user.id,
+//           userId: user?.id as string,
 //           planId: plan.id,
 //           isActive: true,
 //           subscriptionStatus: 'PENDING',
@@ -64,7 +68,7 @@
 //         userEmail: user.email,
 //         planName,
 //         subscriptionId: existingSubscription.id,
-//         duration: plan.durationInMonths
+//         duration: plan.Duration
 //       },
 //       subscription_data: {
 //         metadata: {
@@ -73,7 +77,7 @@
 //           userName: user.name,
 //           userEmail: user.email,
 //           planName,
-//           duration: plan.durationInMonths
+//           duration: plan.Duration
 //         },
 //       },
 //     });
@@ -238,11 +242,9 @@
 
 //     const result = await sendEmail(
 //       [{ email: user?.email as string }],
-//       'You have Successfully',
+//       'You have Successfully Buy Your Subscription',
 //       htmlContent
 //     )
-//     console.log('result', result);
-//     await makeBusinessMan(userId!);
 
 //   });
 // };
@@ -479,10 +481,10 @@
 //     const data=await prisma.plan.update(
 //       {
 //         where: {
-//           stripePriceId: productId as string
+//           productId: productId as string
 //         },
 //         data: {
-//           price,
+//           productPrice:price,
 //         }
 //       }
 //     )

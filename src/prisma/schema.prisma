@@ -37,6 +37,7 @@ enum PaymentStatus {
   PAID
   PENDING
   CANCELLED
+  SUCCEEDED
 }
 
 model User {

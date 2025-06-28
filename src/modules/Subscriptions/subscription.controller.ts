@@ -117,6 +117,40 @@ const AllPlans = catchAsync(async (req, res) => {
     Data: isOk ? result : [],
   });
 });
+const SinglePlan = catchAsync(async (req, res) => {
+  const result = await prisma.plan.findUnique({
+    where:{id:req.params.id},
+    select: {
+      productName: true,
+      productId: true,
+      interval: true,
+      Duration: true,
+      license:{
+        include:{
+          topics:{
+            include:{
+              questions:{
+                include:{
+                  bookmarks:true,
+                  comments:true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+  });
+
+ 
+  const isOk = result? true : false;
+  sendResponse(res, {
+    statusCode: isOk ? 200 : 400,
+    success: isOk,
+    message: isOk ? 'Successfully Retrived A Plan' : 'Failed to Get  Plan',
+    Data: isOk ? result : [],
+  });
+});
 const UpdatePlan = catchAsync(async (req, res) => {
   const { name, price, interval, Duration, description } = req.body;
 
@@ -254,4 +288,5 @@ export const SubscriptionController = {
   UpdatePlan,
   deletePlan,
   AllPlans,
+  SinglePlan
 };
