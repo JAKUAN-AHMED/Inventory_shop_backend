@@ -27,20 +27,20 @@ const updateTestQuestion = async (id: string, payload: Partial<TestQuestion>) =>
     const isQuestionExists = await prisma.question.findUnique({
         where: { id: questionId },
         include: {
-            answers: true
+            answer: true
         }
     });
     if (!isQuestionExists) {
         throw new Error('Question not found');
     }
-    const { answers } = isQuestionExists;
+    const { answer } = isQuestionExists;
     if (!selected) {
         throw new Error('Selected answer is required');
     }
-    const isAnswerCorrect = answers[selected]?.isCorrect;
+    const isAnswerCorrect = answer[selected]?.SelectedOption;
 
-    payload.isCorrect = isAnswerCorrect;
-    payload.answerId = answers[selected]?.id;
+    // payload.CorrectAnswer = isAnswerCorrect;
+    // payload.answerId = answers[selected]?.id;
 
     //calculate score
     if (isAnswerCorrect) {

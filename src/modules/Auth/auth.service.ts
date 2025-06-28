@@ -18,7 +18,9 @@ const register = async (file:any,payload: IUser) => {
 
   let imageUrls: string = '';
   if ( file ) {
-     imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+    //  imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+    const {location}=await uploadToDigitalOceanAWS(file);
+    imageUrls=location as string;
   }
   // Hash the password
   const password = await bcrypt.hash(

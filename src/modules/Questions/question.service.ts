@@ -33,8 +33,9 @@ const createQuestion = async (file:any,payload:IQuestion ) => {
 
     
    if (file) {
-       const imageUrl = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-       explanation.img=imageUrl;
+    //    const imageUrl = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+    const {location}=await uploadToDigitalOceanAWS(file);
+       explanation.img=location;
    }
     return await prisma.question.create({
         data: {
@@ -69,10 +70,14 @@ const updateQuestion = async (file:Express.Multer.File,id: string, payload: Part
                 explanationObj = {};
             }
         }
-        const deletImg = await deleteFile(explanationObj?.img as string);
-         const updated = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+        // const deletImg = await deleteFile(explanationObj?.img as string);
+        await deleteFromDigitalOceanAWS(explanationObj?.img as string);
+        //  const updated = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+        const {location}=await uploadToDigitalOceanAWS(file);
+      
          if (explanation) {
-             explanation.img = updated as string;
+            //  explanation.img = updated as string;
+             explanation.img = location as string;
          }
     }
     
@@ -115,7 +120,10 @@ const deleteQuestion = async (id: string) => {
         }
         if (explanationObj?.img) {
             // You can now safely access explanationObj.img here
-            await deleteFile(explanationObj.img)
+            // await deleteFile(explanationObj.img)
+
+             await deleteFromDigitalOceanAWS(explanationObj?.img as string);
+            
         }
     }
 

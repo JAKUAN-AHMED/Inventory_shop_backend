@@ -130,8 +130,8 @@ model Answer{
   id  String         @id @default(auto()) @map("_id") @db.ObjectId
   user User @relation(fields: [userId],references: [id],onDelete:Cascade)
   userId String @db.ObjectId
-  question Question @relation(fields: [questionId],references: [id],onDelete:Cascade)
-  questionId String   @db.ObjectId
+  question Question  @relation(fields: [questionId],references: [id],onDelete:Cascade) 
+  questionId String   @db.ObjectId @unique
   SelectedOption SelectedOption? 
   @@map("answers")
 }
@@ -144,7 +144,7 @@ model Test {
   topic       Topic          @relation(fields: [topicId], references: [id])
   topicId     String         @db.ObjectId
   date        DateTime       @default(now())
-  total       Int
+  total       Int    //total number of question for he want to take t
   status      TestStatus     @default(IN_PROGRESS)
   questions   TestQuestion[]
   bookmarks   Bookmark[]

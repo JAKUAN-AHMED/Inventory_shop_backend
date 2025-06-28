@@ -12,21 +12,17 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     },
     select: {
       id: true,
-      explanation: {
-        select:{
-          text:true,
-          rating:true
-        }
-      },
-      answers: true,
+      answer: true,
       comments: {
         select:{
           upVote:true,
           downVote:true
         }
       },
+     
       // topicId is not needed unless you need it later
     },
+    
     take: payload.total,
   });
 

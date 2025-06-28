@@ -42,7 +42,11 @@ export const createStorage = (folder?: string) => {
 export const upload = multer({
   storage: createStorage(),
   fileFilter: fileFilter,
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB in bytes
+  },
 });
+
 
 // const example = upload.fields([{ name: "galleryImage", maxCount: 5 }]);
 

@@ -4,7 +4,8 @@ import { QuestionController } from "./questions.controller";
 
 import validateRequest from "../../middlewares/validateRequest";
 import { questionSchema, questionUpdateSchema } from "./question.validation";
-import { upload } from "../../helpers/FileUpload";
+import { upload } from "../../utils/sendImageToCloudinary";
+// import { upload } from "../../helpers/FileUpload";
 
 const router = Router();
 

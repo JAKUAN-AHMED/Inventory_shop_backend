@@ -1,0 +1,7 @@
+
+
+// when a user select license and topic at that time will show two option 
+
+
+option => 1 is      ----- ------  study 
+option => 2 is      ----- ------  Exam

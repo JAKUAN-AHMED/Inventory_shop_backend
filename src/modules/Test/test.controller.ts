@@ -14,7 +14,9 @@ const createTest = catchAsync(async (req, res) => {
 
     const isExists = await prisma.test.findFirst({
         where: {
-            userId: userId
+            userId,
+            licenseId:req.body.licenseId,
+            topicId:req.body.topicId
         }
     });
     if (isExists) {

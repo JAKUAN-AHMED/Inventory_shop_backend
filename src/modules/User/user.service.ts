@@ -1,6 +1,7 @@
 import AppError from '../../errors/AppError';
 import { prisma } from '../../prisma/client';
-import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import { upload, uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import { isExistUserById } from '../../utils/utility';
 import { IUser } from './user.interface';
 
 
@@ -16,6 +17,9 @@ const getingSigleuser = async (userId: string) => {
 
 
 const deleteduser = async (userId: string) => {
+
+
+    const isExist=await isExistUserById(userId);
     return await prisma.user.delete({
         where: {
             id: userId,
@@ -30,7 +34,9 @@ const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => 
 
     let imageUrls: string = '';
     if (file) {
-        imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+        // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+        const {location}=await uploadToDigitalOceanAWS(file);
+        imageUrls=location;
     }
     if (imageUrls) {
         payload.profileImage = imageUrls;

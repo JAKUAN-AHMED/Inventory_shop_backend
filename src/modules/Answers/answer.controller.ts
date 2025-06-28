@@ -9,10 +9,11 @@ import { AnswerService } from "./answer.service";
 const createAnswer = catchAsync(async (req, res) => {
 
 
-    const isExists = await prisma.answer.findFirst({
+    const isExists = await prisma.answer.findUnique({
         where: {
             SelectedOption: req.body.SelectedOption,
-            questionId: req.body.questionId
+            questionId: req.body.questionId,
+            userId:req.user.id
         }
     });
 
@@ -32,6 +33,7 @@ const createAnswer = catchAsync(async (req, res) => {
            //update score of the user test result
     }
 
+    req.body.userId=req.user.id;
 
     const result = await AnswerService.createAnswer(req.body);
     const isOk = result ? true : false;
