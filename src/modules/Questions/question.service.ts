@@ -15,28 +15,28 @@ type optionsType = {
     value: string
 }
 
-export type ExplanationType={
-    text:string,
-    img:string
+export type ExplanationType = {
+    text: string,
+    img?: string
 }
 
-const createQuestion = async (file:any,payload:IQuestion ) => {
-    const { options,explanation, topicId, text, correctAnswer } = payload;
+const createQuestion = async (file: any, payload: IQuestion) => {
+    const { options, explanation, topicId, text, correctAnswer } = payload;
 
     if (!options || !explanation || !text || !correctAnswer || !topicId) {
         throw new AppError(404, 'A field is missing');
     }
-  
+
     if (!Array.isArray(options) || options.length !== 4) {
         throw new AppError(400, "Options must be an array of exactly 4 items");
     }
 
-    
-   if (file) {
-    //    const imageUrl = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-    const {location}=await uploadToDigitalOceanAWS(file);
-       explanation.img=location;
-   }
+
+    if (file) {
+        //    const imageUrl = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
+        const { location } = await uploadToDigitalOceanAWS(file);
+        explanation.img = location;
+    }
     return await prisma.question.create({
         data: {
             options,
@@ -50,18 +50,26 @@ const createQuestion = async (file:any,payload:IQuestion ) => {
 
 
 
-const updateQuestion = async (file:Express.Multer.File,id: string, payload: Partial<IQuestion>) => {
+const updateQuestion = async (file: Express.Multer.File, id: string, payload: Partial<IQuestion>) => {
 
-    const { options, correctAnswer,text,explanation } = payload;
+    const { options, correctAnswer, text, explanation } = payload;
 
-    const result=await prisma.question.findUnique({
-        where:{
+    const result = await prisma.question.findUnique({
+        where: {
             id
         }
     })
+    let ExplanationObj: any;
+    if (file) {
 
-    if(file)
-    {
+        if (explanation) {
+            if (explanation.text) {
+                ExplanationObj.text = explanation.text;
+            }
+            const { location } = await uploadToDigitalOceanAWS(file);
+            ExplanationObj.img = location as string;
+        }
+
         let explanationObj: any = result?.explanation;
         if (typeof explanationObj === "string") {
             try {
@@ -70,17 +78,9 @@ const updateQuestion = async (file:Express.Multer.File,id: string, payload: Part
                 explanationObj = {};
             }
         }
-        // const deletImg = await deleteFile(explanationObj?.img as string);
-        await deleteFromDigitalOceanAWS(explanationObj?.img as string);
-        //  const updated = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-        const {location}=await uploadToDigitalOceanAWS(file);
-      
-         if (explanation) {
-            //  explanation.img = updated as string;
-             explanation.img = location as string;
-         }
+        await deleteFromDigitalOceanAWS(explanationObj?.img as string)
     }
-    
+
 
     return await prisma.question.update({
         where: { id },
@@ -88,7 +88,7 @@ const updateQuestion = async (file:Express.Multer.File,id: string, payload: Part
             options: options ? JSON.parse(JSON.stringify(options)) : undefined,
             correctAnswer,
             text,
-            explanation: explanation ? JSON.parse(JSON.stringify(explanation)) : undefined
+            explanation: explanation ? JSON.parse(JSON.stringify(ExplanationObj)) : undefined
 
         }
     })
@@ -122,58 +122,55 @@ const deleteQuestion = async (id: string) => {
             // You can now safely access explanationObj.img here
             // await deleteFile(explanationObj.img)
 
-             await deleteFromDigitalOceanAWS(explanationObj?.img as string);
-            
+            await deleteFromDigitalOceanAWS(explanationObj?.img as string);
+
         }
     }
 
 
 
-   const bookmark=await prisma.bookmark.findFirst({
-    where:{
-        questionId:id
-    }
-   })
-
-   if(bookmark)
-   {
-    await prisma.bookmark.deleteMany({
-        where:{
-            questionId:id
+    const bookmark = await prisma.bookmark.findFirst({
+        where: {
+            questionId: id
         }
     })
-   }
-   const comment=await prisma.comment.findFirst({
-    where:{
-        questionId:id
-    }
-   })
 
-   if(comment)
-   {
-    await prisma.bookmark.deleteMany({
-        where:{
-            questionId:id
+    if (bookmark) {
+        await prisma.bookmark.deleteMany({
+            where: {
+                questionId: id
+            }
+        })
+    }
+    const comment = await prisma.comment.findFirst({
+        where: {
+            questionId: id
         }
     })
-   }
-   const testQuestion=await prisma.testQuestion.findFirst({
-    where:{
-        questionId:id
-    }
-   })
 
-   if(testQuestion)
-   {
-    await prisma.testQuestion.deleteMany({
-        where:{
-            questionId:id
+    if (comment) {
+        await prisma.bookmark.deleteMany({
+            where: {
+                questionId: id
+            }
+        })
+    }
+    const testQuestion = await prisma.testQuestion.findFirst({
+        where: {
+            questionId: id
         }
     })
-   }
+
+    if (testQuestion) {
+        await prisma.testQuestion.deleteMany({
+            where: {
+                questionId: id
+            }
+        })
+    }
 
 
-   //now safely delete
+    //now safely delete
     await prisma.testQuestion.deleteMany({
         where: {
             questionId: id

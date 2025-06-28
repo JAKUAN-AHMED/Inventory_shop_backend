@@ -42,6 +42,8 @@ const getAllQuestions = catchAsync(async (req, res) => {
     });
 })
 const updateQuestion = catchAsync(async (req, res) => {
+
+    console.log('hitted');
     const result = await QuestionService.updateQuestion(req.file as Express.Multer.File,req.params.id, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
