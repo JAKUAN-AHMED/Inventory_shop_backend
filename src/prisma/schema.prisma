@@ -13,8 +13,9 @@ enum UserRole {
 }
 
 model LicenseType {
-  id  String              @id @default(auto()) @map("_id") @db.ObjectId
-  title   String @unique
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  title String @unique
+
   @@map("licenseTypes")
 }
 
@@ -25,24 +26,31 @@ enum TestStatus {
   CANCELLED
 }
 
+enum SubscriptionStatus {
+  PENDING
+  PAID
+  CANCELLED
+  TRIAL
+}
+
 enum PaymentStatus {
   PAID
-  UNPAID
+  PENDING
   CANCELLED
 }
 
 model User {
-  id                      String              @id @default(auto()) @map("_id") @db.ObjectId
-  name                    String              @unique
-  email                   String              @unique
+  id                      String         @id @default(auto()) @map("_id") @db.ObjectId
+  name                    String         @unique
+  email                   String         @unique
   password                String
   phone                   String
-  role                    UserRole            @default(STUDENT)
-  isVerified              Boolean             @default(false)
-  verificationToken       String?             @unique
+  role                    UserRole       @default(STUDENT)
+  isVerified              Boolean        @default(false)
+  verificationToken       String?        @unique
   verificationTokenExpiry DateTime?
-  profileImage            String?             @default("https://ibb.co/q36v3f9w")
-  joinDate                DateTime            @default(now())
+  profileImage            String?        @default("https://ibb.co/q36v3f9w")
+  joinDate                DateTime       @default(now())
   lastLogin               DateTime?
   subscriptions           Subscription[]
   testResults             TestResult[]
@@ -53,21 +61,18 @@ model User {
   upVotes                 UpVotes[]
   replies                 Reply[]
   tests                   Test[]
-  // answer                  Answer[]
-  payment                  Payment[]
   // Report                  MyReport?
-  createdAt               DateTime            @default(now())
-  updatedAt               DateTime            @updatedAt
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
 
   @@map("users")
 }
-
 
 // model MyReport{
 //   id  String              @id @default(auto()) @map("_id") @db.ObjectId
 //   user  User              @relation(fields: [userId],references: [id])
 //   userId String @unique @db.ObjectId 
-  
+
 //   @@map("report")
 
 // }
@@ -77,195 +82,187 @@ model License {
   type          String?
   description   String?
   price         Float?
-  subscriptions      Subscription[]
   tests         Test[]
-  topics         Topic[]
-  saveTest       SaveTest[]
+  topics        Topic[]
+  saveTest      SaveTest[]
 
   @@map("licenses")
 }
 
-
 model Topic {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String @unique
-  description   String?
-  questions     Question[]
-  saveTest       SaveTest[]
-  license        License  @relation(fields: [licenseIds],references: [id],onDelete:Cascade)
-  licenseIds     String[]  @db.ObjectId
-  tests         Test[]
-  testResults   TestResult[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String       @unique
+  description String?
+  questions   Question[]
+  saveTest    SaveTest[]
+  license     License      @relation(fields: [licenseIds], references: [id])
+  licenseIds  String[]     @db.ObjectId
+  tests       Test[]
+  testResults TestResult[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
   @@map("topics")
 }
 
-
-
-
-enum SelectedOption{
+enum SelectedOption {
   A
   B
   C
   D
 }
+
 model Question {
   id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  topic         Topic          @relation(fields: [topicId], references: [id],onDelete:Cascade)
+  topic         Topic          @relation(fields: [topicId], references: [id])
   topicId       String         @db.ObjectId
-  text          String @unique
+  text          String         @unique
   explanation   Json
   options       Json[]
-  correctAnswer  SelectedOption
-  // answer         Answer[]
+  correctAnswer SelectedOption
   bookmarks     Bookmark[]
   comments      Comment[]
   testQuestions TestQuestion[]
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
   @@map("questions")
 }
 
-
-
-// model Answer{
-//   id  String         @id @default(auto()) @map("_id") @db.ObjectId
-//   user User @relation(fields: [userId],references: [id],onDelete:Cascade)
-//   userId String @db.ObjectId
-//   question Question  @relation(fields: [questionId],references: [id],onDelete:Cascade) 
-//   questionId String   @db.ObjectId @unique
-//   SelectedOption SelectedOption? 
-//   @@map("answers")
-// }
 model Test {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  user        User           @relation(fields: [userId], references: [id],onDelete:Cascade)
+  user        User           @relation(fields: [userId], references: [id])
   userId      String         @db.ObjectId
-  license     License        @relation(fields: [licenseId], references: [id],onDelete:Cascade)
+  license     License        @relation(fields: [licenseId], references: [id])
   licenseId   String         @db.ObjectId
-  topic       Topic          @relation(fields: [topicId], references: [id],onDelete:Cascade)
+  topic       Topic          @relation(fields: [topicId], references: [id])
   topicId     String         @db.ObjectId
   date        DateTime       @default(now())
-  total       Int    //total number of question for he want to take t
+  total       Int //total number of question for he want to take t
   status      TestStatus     @default(IN_PROGRESS)
   questions   TestQuestion[]
   bookmarks   Bookmark[]
   testResults TestResult[]
   createdAt   DateTime       @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime       @updatedAt
 
   @@map("tests")
 }
 
 model TestQuestion {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  test       Test     @relation(fields: [testId], references: [id],onDelete:Cascade)
-  testId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id],onDelete:Cascade)
-  questionId String   @db.ObjectId
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  test       Test            @relation(fields: [testId], references: [id])
+  testId     String          @db.ObjectId
+  question   Question        @relation(fields: [questionId], references: [id])
+  questionId String          @db.ObjectId
   selected   SelectedOption?
   isCorrect  Boolean?
-  timeLimit Int @default(1)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  timeLimit  Int             @default(1)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
   @@unique([testId, questionId])
   @@map("testQuestions")
 }
 
 model TestResult {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id],onDelete:Cascade)
-  userId    String   @db.ObjectId
-  test      Test     @relation(fields: [testId], references: [id],onDelete:Cascade)
-  testId    String   @db.ObjectId 
-  topic     Topic    @relation(fields: [topicId], references: [id], onDelete:Cascade)
-  topicId   String   @db.ObjectId @unique
-  date      DateTime @default(now())
-  score     Float?   @default(0)
-  percentage Float?  @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String   @db.ObjectId
+  test       Test     @relation(fields: [testId], references: [id])
+  testId     String   @db.ObjectId
+  topic      Topic    @relation(fields: [topicId], references: [id])
+  topicId    String   @unique @db.ObjectId
+  date       DateTime @default(now())
+  score      Float?   @default(0)
+  percentage Float?   @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
   @@map("testResults")
 }
 
 model Bookmark {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id],onDelete:Cascade)
+  user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id],onDelete:Cascade)
+  question   Question @relation(fields: [questionId], references: [id])
   questionId String   @db.ObjectId
-  test       Test?    @relation(fields: [testId], references: [id],onDelete:Cascade)
+  test       Test?    @relation(fields: [testId], references: [id])
   testId     String?  @db.ObjectId
   createdAt  DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  updatedAt  DateTime @updatedAt
+
   @@unique([userId, questionId])
   @@map("bookmarks")
 }
 
-model SaveTest{
-  id String @id()@default(auto())@map("_id")@db.ObjectId
-  user  User @relation(fields: [userId],references: [id],onDelete:Cascade)
-  userId String @db.ObjectId
-  topic Topic @relation(fields: [topicId],references: [id],onDelete:Cascade)
-  topicId String @db.ObjectId
-  license License @relation(fields: [licenseId],references: [id],onDelete:Cascade)
-  licenseId String @db.ObjectId
+model SaveTest {
+  id        String   @id() @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  topic     Topic    @relation(fields: [topicId], references: [id])
+  topicId   String   @db.ObjectId
+  license   License  @relation(fields: [licenseId], references: [id])
+  licenseId String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("save_test")
 }
 
-
 model Comment {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  user       User       @relation(fields: [userId], references: [id],onDelete:Cascade)
+  user       User       @relation(fields: [userId], references: [id])
   userId     String     @db.ObjectId
-  question   Question   @relation(fields: [questionId], references: [id],onDelete:Cascade)
+  question   Question   @relation(fields: [questionId], references: [id])
   questionId String     @db.ObjectId
   text       String
   downVote   DownVote[]
   upVote     UpVotes[]
   createdAt  DateTime   @default(now())
   replies    Reply[]
-  updatedAt      DateTime  @updatedAt
+  updatedAt  DateTime   @updatedAt
+
   @@map("comments")
 }
 
 model DownVote {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id],onDelete:Cascade)
-  userId    String  @db.ObjectId
-  comment   Comment @relation(fields: [commentId], references: [id],onDelete:Cascade)
-  commentId String  @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String   @db.ObjectId
   vote      Int
-createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("downVotes")
 }
 
 model UpVotes {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id],onDelete:Cascade)
-  userId    String  @db.ObjectId
-  comment   Comment @relation(fields: [commentId], references: [id],onDelete:Cascade)
-  commentId String  @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String   @db.ObjectId
   vote      Int
- createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("upVotes")
 }
 
 model Reply {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  comment   Comment  @relation(fields: [commentId], references: [id],onDelete:Cascade)
-  commentId String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id],onDelete:Cascade)
-  userId    String   @db.ObjectId
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  comment   Comment @relation(fields: [commentId], references: [id])
+  commentId String  @db.ObjectId
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @db.ObjectId
   text      String
 
- createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("replies")
 }
@@ -279,45 +276,49 @@ enum BillingInterval {
 
 model Subscription {
   id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id],onDelete:Cascade)
-  Duration  Int?
-  interval  BillingInterval?
-  licenseId String  @db.ObjectId
-  license   License @relation(fields: [licenseId], references: [id],onDelete:Cascade)
+  userId String @unique @db.ObjectId
+  user   User  @relation(fields: [userId],references: [id])
+  plan   Plan   @relation(fields: [planId], references: [id])
+  planId String @db.ObjectId
+  stripeSubscriptionId String?            @unique
+  startDate            DateTime           @default(now())
+  endDate              DateTime
+  subscriptionStatus   SubscriptionStatus
+  isActive             Boolean            @default(false)
+  payments             Payment[]          @relation("SubscriptionPayments")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
-  stripeSessionId String        @unique
-  stripePaymentId String?
-  amount          Float         @default(0)
-  currency        String
-  // productId       String
-  status          PaymentStatus // 'paid', 'unpaid', 'cancelled', etc.
-  createdAt       DateTime      @default(now())
-  updatedAt    DateTime @updatedAt
   @@map("subscriptions")
 }
 
+model Payment {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  subscription   Subscription  @relation("SubscriptionPayments", fields: [subscriptionId], references: [id])
+  subscriptionId String        @db.ObjectId
+  invoiceNumber  String?       @unique
+  name           String?
+  amount         Float
+  currency       String
+  status         PaymentStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-model Payment{
-  id  String @id @default(auto()) @map("_id") @db.ObjectId
-  user User  @relation(fields: [userId],references: [id],onDelete:Cascade)
-  userId String  @db.ObjectId
-  PlanName String 
-  amount Float @default(0)
-  transactionId  String @default("Tdx00001x")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime  @updatedAt
-  @@map("payment")
+  @@map("payments")
 }
 
 
-model plan {
-  id           String  @id @default(auto()) @map("_id") @db.ObjectId
-  productPrice Float?
-  productName  String? @unique
-  productId    String? @unique
-  licenseId    String? @unique
-  priceId      String?
+model Plan {
+  id                 String          @id @default(auto()) @map("_id") @db.ObjectId
+  productPrice       Float?
+  productName        String?         @unique
+  productId          String?         @unique
+  interval           BillingInterval
+  Duration           Int?            @default(0)
+  productDescription String?
+  subscriptions Subscription[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
 
   @@map("plans")
 }
