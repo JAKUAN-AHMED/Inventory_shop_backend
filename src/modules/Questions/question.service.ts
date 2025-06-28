@@ -5,7 +5,7 @@ import { isExplanation, isValidOptions, NotFound } from "../../utils/utility"
 import AppError from "../../errors/AppError"
 import { deleteFromDigitalOceanAWS, uploadToDigitalOceanAWS } from "../../utils/sendImageToCloudinary"
 
-import { JsonValue } from "@prisma/client/runtime/library"
+// import { JsonValue } from "@prisma/client/runtime/library"
 import { IQuestion } from "./question.interface"
 import { deleteFile } from "../../helpers/FileDelete"
 

@@ -6,7 +6,7 @@ import { testQService } from "./testQ.service";
 
 
 
-const updateTestQuestion = catchAsync(async (req, res) => {
+const AnswerTheTestQuestion = catchAsync(async (req, res) => {
     const isExists = await prisma.testQuestion.findFirst({
         where: {
             id: req.params.id
@@ -15,7 +15,7 @@ const updateTestQuestion = catchAsync(async (req, res) => {
     if (!isExists) {
         throw new AppError(404, 'Test Question not found');
     }
-    const result = await testQService.updateTestQuestion(req.params.id, req.body);
+    const result = await testQService.AnswerTheTestQuestion(req.user.id as string,req.params.id, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -25,5 +25,4 @@ const updateTestQuestion = catchAsync(async (req, res) => {
     });
 })
 export const testQController = {
-    updateTestQuestion
-}
+AnswerTheTestQuestion}

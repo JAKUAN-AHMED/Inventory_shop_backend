@@ -52,7 +52,7 @@ model User {
   upVotes                 UpVotes[]
   replies                 Reply[]
   tests                   Test[]
-  answer                  Answer[]
+  // answer                  Answer[]
   payment                  Payment[]
   // Report                  MyReport?
   createdAt               DateTime            @default(now())
@@ -115,7 +115,7 @@ model Question {
   explanation   Json
   options       Json[]
   correctAnswer  SelectedOption
-  answer         Answer[]
+  // answer         Answer[]
   bookmarks     Bookmark[]
   comments      Comment[]
   testQuestions TestQuestion[]
@@ -126,15 +126,15 @@ model Question {
 
 
 
-model Answer{
-  id  String         @id @default(auto()) @map("_id") @db.ObjectId
-  user User @relation(fields: [userId],references: [id],onDelete:Cascade)
-  userId String @db.ObjectId
-  question Question  @relation(fields: [questionId],references: [id],onDelete:Cascade) 
-  questionId String   @db.ObjectId @unique
-  SelectedOption SelectedOption? 
-  @@map("answers")
-}
+// model Answer{
+//   id  String         @id @default(auto()) @map("_id") @db.ObjectId
+//   user User @relation(fields: [userId],references: [id],onDelete:Cascade)
+//   userId String @db.ObjectId
+//   question Question  @relation(fields: [questionId],references: [id],onDelete:Cascade) 
+//   questionId String   @db.ObjectId @unique
+//   SelectedOption SelectedOption? 
+//   @@map("answers")
+// }
 model Test {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   user        User           @relation(fields: [userId], references: [id],onDelete:Cascade)
@@ -157,12 +157,13 @@ model Test {
 
 model TestQuestion {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  test       Test     @relation(fields: [testId], references: [id])
+  test       Test     @relation(fields: [testId], references: [id],onDelete:Cascade)
   testId     String   @db.ObjectId
   question   Question @relation(fields: [questionId], references: [id],onDelete:Cascade)
   questionId String   @db.ObjectId
-  selected   Int?
+  selected   SelectedOption?
   isCorrect  Boolean?
+  timeLimit Int @default(1)
   createdAt      DateTime @default(now())
   updatedAt      DateTime  @updatedAt
   @@unique([testId, questionId])
@@ -174,12 +175,13 @@ model TestResult {
   user      User     @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId    String   @db.ObjectId
   test      Test     @relation(fields: [testId], references: [id],onDelete:Cascade)
-  testId    String   @db.ObjectId
+  testId    String   @db.ObjectId 
   topic     Topic    @relation(fields: [topicId], references: [id], onDelete:Cascade)
-  topicId   String   @db.ObjectId
+  topicId   String   @db.ObjectId @unique
   date      DateTime @default(now())
   score     Float?   @default(0)
-createdAt      DateTime @default(now())
+  percentage Float?  @default(0)
+  createdAt      DateTime @default(now())
   updatedAt      DateTime  @updatedAt
   @@map("testResults")
 }

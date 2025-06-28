@@ -5,3 +5,7 @@
 
 option => 1 is      ----- ------  study 
 option => 2 is      ----- ------  Exam
+
+
+//when create a test there will be created testquestions
+and answer will do user from there

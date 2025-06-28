@@ -4,6 +4,6 @@ import { testQController } from "./testQ.controller";
 
 const router=Router();
 
-router.patch('/answer/:id',auth('ADMIN','INSTRUCTOR','STUDENT'),testQController.updateTestQuestion);
+router.patch('/answer/:id',auth('ADMIN','INSTRUCTOR','STUDENT'),testQController.AnswerTheTestQuestion);
 
 export const testQRouter=router;

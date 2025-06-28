@@ -12,7 +12,7 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     },
     select: {
       id: true,
-      answer: true,
+      // correctAnswer:true,
       comments: {
         select:{
           upVote:true,
@@ -45,8 +45,9 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
   const testQuestions = await prisma.testQuestion.createMany({
     data: questions.map((question) => ({
       questionId: question.id,
-      testId: test.id,         // use newly created test's ID
-    })),
+      testId: test.id,
+      timeLimit: 1
+    }))
   });
 
 //   console.log("testQuestions", testQuestions);
@@ -55,9 +56,21 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     throw new AppError(400, "Failed to create Test Questions.");
   }
 
+
+  //create testResult 
+
+  await prisma.testResult.create({
+    data:{
+      userId:payload.userId,
+      topicId:payload.topicId,
+      testId:test.id
+
+    }
+  })
   // 4. Return test and selected questions
   return {
     ...test,
+    ...testQuestions,
     questions,
   };
 };
