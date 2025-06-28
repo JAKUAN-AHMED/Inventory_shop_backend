@@ -26,32 +26,36 @@ const getAllUser = async () => {
     return await prisma.user.findMany();
 }
 
-const updateProfile = async (file:any,id: string, payload: Partial<IUser>) => {
+const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => {
 
     let imageUrls: string = '';
-      if ( file ) {
+    if (file) {
         const { location: secure_url } = await uploadToDigitalOceanAWS(file);
-        imageUrls=secure_url as string;
-      }
-      if(imageUrls){
-        payload.profileImage=imageUrls;
-      }
+        imageUrls = secure_url as string;
+    }
+    if (imageUrls) {
+        payload.profileImage = imageUrls;
+    }
 
-      if(payload.password )
-      {
-        throw new AppError(403,'You can change your password here');
-      }
-      if(payload.email )
-      {
-        throw new AppError(403,'You can change your email here');
-      }
+    if (payload.password) {
+        throw new AppError(403, 'You can not change your password here');
+    }
+    if (payload.email) {
+        throw new AppError(403, 'You can  not change your email here');
+    }
+    // Map payload to match Prisma's expected input types
+    const prismaPayload: any = { ...payload };
+
+    // If role is present, ensure it matches the Prisma enum type
+    if (payload.role) {
+        prismaPayload.role = payload.role as any; // Cast to 'any' or directly to 'UserRole' if imported
+    }
+
     const result = await prisma.user.update({
         where: {
             id
         },
-        data: {
-            ...payload
-        }
+        data: prismaPayload
     })
 
     return result;

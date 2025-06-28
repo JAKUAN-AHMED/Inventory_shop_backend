@@ -33,11 +33,6 @@ const createAnswer = catchAsync(async (req, res) => {
     }
 
 
-    // const subscriptions=await prisma.subscription.findUnique({
-    //     where:{
-    //         userId:req.user.id
-    //     }
-    // })
     const result = await AnswerService.createAnswer(req.body);
     const isOk = result ? true : false;
     sendResponse(res, {

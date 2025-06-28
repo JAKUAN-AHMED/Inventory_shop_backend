@@ -1,8 +1,12 @@
 import { Question } from "@prisma/client"
 import { prisma } from "../../prisma/client"
 import QueryBuilder from "../../builder/QueryBuilder"
-import { isValidOptions, NotFound } from "../../utils/utility"
+import { isExplanation, isValidOptions, NotFound } from "../../utils/utility"
 import AppError from "../../errors/AppError"
+import { deleteFromDigitalOceanAWS, uploadToDigitalOceanAWS } from "../../utils/sendImageToCloudinary"
+
+import { JsonValue } from "@prisma/client/runtime/library"
+import { IQuestion } from "./question.interface"
 
 
 type optionsType = {
@@ -10,30 +14,31 @@ type optionsType = {
     value: string
 }
 
-type ExplanationType={
+export type ExplanationType={
     text:string,
     img:string
 }
 
-const createQuestion = async (file:any,payload: Question & { options: optionsType[] }) => {
-    const { options, explanation, topicId, text, correctAnswer } = payload;
+const createQuestion = async (file:any,payload:IQuestion ) => {
+    const { options,explanation, topicId, text, correctAnswer } = payload;
 
     if (!options || !explanation || !text || !correctAnswer || !topicId) {
         throw new AppError(404, 'A field is missing');
     }
-    if (!isValidOptions(options)) {
-        throw new AppError(400, "options type is not acceptable");
+  
+    if (!Array.isArray(options) || options.length !== 4) {
+        throw new AppError(400, "Options must be an array of exactly 4 items");
     }
 
-    if (options.length > 4 || options.length < 4) {
-        throw new AppError(400, "Options would not be greater than 4 or Less than 4");
-    }
-
-   if(explanation.text)
+   if (file) {
+     const {location}=await uploadToDigitalOceanAWS(file);
+     console.log(location)
+     explanation.img=location as string;
+   }
     return await prisma.question.create({
         data: {
             options,
-            explanation,
+            explanation: JSON.parse(JSON.stringify(explanation)),
             topicId,
             text,
             correctAnswer
@@ -43,22 +48,40 @@ const createQuestion = async (file:any,payload: Question & { options: optionsTyp
 
 
 
-const updateQuestion = async (id: string, payload: Partial<Question>) => {
+const updateQuestion = async (file:Express.Multer.File,id: string, payload: Partial<IQuestion>) => {
 
-    const { options, correctAnswer, text } = payload;
+    const { options, correctAnswer,text,explanation } = payload;
 
-    // if (!options || !text || !correctAnswer) {
-    //     throw new AppError(404, 'A field is missing');
-    // }
-    if (options && !isValidOptions(options)) {
-        throw new AppError(400, "options type is not acceptable");
+    const result=await prisma.question.findUnique({
+        where:{
+            id
+        }
+    })
+
+    if(file)
+    {
+        let explanationObj: any = result?.explanation;
+        if (typeof explanationObj === "string") {
+            try {
+                explanationObj = JSON.parse(explanationObj);
+            } catch (e) {
+                explanationObj = {};
+            }
+        }
+        const deletImg = await deleteFromDigitalOceanAWS(explanationObj?.img as string);
+
+        const uploaded = await uploadToDigitalOceanAWS(file);
     }
+    
+
     return await prisma.question.update({
         where: { id },
         data: {
-            options,
+            options: options ? JSON.parse(JSON.stringify(options)) : undefined,
             correctAnswer,
-            text
+            text,
+            explanation: explanation ? JSON.parse(JSON.stringify(explanation)) : undefined
+
         }
     })
 }

@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import validateRequest from '../../middlewares/validateRequest';
 import { authValidation } from './auth.validation';
 import auth from '../../middlewares/auth';
-import { upload } from '../../utils/sendImageToCloudinary';
+import { upload } from '../../helpers/FileUpload';
 
 
 const router = Router();

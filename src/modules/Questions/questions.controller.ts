@@ -42,7 +42,7 @@ const getAllQuestions = catchAsync(async (req, res) => {
     });
 })
 const updateQuestion = catchAsync(async (req, res) => {
-    const result = await QuestionService.updateQuestion(req.params.id, req.body);
+    const result = await QuestionService.updateQuestion(req.file as Express.Multer.File,req.params.id, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
