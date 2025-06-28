@@ -9,17 +9,17 @@ import AppError from '../../errors/AppError';
 //create produc
 const CreatePlan = catchAsync(async (req, res) => {
   const {
-    name,
     amount,
     currency = 'usd',
     interval,
     Duration,
     description,
+    licenseId
   } = req.body;
 
   const isExist = await prisma.license.findUnique({
     where: {
-      name,
+      id:licenseId,
     },
   });
 
@@ -30,9 +30,10 @@ const CreatePlan = catchAsync(async (req, res) => {
 
   const IsAlreadyHavePlan = await prisma.plan.findUnique({
     where: {
-      productName: name,
+      productName: isExist?.name,
       interval,
-      Duration
+      Duration,
+      licenseId
     },
   });
 
@@ -40,7 +41,7 @@ const CreatePlan = catchAsync(async (req, res) => {
     throw new Error('Already Created Plan');
   }
 
-  const product = await stripe.products.create({ name });
+  const product = await stripe.products.create({  name: isExist?.name as string });
   const price = await stripe.prices.create({
     unit_amount: amount * 100,
     currency: currency,
@@ -54,20 +55,18 @@ const CreatePlan = catchAsync(async (req, res) => {
   if (product) {
     dbplan = await prisma.plan.create({
       data: {
-        productName: name,
+        productName: isExist?.name,
         productPrice: amount,
         productId: product.id,
         interval,
         Duration,
+        licenseId,
         productDescription: description,
       },
     });
   }
-  const result = {
-    product,
-    price,
-    plan: dbplan
-  };
+ 
+  const result=dbplan;
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 201 : 400,
@@ -90,12 +89,29 @@ const AllPlans = catchAsync(async (req, res) => {
     },
   });
 
-  const isOk = result ? true : false;
+  const license=await prisma.license.findMany({
+    where:{
+      name:result?.[0]?.productName as string
+    },
+    include:{
+      topics:{
+        include:{
+          questions:true
+        }
+      }
+    }
+  })
+
+  const result1={
+    plan:result,
+    license
+  }
+  const isOk = result1.plan.length && result1?.license? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 400,
     success: isOk,
     message: isOk ? 'Successfully Retrived All Plans' : 'Failed to Get  Plans',
-    Data: isOk ? result : [],
+    Data: isOk ? result1 : [],
   });
 });
 const UpdatePlan = catchAsync(async (req, res) => {
@@ -156,6 +172,7 @@ if (hasAny && !hasAll) {
       productDescription: description,
       interval,
       Duration,
+      licenseId:isExist?.id as string
     },
   });
   }

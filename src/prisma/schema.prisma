@@ -85,6 +85,7 @@ model License {
   tests         Test[]
   topics        Topic[]
   saveTest      SaveTest[]
+  plan         Plan[]
 
   @@map("licenses")
 }
@@ -314,6 +315,8 @@ model Plan {
   productName        String?         @unique
   productId          String?         
   interval           BillingInterval
+  license            License  @relation(fields: [licenseId],references: [id])
+  licenseId         String @db.ObjectId
   Duration           Int?            @default(0)
   productDescription String?
   subscriptions Subscription[]
