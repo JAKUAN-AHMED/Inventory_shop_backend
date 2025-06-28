@@ -33,7 +33,31 @@ const getMyBookmarks = catchAsync(async(req,res)=>{
         Data: isOk ? result : [],
     });
 })
+const singleBookmarks = catchAsync(async(req,res)=>{
+    const userId = req?.user?.id;
+    const result = await bookmarkService.singleBookmark(userId as string,req.params.id);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully retrieved a bookmark' : 'Failed to retrieve bookmark',
+        Data: isOk ? result : [],
+    });
+})
+const deleteMyBookmark = catchAsync(async(req,res)=>{
+    const userId = req?.user?.id;
+    const result = await bookmarkService.deleteMyBookmark(userId as string,req.params.id);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully delete a bookmark' : 'Failed to delete a bookmark',
+        Data: isOk ? result : [],
+    });
+})
 export const bookmarkController = {
     addBookmark,
-    getMyBookmarks
+    getMyBookmarks,
+    deleteMyBookmark,
+    singleBookmarks
 }

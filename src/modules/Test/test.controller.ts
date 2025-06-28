@@ -45,6 +45,17 @@ const getAllTests = catchAsync(async (req, res) => {
 })
 
 
+const testByUserId=catchAsync(async(req,res)=>{
+    const result=await TestService.testByUserId(req.params.id);
+    const isOk=result?true:false;
+    sendResponse(res,{
+        statusCode:isOk?200:400,
+        success:isOk,
+        message:isOk?  "Successfully Retrived all my test" : "Failed to retrived my test",
+        Data:isOk ? result : []
+    })
+})
+
 const updateTest = catchAsync(async (req, res) => {
     const result = await TestService.updateTest(req.params.id, req.body);
     const isOk = result ? true : false;
@@ -57,7 +68,7 @@ const updateTest = catchAsync(async (req, res) => {
 })
 
 const singleTest = catchAsync(async (req, res) => {
-    const result = await TestService.TestById(req.params.id);
+    const result = await TestService.TestById(req.params.id,req.user.id  as string,req.user.role);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -68,7 +79,7 @@ const singleTest = catchAsync(async (req, res) => {
 })
 
 const deleteTest = catchAsync(async (req, res) => {
-    const result = await TestService.deleteTest(req.params.id);
+    const result = await TestService.deleteTest(req.params.id,req.user.id as string);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -85,5 +96,6 @@ export const TestController = {
     getAllTests,
     updateTest,
     singleTest,
-    deleteTest
+    deleteTest,
+    testByUserId
 }

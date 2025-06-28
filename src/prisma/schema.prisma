@@ -47,6 +47,7 @@ model User {
   subscriptions           Subscription[]
   testResults             TestResult[]
   bookmarks               Bookmark[]
+  saveTest                SaveTest[]
   comments                Comment[]
   downVotes               DownVote[]
   upVotes                 UpVotes[]
@@ -79,6 +80,7 @@ model License {
   subscriptions      Subscription[]
   tests         Test[]
   topics         Topic[]
+  saveTest       SaveTest[]
 
   @@map("licenses")
 }
@@ -89,6 +91,7 @@ model Topic {
   name          String @unique
   description   String?
   questions     Question[]
+  saveTest       SaveTest[]
   license        License  @relation(fields: [licenseIds],references: [id],onDelete:Cascade)
   licenseIds     String[]  @db.ObjectId
   tests         Test[]
@@ -139,9 +142,9 @@ model Test {
   id          String         @id @default(auto()) @map("_id") @db.ObjectId
   user        User           @relation(fields: [userId], references: [id],onDelete:Cascade)
   userId      String         @db.ObjectId
-  license     License        @relation(fields: [licenseId], references: [id])
+  license     License        @relation(fields: [licenseId], references: [id],onDelete:Cascade)
   licenseId   String         @db.ObjectId
-  topic       Topic          @relation(fields: [topicId], references: [id])
+  topic       Topic          @relation(fields: [topicId], references: [id],onDelete:Cascade)
   topicId     String         @db.ObjectId
   date        DateTime       @default(now())
   total       Int    //total number of question for he want to take t
@@ -199,6 +202,19 @@ model Bookmark {
   @@unique([userId, questionId])
   @@map("bookmarks")
 }
+
+model SaveTest{
+  id String @id()@default(auto())@map("_id")@db.ObjectId
+  user  User @relation(fields: [userId],references: [id],onDelete:Cascade)
+  userId String @db.ObjectId
+  topic Topic @relation(fields: [topicId],references: [id],onDelete:Cascade)
+  topicId String @db.ObjectId
+  license License @relation(fields: [licenseId],references: [id],onDelete:Cascade)
+  licenseId String @db.ObjectId
+
+  @@map("save_test")
+}
+
 
 model Comment {
   id         String     @id @default(auto()) @map("_id") @db.ObjectId

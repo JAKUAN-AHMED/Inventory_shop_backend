@@ -111,6 +111,23 @@ const AnswerTheTestQuestion = async (
   }
 };
 
+//test questions data
+
+// const testqustionsData=async()=>{
+//   const result=await prisma.testQuestion.findMany({
+//     where:{
+//       user
+//     },
+//     include:{
+//       question:{
+//         include:{
+//           bookmarks:true,
+//           comments:true
+//         }
+//       }
+//     }
+//   })
+// }
 export const testQService = {
   AnswerTheTestQuestion,
 };

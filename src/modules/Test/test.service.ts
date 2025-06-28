@@ -1,8 +1,8 @@
-import { Test } from "@prisma/client";
-import { prisma } from "../../prisma/client";
-import AppError from "../../errors/AppError";
+import { Test } from '@prisma/client';
+import { prisma } from '../../prisma/client';
+import AppError from '../../errors/AppError';
 
-const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
+const createTest = async (payload: Test) => {
   // console.log("payload ", payload);
 
   // 1. Fetch random questions from the topic
@@ -14,22 +14,22 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
       id: true,
       // correctAnswer:true,
       comments: {
-        select:{
-          upVote:true,
-          downVote:true
-        }
+        select: {
+          upVote: true,
+          downVote: true,
+        },
       },
-     
+
       // topicId is not needed unless you need it later
     },
-    
+
     take: payload.total,
   });
 
   // console.log("questions", questions);
 
   if (questions.length === 0) {
-    throw new AppError(404, "No questions found for this topic.");
+    throw new AppError(404, 'No questions found for this topic.');
   }
 
   // 2. Create the Test (must come BEFORE using testId)
@@ -38,7 +38,7 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
   });
 
   if (!test) {
-    throw new AppError(400, "Failed to create Test.");
+    throw new AppError(400, 'Failed to create Test.');
   }
 
   // 3. Create related TestQuestions
@@ -46,27 +46,25 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
     data: questions.map((question) => ({
       questionId: question.id,
       testId: test.id,
-      timeLimit: 1
-    }))
+      timeLimit: 1,
+    })),
   });
 
-//   console.log("testQuestions", testQuestions);
+  //   console.log("testQuestions", testQuestions);
 
   if (!testQuestions || testQuestions.count === 0) {
-    throw new AppError(400, "Failed to create Test Questions.");
+    throw new AppError(400, 'Failed to create Test Questions.');
   }
 
-
-  //create testResult 
+  //create testResult
 
   await prisma.testResult.create({
-    data:{
-      userId:payload.userId,
-      topicId:payload.topicId,
-      testId:test.id
-
-    }
-  })
+    data: {
+      userId: payload.userId,
+      topicId: payload.topicId,
+      testId: test.id,
+    },
+  });
   // 4. Return test and selected questions
   return {
     ...test,
@@ -76,66 +74,94 @@ const createTest = async (payload: Omit<Test, 'id'> & { total: number }) => {
 };
 
 const updateTest = async (id: string, payload: Partial<Test>) => {
+  // Check if the test exists
+  const isExists = await prisma.test.findUnique({
+    where: { id },
+  });
 
+  if (!isExists) {
+    throw new Error('Test not found');
+  }
 
-
-
-    // Check if the test exists
-    const isExists = await prisma.test.findUnique({
-        where: { id }
-    });
-
-    if (!isExists) {
-        throw new Error('Test not found');
-    }
-
-    // Logic to update a test
-    return await prisma.test.update({
-        where: { id },
-        data: {
-            status: payload.status,
-        }
-    });
+  // Logic to update a test
+  return await prisma.test.update({
+    where: { id },
+    data: {
+      status: payload.status,
+    },
+  });
 };
 
-const deleteTest = async (id: string) => {
-    // Logic to delete a test
-    return await prisma.test.delete({
-        where: { id }
-    });
+const deleteTest = async (id: string,userId:string) => {
+  // Logic to delete a test
+  return await prisma.test.delete({
+    where: { id ,userId},
+
+  });
 };
 
 const AllTests = async () => {
-    // Logic to get all tests
-    return await prisma.test.findMany({
-        include: {
-            bookmarks: true,
-            questions: true,
-            testResults: true,
-        }
-    });
+  // Logic to get all tests
+  return await prisma.test.findMany({
+    include: {
+      bookmarks: true,
+      questions: true,
+      testResults: true,
+    },
+  });
 };
 
-const TestById = async (id: string) => {
-    // Logic to get a test by ID
+const TestById = async (id: string,userId:string,role:string) => {
+  // Logic to get a test by ID
+  if(role==='ADMIN'){
     return await prisma.test.findUnique({
-        where: { id },
-        include: {
-            bookmarks: true,
-            questions: true,
-            testResults: true
-        }
-    });
+    where: { id },
+    include: {
+      bookmarks: true,
+      questions: true,
+      testResults: true,
+    },
+  });
+  }
+  else{
+    return await prisma.test.findUnique({
+    where: { id ,userId},
+    include: {
+      bookmarks: true,
+      questions: true,
+      testResults: true,
+    },
+  });
+  }
 };
 
-
-
+const testByUserId = async (userId: string) => {
+  return await prisma.test.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      bookmarks: true,
+      questions: {
+        include:{
+          question:{
+            include:{
+              bookmarks:true,
+              comments:true
+            }
+          }
+        }
+      },
+      testResults: true,
+    },
+  });
+};
 
 export const TestService = {
-
-    createTest,
-    updateTest,
-    deleteTest,
-    AllTests,
-    TestById
-}
+  createTest,
+  updateTest,
+  deleteTest,
+  AllTests,
+  TestById,
+  testByUserId
+};

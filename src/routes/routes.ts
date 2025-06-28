@@ -5,7 +5,6 @@ import { ContactRoutes } from '../modules/Contact/contact.routes';
 import { LicenseRoutes } from '../modules/License/licence.route';
 import { TopicRoutes } from '../modules/Topic/topic.route';
 import { questionRouter } from '../modules/Questions/question.route';
-import { AnswerRoutes } from '../modules/Answers/answer.route';
 import { TestRoutes } from '../modules/Test/test.route';
 import { testQRouter } from '../modules/TestQuestions/testQ.route';
 import { testResultRoute } from '../modules/TestResult/testR.route';
@@ -15,6 +14,7 @@ import { ReplyRoutes } from '../modules/Reply/reply.route';
 import { VoteRoutes } from '../modules/Vote/vote.route';
 import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route';
 import { LicenseTypesRouter } from '../modules/LicenseTypes/lstypes.routes';
+import { SaveRoutes } from '../modules/SaveTest/savetest.routes';
 
 
 const router = express.Router();
@@ -45,8 +45,8 @@ const moduleRoutes = [
     route: questionRouter,
   },
   {
-    path: '/answer',
-    route: AnswerRoutes,
+    path: '/savetest',
+    route: SaveRoutes,
   },
   {
     path: '/test',

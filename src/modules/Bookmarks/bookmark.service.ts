@@ -15,14 +15,26 @@ const getMyBookmarks=async(userId:string)=>{
             userId:userId
         },
         include:{
+            test:true,
             question:{
                 include:{
-                    answers:true
+                    bookmarks:true,
+                    testQuestions:true,
+                    comments:true
                 }
             },
-            test:true
         }
     })
 }
 
-export const bookmarkService = {addToBookmarks,getMyBookmarks}
+const deleteMyBookmark=async(userId:string,bookmarkId:string)=>{
+    return await prisma.bookmark.delete({where:{userId,id:bookmarkId}});
+}
+const singleBookmark=async(userId:string,bookmarkId:string)=>{
+    return await prisma.bookmark.findUnique({
+        where:{userId,id:bookmarkId},
+        include:{test:true,question:{include:{comments:true,bookmarks:true}}}
+    });
+}
+
+export const bookmarkService = {addToBookmarks,getMyBookmarks,singleBookmark,deleteMyBookmark}
