@@ -121,11 +121,13 @@ const UpdatePlan = catchAsync(async (req, res) => {
     });
   }
 
-  if (price || interval || Duration) {
-    if (!price && !interval && !Duration) {
-      throw new AppError(400, 'If You want to update plan price || duration  || interval ,Then you havet to provide all of them')
-    }
-  }
+ const hasAny = price !== undefined || interval !== undefined || Duration !== undefined;
+const hasAll = price !== undefined && interval !== undefined && Duration !== undefined;
+
+if (hasAny && !hasAll) {
+  throw new AppError(400, 'To update price, interval, or duration, you must provide all three: price, interval, and duration.');
+}
+
 
   // Update the product name if provided
   const product = await stripe.products.update(req.params.id, {
@@ -145,9 +147,20 @@ const UpdatePlan = catchAsync(async (req, res) => {
         interval_count: Duration, // how many of those intervals
       },
     });
-  }
 
-  // Update your local DB plan
+     // Update your local DB plan
+  await prisma.plan.create({
+    data: {
+      productPrice: price,
+      productId: product.id,
+      productDescription: description,
+      interval,
+      Duration,
+    },
+  });
+  }
+  else{
+    // Update your local DB plan
   await prisma.plan.update({
     where: { id: req.params.id }, // Assuming 'id' is the unique identifier for the plan
     data: {
@@ -158,6 +171,7 @@ const UpdatePlan = catchAsync(async (req, res) => {
       Duration,
     },
   });
+  }
 
   const isOk = product ? true : false;
 
