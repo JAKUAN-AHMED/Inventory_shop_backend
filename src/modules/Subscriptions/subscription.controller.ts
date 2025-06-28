@@ -2,11 +2,9 @@ import { Request, Response } from 'express';
 import { prisma } from '../../prisma/client';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
-import config from '../../config';
-import { HttpStatusCode } from 'axios';
-import AppError from '../../errors/AppError';
 import { NotFound } from '../../utils/utility';
 import stripe from '../../config/stripe';
+import AppError from '../../errors/AppError';
 
 //create produc
 const CreatePlan = catchAsync(async (req, res) => {
@@ -33,6 +31,8 @@ const CreatePlan = catchAsync(async (req, res) => {
   const IsAlreadyHavePlan = await prisma.plan.findUnique({
     where: {
       productName: name,
+      interval,
+      Duration
     },
   });
 
@@ -56,6 +56,7 @@ const CreatePlan = catchAsync(async (req, res) => {
       data: {
         productName: name,
         productPrice: amount,
+        productId: product.id,
         interval,
         Duration,
         productDescription: description,
@@ -65,7 +66,7 @@ const CreatePlan = catchAsync(async (req, res) => {
   const result = {
     product,
     price,
-    plan:dbplan
+    plan: dbplan
   };
   const isOk = result ? true : false;
   sendResponse(res, {
@@ -74,7 +75,7 @@ const CreatePlan = catchAsync(async (req, res) => {
     message: isOk
       ? 'Successfully Created  Plan'
       : 'Failed to Create Plan',
-    Data:isOk ? result : []
+    Data: isOk ? result : []
 
   });
 });
@@ -84,8 +85,8 @@ const AllPlans = catchAsync(async (req, res) => {
     select: {
       productName: true,
       productId: true,
-      interval:true,
-      Duration:true
+      interval: true,
+      Duration: true
     },
   });
 
@@ -98,63 +99,80 @@ const AllPlans = catchAsync(async (req, res) => {
   });
 });
 const UpdatePlan = catchAsync(async (req, res) => {
-  const { name, price ,interval,Duration,description} = req.body;
+  const { name, price, interval, Duration, description } = req.body;
+
+
   let isExist = null;
+
+  // Check if license exists
   if (name) {
     isExist = await prisma.license.findUnique({
-      where: {
-        name,
-      },
+      where: { name },
     });
 
     await NotFound(
       isExist,
-      'The name you this is not exist at the license collection  and license',
+      'The license name you provided does not exist in the license collection.',
     );
+
     await prisma.license.update({
-      where: {
-        id: isExist?.id,
-      },
-      data: {
-        price,
-        name,
-      },
+      where: { id: isExist?.id },
+      data: { name, price },
     });
   }
-  const product = await stripe.products.update(req.params.id, { name });
-  if (price) {
-    await NotFound(req.params.id, 'Product Id');
-    // Create new price for the product
-    const newPrice = await stripe.prices.create({
-      unit_amount: price * 100,
+
+  if (price || interval || Duration) {
+    if (!price && !interval && !Duration) {
+      throw new AppError(400, 'If You want to update plan price || duration  || interval ,Then you havet to provide all of them')
+    }
+  }
+
+  // Update the product name if provided
+  const product = await stripe.products.update(req.params.id, {
+    name,
+  });
+
+  let newStripePrice = null;
+
+  if (price && interval && Duration) {
+    // ⚠️ Stripe does NOT allow updating an existing price — create a new one
+    newStripePrice = await stripe.prices.create({
+      unit_amount: price * 100, // price in cents
       currency: 'usd',
       product: req.params.id,
+      recurring: {
+        interval,          // 'day', 'week', 'month', or 'year'
+        interval_count: Duration, // how many of those intervals
+      },
     });
   }
+
+  // Update your local DB plan
   await prisma.plan.update({
-      where: {
-        productName: name,
-      },
-      data: {
-        productPrice: price,
-        productId:product.id,
-        productDescription:description,
-        interval,
-        Duration
-      },
-    });
+    where: { id: req.params.id }, // Assuming 'id' is the unique identifier for the plan
+    data: {
+      productPrice: price,
+      productId: product.id,
+      productDescription: description,
+      interval,
+      Duration,
+    },
+  });
+
   const isOk = product ? true : false;
+
   sendResponse(res, {
     statusCode: isOk ? 200 : 400,
     success: isOk,
     message: isOk
-      ? 'Successfully Update Plan Name'
+      ? 'Successfully Updated Plan'
       : 'Failed to Update Plan',
   });
 });
 
+
 const deletePlan = catchAsync(async (req, res) => {
-  const isExistProduct = await prisma.plan.findUnique({
+  const isExistProduct = await prisma.plan.findFirst({
     where: {
       productId: req.params.id,
     },
@@ -162,24 +180,24 @@ const deletePlan = catchAsync(async (req, res) => {
 
   await NotFound(isExistProduct, 'Plan');
 
-  const subscription=await prisma.subscription.findFirst({
-    where:{
-      planId:req.params.id
-    }
-  })
+  // const subscription=await prisma.subscription.findFirst({
+  //   where:{
+  //     planId:req.params.id
+  //   }
+  // })
 
-  if(subscription)
-  {
-    await prisma.subscription.deleteMany({
-      where:{
-        planId:req.params.id
-      }
-    })
-  }
+  // if(subscription)
+  // {
+  //   await prisma.subscription.deleteMany({
+  //     where:{
+  //       planId:req.params.id
+  //     }
+  //   })
+  // }
 
 
   //safely delete 
-  await prisma.plan.delete({
+  await prisma.plan.deleteMany({
     where: {
       productId: req.params.id,
     },

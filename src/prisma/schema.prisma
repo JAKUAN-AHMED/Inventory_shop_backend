@@ -312,7 +312,7 @@ model Plan {
   id                 String          @id @default(auto()) @map("_id") @db.ObjectId
   productPrice       Float?
   productName        String?         @unique
-  productId          String?         @unique
+  productId          String?         
   interval           BillingInterval
   Duration           Int?            @default(0)
   productDescription String?
