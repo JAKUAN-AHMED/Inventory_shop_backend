@@ -9,3 +9,18 @@ option => 2 is      ----- ------  Exam
 
 //when create a test there will be created testquestions
 and answer will do user from there
+
+
+//save test
+//my report
+//last 2 test details
+
+//subscription
+//payment
+
+//comment
+//reply
+
+//logic behind access
+
+//admin dashboard data
