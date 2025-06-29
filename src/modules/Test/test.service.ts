@@ -6,72 +6,109 @@ import { NotFound } from '../../utils/utility';
 const createTest = async (payload: Test) => {
   // console.log("payload ", payload);
 
-  // 1. Fetch random questions from the topic
-  const questions = await prisma.question.findMany({
+
+  //check user have subscription
+  const userInfo = await prisma.subscription.findUnique({
     where: {
-      topicId: payload.topicId,
+      userId:payload.userId
     },
-    select: {
-      id: true,
-      // correctAnswer:true,
-      comments: {
-        select: {
-          upVote: true,
-          downVote: true,
-        },
-      },
+    include:{
+      user:true,
+      plan:{
+        include:{
+          license:{
+            include:{
+              topics:{
+                include:{
+                  questions:{
+                    include:{
+                      bookmarks:true,
+                      comments:true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
 
-      // topicId is not needed unless you need it later
-    },
 
-    take: payload.total,
-  });
-
-  // console.log("questions", questions);
-
-  if (questions.length === 0) {
-    throw new AppError(404, 'No questions found for this topic.');
+  console.log('userInfo',userInfo)
+  if(!userInfo?.isActive)
+  {
+    throw new AppError(403,'You Do not Have Active Susbcription!');
   }
 
-  // 2. Create the Test (must come BEFORE using testId)
-  const test = await prisma.test.create({
-    data: payload,
-  });
+  return {};
+  // // 1. Fetch random questions from the topic
+  // const questions = await prisma.question.findMany({
+  //   where: {
+  //     topicId: payload.topicId,
+  //   },
+  //   select: {
+  //     id: true,
+  //     // correctAnswer:true,
+  //     comments: {
+  //       select: {
+  //         upVote: true,
+  //         downVote: true,
+  //       },
+  //     },
 
-  if (!test) {
-    throw new AppError(400, 'Failed to create Test.');
-  }
+  //     // topicId is not needed unless you need it later
+  //   },
 
-  // 3. Create related TestQuestions
-  const testQuestions = await prisma.testQuestion.createMany({
-    data: questions.map((question) => ({
-      questionId: question.id,
-      testId: test.id,
-      timeLimit: 1,
-    })),
-  });
+  //   take: payload.total,
+  // });
 
-  //   console.log("testQuestions", testQuestions);
+  // // console.log("questions", questions);
 
-  if (!testQuestions || testQuestions.count === 0) {
-    throw new AppError(400, 'Failed to create Test Questions.');
-  }
+  // if (questions.length === 0) {
+  //   throw new AppError(404, 'No questions found for this topic.');
+  // }
 
-  //create testResult
+  // // 2. Create the Test (must come BEFORE using testId)
+  // const test = await prisma.test.create({
+  //   data: payload,
+  // });
 
-  await prisma.testResult.create({
-    data: {
-      userId: payload.userId,
-      topicId: payload.topicId,
-      testId: test.id,
-    },
-  });
-  // 4. Return test and selected questions
-  return {
-    ...test,
-    ...testQuestions,
-    questions,
-  };
+  // if (!test) {
+  //   throw new AppError(400, 'Failed to create Test.');
+  // }
+
+  // // 3. Create related TestQuestions
+  // const testQuestions = await prisma.testQuestion.createMany({
+  //   data: questions.map((question) => ({
+  //     questionId: question.id,
+  //     testId: test.id,
+  //     timeLimit: 1,
+  //   })),
+  // });
+
+  // //   console.log("testQuestions", testQuestions);
+
+  // if (!testQuestions || testQuestions.count === 0) {
+  //   throw new AppError(400, 'Failed to create Test Questions.');
+  // }
+
+  // //create testResult
+
+  // await prisma.testResult.create({
+  //   data: {
+  //     userId: payload.userId,
+  //     topicId: payload.topicId,
+  //     testId: test.id,
+  //   },
+  // });
+  // // 4. Return test and selected questions
+  // return {
+  //   ...test,
+  //   ...testQuestions,
+  //   questions,
+  // };
 };
 
 const updateTest = async (id: string, payload: Partial<Test>) => {
@@ -93,69 +130,30 @@ const updateTest = async (id: string, payload: Partial<Test>) => {
   });
 };
 
-const deleteTest = async (id: string,userId:string) => {
+const deleteTest = async (id: string, userId: string) => {
+  return await prisma.$transaction(async (tx) => {
+    const isTestExist = await tx.test.findUnique({ where: { id } });
+    await NotFound(isTestExist, 'Test');
 
-  const isTestExist=await prisma.test.findUnique({
-    where:{
-      id
-    }
-  })
+    // Delete test questions
+    await tx.testQuestion.deleteMany({ where: { testId: id } });
 
-  await NotFound(isTestExist,'Test');
+    // Delete bookmarks linked to test
+    await tx.bookmark.deleteMany({ where: { testId: id } });
 
-  const testQ=await prisma.testQuestion.findFirst({
-    where:{
-      testId:id
-    }
-  })
+    // Delete test results linked to test
+    await tx.testResult.deleteMany({ where: { testId: id } });
 
-
-  if(testQ)
-  {
-    await prisma.testQuestion.deleteMany({
-      where:{
-        testId:id
-      }
-    })
-  }
-  const bookmark=await prisma.bookmark.findFirst({
-    where:{
-      testId:id
-    }
-  })
-
-
-  if(bookmark)
-  {
-    await prisma.bookmark.deleteMany({
-      where:{
-        testId:id
-      }
-    })
-  }
-  const testR=await prisma.testResult.findFirst({
-    where:{
-      testId:id
-    }
-  })
-
-
-  if(testR)
-  {
-    await prisma.testResult.deleteMany({
-      where:{
-        testId:id
-      }
-    })
-  }
-
-  
-  // Logic to delete a test
-  return await prisma.test.delete({
-    where: { id ,userId},
-
+    // Finally, delete the test
+    return await tx.test.delete({
+      where: {
+        id,
+        userId,
+      },
+    });
   });
 };
+
 
 const AllTests = async () => {
   // Logic to get all tests
@@ -168,27 +166,27 @@ const AllTests = async () => {
   });
 };
 
-const TestById = async (id: string,userId:string,role:string) => {
+const TestById = async (id: string, userId: string, role: string) => {
   // Logic to get a test by ID
-  if(role==='ADMIN'){
+  if (role === 'ADMIN') {
     return await prisma.test.findUnique({
-    where: { id },
-    include: {
-      bookmarks: true,
-      questions: true,
-      testResults: true,
-    },
-  });
+      where: { id },
+      include: {
+        bookmarks: true,
+        questions: true,
+        testResults: true,
+      },
+    });
   }
-  else{
+  else {
     return await prisma.test.findUnique({
-    where: { id ,userId},
-    include: {
-      bookmarks: true,
-      questions: true,
-      testResults: true,
-    },
-  });
+      where: { id, userId },
+      include: {
+        bookmarks: true,
+        questions: true,
+        testResults: true,
+      },
+    });
   }
 };
 
@@ -200,11 +198,11 @@ const testByUserId = async (userId: string) => {
     include: {
       bookmarks: true,
       questions: {
-        include:{
-          question:{
-            include:{
-              bookmarks:true,
-              comments:true
+        include: {
+          question: {
+            include: {
+              bookmarks: true,
+              comments: true
             }
           }
         }

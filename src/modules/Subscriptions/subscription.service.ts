@@ -8,7 +8,7 @@ import stripe from '../../config/stripe';
 import { Plan } from '@prisma/client';
 
 const createSubscriptionSession = async (user: IUser, plan: Plan) => {
-    
+
     if (!user.id) {
         throw new AppError(400, 'User ID is required to create a subscription');
     }
@@ -234,7 +234,6 @@ const handleInvoicePaymentSucceeded = async (invoice: Stripe.Invoice) => {
   <hr />
   <iframe src="${invoicePdfUrl}" width="100%" height="600px" style="border:none;"></iframe>
 `;
-
 
         const result = await sendEmail(
             [{ email: user?.email as string }],

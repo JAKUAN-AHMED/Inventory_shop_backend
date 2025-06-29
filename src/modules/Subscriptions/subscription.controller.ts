@@ -21,75 +21,73 @@ const CreatePlan = catchAsync(async (req, res) => {
     interval,
     Duration,
     description,
-    licenseId
+    licenseId,
   } = req.body;
 
   if (!interval || !Duration || !description || !licenseId || !amount) {
-    throw new AppError(404, 'a filed is missing');
+    throw new AppError(404, 'A field is missing');
   }
+
   const isExist = await prisma.license.findUnique({
-    where: {
-      id: licenseId,
-    },
+    where: { id: licenseId },
   });
 
+  await NotFound(isExist, 'License does not exist');
 
-  await NotFound(
-    isExist,
-    'The name you this is not exist at the license collection  and license',
-  );
-
-  const IsAlreadyHavePlan = await prisma.plan.findUnique({
+  const isAlreadyHavePlan = await prisma.plan.findFirst({
     where: {
       productName: isExist?.name,
       interval,
       Duration,
-      licenseId
+      licenseId,
     },
   });
 
-  if (IsAlreadyHavePlan) {
+  if (isAlreadyHavePlan) {
     throw new Error('Already Created Plan');
   }
 
-  const product = await stripe.products.create({ name: isExist?.name as string });
+  // 🧾 Create Product and Price on Stripe
+  const product = await stripe.products.create({
+    name: isExist?.name as string,
+  });
+
   const price = await stripe.prices.create({
     unit_amount: amount * 100,
     currency: currency,
     recurring: {
-      interval: interval, // e.g., 'month'
-      interval_count: Duration || 1, // e.g., 3 for every 3 months
+      interval: interval,
+      interval_count: Duration || 1,
     },
     product: product.id,
   });
-  let dbplan;
-  if (product) {
-    dbplan = await prisma.plan.create({
+
+  // 🛡️ Transaction for DB entry
+  const result = await prisma.$transaction(async (tx) => {
+    const dbPlan = await tx.plan.create({
       data: {
         productName: isExist?.name as string,
         productPrice: amount,
         productId: product.id,
+        stripePriceId: price.id,
         interval,
         Duration,
         licenseId,
-        stripePriceId: price.id as string,
         productDescription: description,
       },
     });
-  }
 
-  const result = dbplan;
-  const isOk = result ? true : false;
+    return dbPlan;
+  });
+
   sendResponse(res, {
-    statusCode: isOk ? 201 : 400,
-    success: isOk,
-    message: isOk
-      ? 'Successfully Created  Plan'
-      : 'Failed to Create Plan',
-    Data: isOk ? result : []
-
+    statusCode: 201,
+    success: true,
+    message: 'Successfully Created Plan',
+    Data: result,
   });
 });
+
 
 const AllPlans = catchAsync(async (req, res) => {
   const result = await prisma.plan.findMany({
@@ -165,40 +163,20 @@ const SinglePlan = catchAsync(async (req, res) => {
 const UpdatePlan = catchAsync(async (req, res) => {
   const { planId, name, price, interval, Duration, description } = req.body;
 
-  if (!planId) {
-    throw new AppError(404, "Plan ID is required");
-  }
+  if (!planId) throw new AppError(404, "Plan ID is required");
 
-  // 1. Find existing plan
-  const plan = await prisma.plan.findUnique({
-    where: { id: planId },
-  });
-
-  if (!plan) {
-    throw new AppError(404, "Plan not found");
-  }
+  const plan = await prisma.plan.findUnique({ where: { id: planId } });
+  if (!plan) throw new AppError(404, "Plan not found");
 
   let updatedLicenseId = plan.licenseId;
 
-  // 2. If name is provided, find matching license
+  // External operations — Stripe
+  let product = null;
   if (name) {
-    const license = await prisma.license.findFirst({
-      where: { name },
-    });
-
-    await NotFound(
-      license,
-      "The license name you provided does not exist in the license collection.",
-    );
-
-    await prisma.license.update({
-      where: { id: license?.id },
-      data: { name, price },
-    });
-
-    updatedLicenseId = license?.id as string;
+    product = await stripe.products.update(plan?.productId as string, { name });
   }
 
+  let newStripePrice = null;
   const hasAny = price !== undefined || interval !== undefined || Duration !== undefined || description !== undefined || name !== undefined;
   const hasAll = price !== undefined && interval !== undefined && Duration !== undefined;
 
@@ -206,42 +184,47 @@ const UpdatePlan = catchAsync(async (req, res) => {
     throw new AppError(400, "To update price, interval, or duration, you must provide all three.");
   }
 
-  // 3. Update Stripe product name if name is given
-  let product = null;
-  if (name) {
-    product = await stripe.products.update(plan?.productId as string, { name });
-  }
-
-  // 4. If all fields are present, create a new Stripe price
-  let newStripePrice = null;
   if (hasAll) {
     newStripePrice = await stripe.prices.create({
       unit_amount: price * 100,
       currency: "usd",
       product: plan?.productId as string,
-      recurring: {
-        interval,
-        interval_count: Duration,
-      },
+      recurring: { interval, interval_count: Duration },
     });
   }
 
-  // 5. Update Plan in DB
-  const updatedPlan = await prisma.plan.update({
-    where: { id: planId },
-    data: {
-      productName: name ?? plan.productName,
-      productDescription: description ?? plan.productDescription,
-      productPrice: price ?? plan.productPrice,
-      interval: interval ?? plan.interval,
-      Duration: Duration ?? plan.Duration,
-      stripePriceId: newStripePrice?.id ?? plan.stripePriceId,
-      productId: product?.id ?? plan.productId,
-      licenseId: updatedLicenseId,
-    },
+  // Prisma Transaction
+  const updatedPlan = await prisma.$transaction(async (tx) => {
+    if (name) {
+      const license = await tx.license.findFirst({ where: { name } });
+      await NotFound(
+        license,
+        "The license name you provided does not exist in the license collection."
+      );
+
+      await tx.license.update({
+        where: { id: license?.id },
+        data: { name, price },
+      });
+
+      updatedLicenseId = license?.id as string;
+    }
+
+    return await tx.plan.update({
+      where: { id: planId },
+      data: {
+        productName: name ?? plan.productName,
+        productDescription: description ?? plan.productDescription,
+        productPrice: price ?? plan.productPrice,
+        interval: interval ?? plan.interval,
+        Duration: Duration ?? plan.Duration,
+        stripePriceId: newStripePrice?.id ?? plan.stripePriceId,
+        productId: product?.id ?? plan.productId,
+        licenseId: updatedLicenseId,
+      },
+    });
   });
 
-  // 6. Response
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -251,48 +234,78 @@ const UpdatePlan = catchAsync(async (req, res) => {
 });
 
 
+
 const deletePlan = catchAsync(async (req, res) => {
-  const isExistProduct = await prisma.plan.findFirst({
-    where: {
-      productId: req.params.id,
-    },
+  const planId = req.params.id;
+
+  // Check plan existence
+  const isExist = await prisma.plan.findUnique({
+    where: { id: planId },
   });
 
-  await NotFound(isExistProduct, 'Plan');
-
-  // const subscription=await prisma.subscription.findFirst({
-  //   where:{
-  //     planId:req.params.id
-  //   }
-  // })
-
-  // if(subscription)
-  // {
-  //   await prisma.subscription.deleteMany({
-  //     where:{
-  //       planId:req.params.id
-  //     }
-  //   })
-  // }
+  if (!isExist) {
+    throw new AppError(404, 'Plan does not exist');
+  }
 
 
-  //safely delete 
-  await prisma.plan.deleteMany({
-    where: {
-      productId: req.params.id,
-    },
-  });
-  const result = await stripe.products.update(req.params.id, {
-    active: false,
+
+  const prices = await stripe.prices.list({
+    product: isExist?.productId as string,
+    active: true,   // optional: filter to only active prices
+    limit: 100,     // max limit per request
   });
 
-  const isOk = result ? true : false;
+  // Number of active prices:
+  const activePriceCount = prices.data.length;
+  if (activePriceCount === 1) {
+    throw new AppError(403, 'This Product have only Price Left So You Can not Delete it');
+  }
+
+  // Run DB transaction to delete plan and related subscriptions/payments
+  await prisma.$transaction(async (tx) => {
+    // Delete payments related to subscriptions of this plan
+    await tx.payment.deleteMany({
+      where: {
+        subscription: {
+          planId: planId,
+        },
+      },
+    });
+
+    // Delete subscriptions related to this plan
+    await tx.subscription.deleteMany({
+      where: { planId: planId },
+    });
+
+    // Finally, delete the plan itself
+    await tx.plan.delete({
+      where: { id: planId },
+    });
+  });
+
+  // Deactivate Stripe price after DB transaction
+  if (isExist.stripePriceId) {
+    await stripe.prices.update(isExist.stripePriceId, {
+      active: false,
+    });
+  }
+
+  // Optionally, deactivate Stripe product if needed
+  if (isExist.productId) {
+
+    await stripe.products.update(isExist.productId, {
+      active: false,
+    });
+  }
+
   sendResponse(res, {
-    statusCode: isOk ? 200 : 400,
-    success: isOk,
-    message: isOk ? 'Successfully Deleted Plan' : 'Failed to Delete Plan',
+    statusCode: 200,
+    success: true,
+    message: 'Successfully deleted plan and related data',
   });
 });
+
+
 
 
 const createSubscriptionSession = catchAsync(async (req, res) => {
@@ -306,17 +319,27 @@ const createSubscriptionSession = catchAsync(async (req, res) => {
     );
   }
 
-  const plan=await prisma.plan.findUnique({
-    where:{
-      stripePriceId:priceId as string
+  const plan = await prisma.plan.findUnique({
+    where: {
+      stripePriceId: priceId as string
     }
   })
 
-  if(!plan)
-  {
-    throw new AppError(404,'Plan');
+  const isAlreadyHaveSubscription = await prisma.subscription.findUnique({
+    where: {
+      planId: plan?.id as string,
+      userId: user.id as string
+    }
+  })
+
+  if (isAlreadyHaveSubscription && isAlreadyHaveSubscription?.isActive) {
+    throw new AppError(404, 'You have Already a Active Subscription');
   }
-  
+
+  if (!plan) {
+    throw new AppError(404, 'Plan');
+  }
+
   if (!user || !user.id || !user.email) {
     throw new AppError(400, 'User information is missing or incomplete');
   }

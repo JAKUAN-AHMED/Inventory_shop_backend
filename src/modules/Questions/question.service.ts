@@ -95,91 +95,52 @@ const updateQuestion = async (file: Express.Multer.File, id: string, payload: Pa
 }
 
 
+
 const deleteQuestion = async (id: string) => {
+  return await prisma.$transaction(async (tx) => {
+    const isExistQuestions = await tx.question.findUnique({
+      where: { id },
+    });
 
-    const isExistQuestions = await prisma.question.findUnique({
-        where: {
-            id
+    await NotFound(isExistQuestions, "Questions You are trying to Delete, It's Already Deleted or ID is Invalid");
+
+    // Check and delete image from DigitalOcean if exists
+    if (isExistQuestions?.explanation) {
+      let explanationObj: any = isExistQuestions.explanation;
+      if (typeof explanationObj === "string") {
+        try {
+          explanationObj = JSON.parse(explanationObj);
+        } catch (e) {
+          explanationObj = {};
         }
-    })
-
-    await NotFound(isExistQuestions, "Questions You are trying to Delete ,Its Already Deleted and Id");
-
-
-    if (
-        isExistQuestions &&
-        isExistQuestions.explanation
-    ) {
-        let explanationObj: any = isExistQuestions.explanation;
-        if (typeof explanationObj === "string") {
-            try {
-                explanationObj = JSON.parse(explanationObj);
-            } catch (e) {
-                explanationObj = {};
-            }
-        }
-        if (explanationObj?.img) {
-            // You can now safely access explanationObj.img here
-            // await deleteFile(explanationObj.img)
-
-            await deleteFromDigitalOceanAWS(explanationObj?.img as string);
-
-        }
+      }
+      if (explanationObj?.img) {
+        await deleteFromDigitalOceanAWS(explanationObj.img as string);
+      }
     }
 
+    // Delete related bookmarks
+    await tx.bookmark.deleteMany({
+      where: { questionId: id },
+    });
 
+    // Delete related comments
+    await tx.comment.deleteMany({
+      where: { questionId: id },
+    });
 
-    const bookmark = await prisma.bookmark.findFirst({
-        where: {
-            questionId: id
-        }
-    })
+    // Delete related test questions
+    await tx.testQuestion.deleteMany({
+      where: { questionId: id },
+    });
 
-    if (bookmark) {
-        await prisma.bookmark.deleteMany({
-            where: {
-                questionId: id
-            }
-        })
-    }
-    const comment = await prisma.comment.findFirst({
-        where: {
-            questionId: id
-        }
-    })
+    // Finally delete the question
+    return await tx.question.delete({
+      where: { id },
+    });
+  });
+};
 
-    if (comment) {
-        await prisma.bookmark.deleteMany({
-            where: {
-                questionId: id
-            }
-        })
-    }
-    const testQuestion = await prisma.testQuestion.findFirst({
-        where: {
-            questionId: id
-        }
-    })
-
-    if (testQuestion) {
-        await prisma.testQuestion.deleteMany({
-            where: {
-                questionId: id
-            }
-        })
-    }
-
-
-    //now safely delete
-    await prisma.testQuestion.deleteMany({
-        where: {
-            questionId: id
-        }
-    })
-    return await prisma.question.delete({
-        where: { id }
-    })
-}
 
 
 const AllQuestions = async (query: any) => {

@@ -59,59 +59,52 @@ const singleTopic = async (id: string) => {
 
 
 const deleteTopic = async (id: string) => {
+  return await prisma.$transaction(async (tx) => {
+    const isExist = await tx.topic.findUnique({ where: { id } });
+    await NotFound(isExist, 'Which Topic You are trying to Delete This is');
 
-  const isExist = await prisma.topic.findUnique({
-    where: {
-      id
+    // 1. Delete related testResults
+    await tx.testResult.deleteMany({ where: { topicId: id } });
+
+    // 2. Find and delete related tests
+    const tests = await tx.test.findMany({ where: { topicId: id } });
+
+    for (const test of tests) {
+      await tx.testQuestion.deleteMany({ where: { testId: test.id } });
+      await tx.bookmark.deleteMany({ where: { testId: test.id } });
     }
-  })
 
-  await NotFound(isExist, 'Which Topic You are trying to Delete This is');
-  const questions = await prisma.question.findFirst({ where: { topicId: id } });
-  if(questions)
-  {
-    await prisma.question.deleteMany({
-      where:{
-        topicId:id
-      }
-    })
-  }
-  const test = await prisma.test.findFirst({ where: { topicId: id } });
-  if(test)
-  {
-    await prisma.test.deleteMany({
-      where:{
-        topicId:id
-      }
-    })
-  }
-  const savetest = await prisma.saveTest.findFirst({ where: { topicId: id } });
-  if(savetest)
-  {
-    await prisma.saveTest.deleteMany({
-      where:{
-        topicId:id
-      }
-    })
-  }
-  const testresult = await prisma.testResult.findFirst({ where: { topicId: id } });
-  if(testresult)
-  {
-    await prisma.testResult.deleteMany({
-      where:{
-        topicId:id
-      }
-    })
-  }
+    await tx.test.deleteMany({ where: { topicId: id } });
 
-  //now safely delete
+    // 3. Delete related saveTests
+    await tx.saveTest.deleteMany({ where: { topicId: id } });
 
-  return await prisma.topic.delete({
-    where: {
-      id
+    // 4. Delete related questions and their deep relations
+    const questions = await tx.question.findMany({ where: { topicId: id } });
+
+    for (const question of questions) {
+      const comments = await tx.comment.findMany({
+        where: { questionId: question.id },
+      });
+
+      for (const comment of comments) {
+        await tx.reply.deleteMany({ where: { commentId: comment.id } });
+        await tx.downVote.deleteMany({ where: { commentId: comment.id } });
+        await tx.upVotes.deleteMany({ where: { commentId: comment.id } });
+      }
+
+      await tx.comment.deleteMany({ where: { questionId: question.id } });
+
+      await tx.testQuestion.deleteMany({ where: { questionId: question.id } });
     }
-  })
-}
+
+    await tx.question.deleteMany({ where: { topicId: id } });
+
+    // 5. Finally, delete the topic
+    return await tx.topic.delete({ where: { id } });
+  });
+};
+
 
 
 
