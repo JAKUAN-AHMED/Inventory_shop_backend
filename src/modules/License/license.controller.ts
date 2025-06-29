@@ -65,6 +65,16 @@ const singleLicense = catchAsync(async (req, res) => {
         Data: isOk ? result : [],
     });
 })
+const MyLicense = catchAsync(async (req, res) => {
+    const result = await LicenseService.MyLicense(req.params.id,req.user.id as string);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 404,
+        success: isOk,
+        message: isOk ? 'Successfully Retrived  License' : 'License Not Found',
+        Data: isOk ? result : [],
+    });
+})
 
 //Delete License
 const deleteLicense = catchAsync(async (req, res) => {
@@ -84,6 +94,7 @@ export const LicenseController = {
     getAllLicense,
     singleLicense,
     deleteLicense,
-    updateLicense
+    updateLicense,
+    MyLicense
 
 }

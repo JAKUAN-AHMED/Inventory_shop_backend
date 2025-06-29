@@ -11,35 +11,9 @@ const createTest = catchAsync(async (req, res) => {
     await NotFound(userId, 'User');
 
     req.body.userId = userId;
-    const userInfo = await prisma.subscription.findUnique({
-        where: {
-            userId: req.body.userId
-        },
-        include: {
-            user: true,
-            plan: {
-                include: {
-                    license: {
-                        select: {
-                            id:true,
-                            topics: true
-                        }
-                    }
-                }
-            }
-        },
-    })
-    const isExists = await prisma.test.findFirst({
-        where: {
-            userId,
-            licenseId:userInfo?.plan.license.id as string,
-        }
-    });
-    if (isExists) {
-        throw new AppError(409, 'You already have a test created. Please update it instead of creating a new one.');
-    }
+    
 
-    const result = await TestService.createTest(userInfo);
+    const result = await TestService.createTest(req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 201 : 400,

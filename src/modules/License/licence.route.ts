@@ -10,12 +10,12 @@ router.post('/createLicense',auth('ADMIN'),LicenseController.createLicense);
 router.delete('/deleteLicense/:id',auth('ADMIN'),LicenseController.deleteLicense);
 
 //get all license
-router.get('/Licenses',auth('ADMIN','INSTRUCTOR','STUDENT'),LicenseController.getAllLicense);
+router.get('/Licenses',auth('ADMIN'),LicenseController.getAllLicense);
 
 //get single license
-router.get('/License/:id',auth('ADMIN','INSTRUCTOR','STUDENT'),LicenseController.singleLicense);
+router.get('/License/:id',auth('ADMIN'),LicenseController.singleLicense);
 
-
+router.get('/my-license',auth('STUDENT',"ADMIN"),LicenseController.MyLicense);
 //update license
 router.patch('/updateLicense/:id',auth('ADMIN'),LicenseController.updateLicense);
 

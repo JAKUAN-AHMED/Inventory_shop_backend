@@ -100,7 +100,9 @@ const AllPlans = catchAsync(async (req, res) => {
       stripePriceId: true,
       license: {
         include: {
-          topics: {
+         licenseTopics:{
+          include:{
+             topic: {
             include: {
               questions: {
                 include: {
@@ -110,6 +112,8 @@ const AllPlans = catchAsync(async (req, res) => {
               }
             }
           }
+          }
+         }
         }
       }
     },
@@ -136,7 +140,9 @@ const SinglePlan = catchAsync(async (req, res) => {
       Duration: true,
       license: {
         include: {
-          topics: {
+         licenseTopics:{
+          include:{
+             topic: {
             include: {
               questions: {
                 include: {
@@ -146,6 +152,8 @@ const SinglePlan = catchAsync(async (req, res) => {
               }
             }
           }
+          }
+         }
         }
       }
     },
@@ -325,9 +333,10 @@ const createSubscriptionSession = catchAsync(async (req, res) => {
     }
   })
 
+
+
   const isAlreadyHaveSubscription = await prisma.subscription.findUnique({
     where: {
-      planId: plan?.id as string,
       userId: user.id as string
     }
   })

@@ -4,18 +4,17 @@ import AppError from '../../errors/AppError';
 
 const AnswerTheTestQuestion = async (
   userId: string,
-  id: string,
   payload: Partial<TestQuestion>,
 ) => {
   const { testId, questionId, selected } = payload;
 
-  if (!testId || !questionId) {
+  if (!testId || !questionId || !selected) {
     throw new Error('id is required');
   }
 
   // Check if the test question exists
   const isExists = await prisma.testQuestion.findUnique({
-    where: { id },
+    where: { id:payload.questionId },
   });
 
   if (!isExists) {
@@ -25,7 +24,7 @@ const AnswerTheTestQuestion = async (
   //total test questions
   const totalquestions = await prisma.testQuestion.count({
     where: {
-      id,
+      id:questionId,
     },
   });
 
@@ -44,7 +43,7 @@ const AnswerTheTestQuestion = async (
   const totalscore = await prisma.testResult.findUnique({
     where: {
       userId,
-      testId: testId,
+      testId,
       topicId: isTestExists.topicId,
     },
     select: {
@@ -53,7 +52,7 @@ const AnswerTheTestQuestion = async (
   });
   // Check if the question exists
   const isQuestionExists = await prisma.question.findUnique({
-    where: { id: questionId },
+    where: { id: isExists.questionId },
   });
   if (!isQuestionExists) {
     throw new Error('Question not found');
@@ -63,18 +62,20 @@ const AnswerTheTestQuestion = async (
     throw new Error('Selected answer is required');
   }
 
-  if (selected === correctAnswer) {
+  if (testId && selected === correctAnswer) {
     const answer = await prisma.testQuestion.update({
-      where: { id: testId, questionId },
-      data: {
-        isCorrect: true,
+      where:{
+        id:questionId
       },
-    });
+      data:{
+        isCorrect:true,
+        selected:payload.selected
+      }
+    })
 
     const testResult = await prisma.testResult.update({
       where: {
-        userId,
-        testId: testId,
+        testId: testId as string,
         topicId: isTestExists.topicId,
       },
       data: {
@@ -90,16 +91,21 @@ const AnswerTheTestQuestion = async (
     };
   } else {
     const answer = await prisma.testQuestion.update({
-      where: { id: testId, questionId },
+      where: {
+        testId_questionId: {
+          testId: testId,
+          questionId: payload.questionId as string,
+        }
+      },
       data: {
         isCorrect: false,
+        selected: payload.selected
       },
     });
 
     const testResult = await prisma.testResult.findUnique({
       where: {
-        userId,
-        testId: testId,
+        id: testId, 
         topicId: isTestExists.topicId,
       },
     });
@@ -113,21 +119,50 @@ const AnswerTheTestQuestion = async (
 
 //test questions data
 
-// const testqustionsData=async()=>{
-//   const result=await prisma.testQuestion.findMany({
-//     where:{
-//       user
-//     },
-//     include:{
-//       question:{
-//         include:{
-//           bookmarks:true,
-//           comments:true
-//         }
-//       }
-//     }
-//   })
-// }
+const MyQuestions = async (userId: string, page: number = 1) => {
+  const limit = 1;
+  const skip = (page - 1) * limit;
+
+  // 1. Get total count
+  const total = await prisma.testQuestion.count({
+    where: {
+      userId
+    }
+  });
+
+  // 2. Fetch the paginated question
+  const questions = await prisma.testQuestion.findMany({
+    where: { userId },
+    skip,
+    take: limit,
+    include: {
+      question: {
+        include: {
+          bookmarks: true,
+          comments: {
+            include: {
+              upVote: true,
+              downVote: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // 3. Return with meta
+  return {
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: questions
+    }
+  };
+};
+
 export const testQService = {
   AnswerTheTestQuestion,
+  MyQuestions
 };

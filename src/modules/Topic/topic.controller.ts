@@ -16,6 +16,8 @@ const createTopic = catchAsync(async (req, res) => {
     if (isExists) {
         throw new AppError(409,'Topic with this name already exists');
     }
+
+    
   const result = await TopicService.createTopic(req.body);
   const isOk = !!result;
 

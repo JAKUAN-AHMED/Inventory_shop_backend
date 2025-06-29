@@ -3,114 +3,106 @@ import { prisma } from '../../prisma/client';
 import AppError from '../../errors/AppError';
 import { NotFound } from '../../utils/utility';
 
-const createTest = async (payload:any) => {
-  // console.log("payload ", payload);
+const createTest = async (payload: Test) => {
+  if (!payload.topicId) {
+    throw new AppError(404, 'Topic Not Found');
+  }
 
-
-  //check user have subscription
+  // 1. Check if user has a valid subscription
   const userInfo = await prisma.subscription.findUnique({
     where: {
-      userId:payload.userId
+      userId: payload.userId
     },
-    include:{
-      user:true,
-      plan:{
-        include:{
-          license:{
-            include:{
-              topics:{
-                include:{
-                  questions:{
-                    include:{
-                      bookmarks:true,
-                      comments:true
+    include: {
+      user: true,
+      plan: {
+        include: {
+          license: {
+            include: {
+              licenseTopics: {
+                where: {
+                  topicId: payload.topicId
+                },
+                include: {
+                  topic: {
+                    include: {
+                      questions: {
+                        include: {
+                          bookmarks: true,
+                          comments: true
+                        },
+                        take: payload.total
+                      }
                     }
                   }
-                },
-                take:payload.total
+                }
               }
             }
           }
         }
       }
-    },
+    }
+  });
 
-  })
-
-
-  console.log('userInfo',userInfo)
-  if(!userInfo?.isActive)
-  {
-    throw new AppError(403,'You Do not Have Active Susbcription!');
+  // 2. Validate subscription
+  if (!userInfo || userInfo.isActive !== true) {
+    throw new AppError(403, 'You do not have an active subscription!');
   }
 
-  return {};
-  // // 1. Fetch random questions from the topic
-  // const questions = await prisma.question.findMany({
-  //   where: {
-  //     topicId: payload.topicId,
-  //   },
-  //   select: {
-  //     id: true,
-  //     // correctAnswer:true,
-  //     comments: {
-  //       select: {
-  //         upVote: true,
-  //         downVote: true,
-  //       },
-  //     },
+  // 3. Get related topic and questions
+  const matchedLicenseTopic = userInfo.plan.license.licenseTopics?.[0]; // First match for topicId
+  const selectedQuestions = matchedLicenseTopic?.topic?.questions ?? [];
 
-  //     // topicId is not needed unless you need it later
-  //   },
+  if (selectedQuestions.length === 0) {
+    throw new AppError(404, 'No questions found for this topic.');
+  }
 
-  //   take: payload.total,
-  // });
 
-  // // console.log("questions", questions);
+  const testData={
+    licenseId:matchedLicenseTopic.licenseId,
+    userId:payload.userId,
+    topicId:matchedLicenseTopic.topicId,
+    total:payload.total
+  }
+  // 4. Create the Test
+  const test = await prisma.test.create({
+    data: testData,
+  });
 
-  // if (questions.length === 0) {
-  //   throw new AppError(404, 'No questions found for this topic.');
-  // }
+  if (!test) {
+    throw new AppError(400, 'Failed to create Test.');
+  }
 
-  // // 2. Create the Test (must come BEFORE using testId)
-  // const test = await prisma.test.create({
-  //   data: payload,
-  // });
+  // 5. Create Test Questions
+  const testQuestions = await prisma.testQuestion.createMany({
+    data: selectedQuestions.map((question) => ({
+      questionId: question.id,
+      testId: test.id,
+      timeLimit: 1,
+      userId:payload.userId
+    }))
+  });
 
-  // if (!test) {
-  //   throw new AppError(400, 'Failed to create Test.');
-  // }
+  if (!testQuestions || testQuestions.count === 0) {
+    throw new AppError(400, 'Failed to create Test Questions.');
+  }
 
-  // // 3. Create related TestQuestions
-  // const testQuestions = await prisma.testQuestion.createMany({
-  //   data: questions.map((question) => ({
-  //     questionId: question.id,
-  //     testId: test.id,
-  //     timeLimit: 1,
-  //   })),
-  // });
+  // 6. Create Test Result
+  await prisma.testResult.create({
+    data: {
+      userId: payload.userId,
+      topicId: payload.topicId,
+      testId: test.id,
+    },
+  });
 
-  // //   console.log("testQuestions", testQuestions);
-
-  // if (!testQuestions || testQuestions.count === 0) {
-  //   throw new AppError(400, 'Failed to create Test Questions.');
-  // }
-
-  // //create testResult
-
-  // await prisma.testResult.create({
-  //   data: {
-  //     userId: payload.userId,
-  //     topicId: payload.topicId,
-  //     testId: test.id,
-  //   },
-  // });
-  // // 4. Return test and selected questions
-  // return {
-  //   ...test,
-  //   ...testQuestions,
-  //   questions,
-  // };
+  // 7. Return
+  return {
+    ...test,
+    questionCount: selectedQuestions.length,
+    testQuestionsCount: testQuestions.count,
+    questions: selectedQuestions,
+  };
 };
 
 const updateTest = async (id: string, payload: Partial<Test>) => {

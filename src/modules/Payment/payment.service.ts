@@ -45,7 +45,20 @@ const singlePayment = async (userId: string, paymentId: string, role: string) =>
                 userId
             },
             include: {
-                payments: true
+                plan:{ 
+                    select:{
+                        license:{
+                            select:{
+                                name:true
+                            }
+                        }
+                    }
+                },
+                payments: {
+                    include:{
+                        
+                    }
+                }
             }
         })
     }

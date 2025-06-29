@@ -15,7 +15,7 @@ const AnswerTheTestQuestion = catchAsync(async (req, res) => {
     if (!isExists) {
         throw new AppError(404, 'Test Question not found');
     }
-    const result = await testQService.AnswerTheTestQuestion(req.user.id as string,req.params.id, req.body);
+    const result = await testQService.AnswerTheTestQuestion(req.user.id as string, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -24,5 +24,20 @@ const AnswerTheTestQuestion = catchAsync(async (req, res) => {
         Data: isOk ? result : [],
     });
 })
+
+
+const MyQuestions = catchAsync(async (req, res) => {
+    const result = await testQService.MyQuestions(req.user.id as string);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 404,
+        success: isOk,
+        message: isOk ? 'Successfully Retrived My Questions' : 'Failed to Retrived My Questions',
+        Data: isOk ? result : [],
+    });
+})
 export const testQController = {
-AnswerTheTestQuestion}
+    AnswerTheTestQuestion,
+    MyQuestions
+
+}
