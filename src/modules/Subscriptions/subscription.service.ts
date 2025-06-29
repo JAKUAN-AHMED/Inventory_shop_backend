@@ -5,15 +5,10 @@ import { IUser } from '../User/user.interface';
 import { getMonth } from 'date-fns';
 import { sendEmail } from '../../utils/sendEmail';
 import stripe from '../../config/stripe';
+import { Plan } from '@prisma/client';
 
-const createSubscriptionSession = async (user: IUser, planName: string) => {
-    const plan = await prisma.plan.findUnique({
-        where: { productName: planName },
-    });
-
-    if (!plan) {
-        throw new AppError(404, 'Plan not found');
-    }
+const createSubscriptionSession = async (user: IUser, plan: Plan) => {
+    
     if (!user.id) {
         throw new AppError(400, 'User ID is required to create a subscription');
     }
@@ -65,7 +60,7 @@ const createSubscriptionSession = async (user: IUser, planName: string) => {
                 userId: user.id as string,
                 userName: user.name,
                 userEmail: user.email,
-                planName: planName,
+                planName: plan.productName,
                 subscriptionId: existingSubscription?.id || 'unknown',
                 duration: plan.Duration?.toString() || '1',
             },
@@ -75,7 +70,7 @@ const createSubscriptionSession = async (user: IUser, planName: string) => {
                     userId: user.id as string,
                     userName: user.name,
                     userEmail: user.email,
-                    planName: planName,
+                    planName: plan.productName,
                     duration: plan.Duration?.toString() || '1',
                 },
             },

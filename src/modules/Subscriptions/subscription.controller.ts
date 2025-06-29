@@ -297,22 +297,33 @@ const deletePlan = catchAsync(async (req, res) => {
 
 const createSubscriptionSession = catchAsync(async (req, res) => {
   const { user } = req;
-  const { name: planName } = req.body;
+  const { priceId } = req.body;
 
-  if (!planName) {
+  if (!priceId) {
     throw new AppError(
       400,
-      'Plan name is required to create a subscription session',
+      'Plan priceId is required to create a subscription session',
     );
   }
 
+  const plan=await prisma.plan.findUnique({
+    where:{
+      stripePriceId:priceId as string
+    }
+  })
+
+  if(!plan)
+  {
+    throw new AppError(404,'Plan');
+  }
+  
   if (!user || !user.id || !user.email) {
     throw new AppError(400, 'User information is missing or incomplete');
   }
 
   const RESPONSE = await SubscriptionService.createSubscriptionSession(
     user,
-    planName,
+    plan
   );
 
   sendResponse(res, {

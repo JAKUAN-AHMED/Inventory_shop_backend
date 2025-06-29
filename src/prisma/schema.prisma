@@ -315,7 +315,7 @@ model Plan {
   productPrice       Float?
   productName        String?         @unique
   productId          String?  
-  stripePriceId     String?       
+  stripePriceId     String?       @unique 
   interval           BillingInterval
   license            License  @relation(fields: [licenseId],references: [id])
   licenseId          String @db.ObjectId
