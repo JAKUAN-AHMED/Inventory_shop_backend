@@ -51,7 +51,7 @@ const createSubscriptionSession = async (user: IUser, plan: Plan) => {
                 },
             ],
             mode: 'subscription',
-            success_url: 'http://localhost:3000/success',
+            success_url: 'http://localhost:8090/payment-success',
             cancel_url: 'http://localhost:3000/cancel',
             customer_email: user.email,
             client_reference_id: user.id,

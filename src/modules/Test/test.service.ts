@@ -3,7 +3,7 @@ import { prisma } from '../../prisma/client';
 import AppError from '../../errors/AppError';
 import { NotFound } from '../../utils/utility';
 
-const createTest = async (payload: Test) => {
+const createTest = async (payload:any) => {
   // console.log("payload ", payload);
 
 
@@ -26,13 +26,15 @@ const createTest = async (payload: Test) => {
                       comments:true
                     }
                   }
-                }
+                },
+                take:payload.total
               }
             }
           }
         }
       }
-    }
+    },
+
   })
 
 
