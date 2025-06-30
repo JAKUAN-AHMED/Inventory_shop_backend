@@ -9,17 +9,17 @@ import { QuestionService } from "./question.service"
 
 const createQuestion = catchAsync(async (req, res) => {
 
-    const isExists=await prisma.question.findUnique({
+    const isExists = await prisma.question.findUnique({
         where: {
-            text: req.body.text 
+            text: req.body.text
         }
     });
 
     if (isExists) {
-        throw new AppError(409,'Question with this name already exists');
+        throw new AppError(409, 'Question with this name already exists');
     }
 
-    const result = await QuestionService.createQuestion(req?.file as Express.Multer.File,req.body);
+    const result = await QuestionService.createQuestion(req?.file as Express.Multer.File, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 201 : 400,
@@ -44,7 +44,7 @@ const getAllQuestions = catchAsync(async (req, res) => {
 const updateQuestion = catchAsync(async (req, res) => {
 
     console.log('hitted');
-    const result = await QuestionService.updateQuestion(req.file as Express.Multer.File,req.params.id, req.body);
+    const result = await QuestionService.updateQuestion(req.file as Express.Multer.File, req.params.id, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -79,12 +79,22 @@ const deleteQuestion = catchAsync(async (req, res) => {
 
 
 
-
+const uploadQuestionsWithExcelFile = catchAsync(async (req, res) => {
+    const result = await QuestionService.uploadQuestionsWithExcelFile(req.file as Express.Multer.File);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 201 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Uploaded Excel File and Created Questions' : 'Failed to Upload Excel File and Create Questions',
+        Data: isOk ? result : [],
+    });
+})
 
 export const QuestionController = {
     createQuestion,
     getAllQuestions,
     updateQuestion,
     singleQuestion,
-    deleteQuestion
+    deleteQuestion,
+    uploadQuestionsWithExcelFile
 }

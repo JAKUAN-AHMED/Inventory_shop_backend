@@ -14,7 +14,7 @@ const anaylyticsData = catchAsync(async (req, res) => {
 })
 const lastRecentPayment = catchAsync(async (req, res) => {
     const result = await AdminDASHService.lastRecentPayment();
-    const isOk = result.length>0 ? true : false;
+    const isOk = result.length > 0 ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
         success: isOk,
@@ -23,7 +23,19 @@ const lastRecentPayment = catchAsync(async (req, res) => {
     });
 })
 
-export const AdminDashController={
+
+const EveryUserTestResult = catchAsync(async (req, res) => {
+    const result = await AdminDASHService.EveryUserTestResult();
+    const isOk = result.length>0 ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully  Users Test Results' : 'Failed to Retrive User Results',
+        Data: isOk ? result : [],
+    });
+})
+export const AdminDashController = {
     anaylyticsData,
-    lastRecentPayment
+    lastRecentPayment,
+    EveryUserTestResult
 }

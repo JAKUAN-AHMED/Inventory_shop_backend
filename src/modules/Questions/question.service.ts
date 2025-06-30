@@ -4,10 +4,12 @@ import QueryBuilder from "../../builder/QueryBuilder"
 import { isExplanation, isValidOptions, NotFound } from "../../utils/utility"
 import AppError from "../../errors/AppError"
 import { deleteFromDigitalOceanAWS, uploadToDigitalOceanAWS } from "../../utils/sendImageToCloudinary"
-
+import xlsx from 'xlsx';
 // import { JsonValue } from "@prisma/client/runtime/library"
 import { IQuestion } from "./question.interface"
 import { deleteFile } from "../../helpers/FileDelete"
+import catchAsync from "../../utils/catchAsync"
+import { Request, Response } from "express";
 
 
 type optionsType = {
@@ -97,48 +99,48 @@ const updateQuestion = async (file: Express.Multer.File, id: string, payload: Pa
 
 
 const deleteQuestion = async (id: string) => {
-  return await prisma.$transaction(async (tx) => {
-    const isExistQuestions = await tx.question.findUnique({
-      where: { id },
-    });
+    return await prisma.$transaction(async (tx) => {
+        const isExistQuestions = await tx.question.findUnique({
+            where: { id },
+        });
 
-    await NotFound(isExistQuestions, "Questions You are trying to Delete, It's Already Deleted or ID is Invalid");
+        await NotFound(isExistQuestions, "Questions You are trying to Delete, It's Already Deleted or ID is Invalid");
 
-    // Check and delete image from DigitalOcean if exists
-    if (isExistQuestions?.explanation) {
-      let explanationObj: any = isExistQuestions.explanation;
-      if (typeof explanationObj === "string") {
-        try {
-          explanationObj = JSON.parse(explanationObj);
-        } catch (e) {
-          explanationObj = {};
+        // Check and delete image from DigitalOcean if exists
+        if (isExistQuestions?.explanation) {
+            let explanationObj: any = isExistQuestions.explanation;
+            if (typeof explanationObj === "string") {
+                try {
+                    explanationObj = JSON.parse(explanationObj);
+                } catch (e) {
+                    explanationObj = {};
+                }
+            }
+            if (explanationObj?.img) {
+                await deleteFromDigitalOceanAWS(explanationObj.img as string);
+            }
         }
-      }
-      if (explanationObj?.img) {
-        await deleteFromDigitalOceanAWS(explanationObj.img as string);
-      }
-    }
 
-    // Delete related bookmarks
-    await tx.bookmark.deleteMany({
-      where: { questionId: id },
-    });
+        // Delete related bookmarks
+        await tx.bookmark.deleteMany({
+            where: { questionId: id },
+        });
 
-    // Delete related comments
-    await tx.comment.deleteMany({
-      where: { questionId: id },
-    });
+        // Delete related comments
+        await tx.comment.deleteMany({
+            where: { questionId: id },
+        });
 
-    // Delete related test questions
-    await tx.testQuestion.deleteMany({
-      where: { questionId: id },
-    });
+        // Delete related test questions
+        await tx.testQuestion.deleteMany({
+            where: { questionId: id },
+        });
 
-    // Finally delete the question
-    return await tx.question.delete({
-      where: { id },
+        // Finally delete the question
+        return await tx.question.delete({
+            where: { id },
+        });
     });
-  });
 };
 
 
@@ -187,10 +189,49 @@ const QuestionById = async (id: string) => {
     })
 }
 
+
+//upload excel file
+
+const uploadQuestionsWithExcelFile = async (file:Express.Multer.File) => {
+    if (!file) {
+        throw new AppError(404,'File Not Found');
+    }
+
+    const workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    const jsonData = xlsx.utils.sheet_to_json(sheet);
+
+    const formattedData = jsonData.map((row: any) => ({
+      topicId: row.topicId,
+      text: row.text,
+      explanation: {
+        text: row['explanation.text']
+      },
+      options: [
+        { label: 'A', value: row.A },
+        { label: 'B', value: row.B },
+        { label: 'C', value: row.C },
+        { label: 'D', value: row.D }
+      ],
+      correctAnswer: row.correctAnswer
+    }));
+
+    // Create questions in database
+    const result = await prisma.question.createMany({
+      data: formattedData,
+    });
+    return formattedData;
+  
+};
+
+
 export const QuestionService = {
     createQuestion,
     updateQuestion,
     deleteQuestion,
     AllQuestions,
-    QuestionById
+    QuestionById,
+   uploadQuestionsWithExcelFile
 }

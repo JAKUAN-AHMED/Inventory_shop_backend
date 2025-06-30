@@ -213,8 +213,10 @@ const EveryUserTestResult=async()=>{
             }
         }
     })
+    return testR;
 }
 export const AdminDASHService={
         anaylyticsData,
-        lastRecentPayment
+        lastRecentPayment,
+        EveryUserTestResult
 }

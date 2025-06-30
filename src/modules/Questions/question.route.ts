@@ -5,7 +5,6 @@ import { QuestionController } from "./questions.controller";
 import validateRequest from "../../middlewares/validateRequest";
 import { questionSchema, questionUpdateSchema } from "./question.validation";
 import { upload } from "../../utils/sendImageToCloudinary";
-// import { upload } from "../../helpers/FileUpload";
 
 const router = Router();
 
@@ -33,5 +32,11 @@ router.patch('/update/:id',
 router.get('/:id', auth('ADMIN', 'INSTRUCTOR', 'STUDENT'), QuestionController.singleQuestion);
 router.delete('/delete/:id', auth('ADMIN', 'INSTRUCTOR'), QuestionController.deleteQuestion);
 
+
+//upload excel file
+
+router.post('/upload-excelFile',auth("ADMIN"),
+upload.single('file'),
+QuestionController.uploadQuestionsWithExcelFile)
 
 export const questionRouter = router;
