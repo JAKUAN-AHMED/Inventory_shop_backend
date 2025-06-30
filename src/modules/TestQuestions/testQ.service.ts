@@ -14,7 +14,7 @@ const AnswerTheTestQuestion = async (
 
   // Check if the test question exists
   const isExists = await prisma.testQuestion.findUnique({
-    where: { id:payload.questionId },
+    where: { id: payload.questionId },
   });
 
   if (!isExists) {
@@ -24,10 +24,22 @@ const AnswerTheTestQuestion = async (
   //total test questions
   const totalquestions = await prisma.testQuestion.count({
     where: {
-      id:questionId,
+      id: questionId,
     },
   });
 
+  const selectedCount = await prisma.testQuestion.count({
+    where: {
+      testId,
+      isCorrect: true
+    }
+  })
+
+  let isCompleted: boolean = false;
+  if (selectedCount === totalquestions) {
+    isCompleted = true;
+    throw new AppError(400, 'Your Test is Already Completed');
+  }
   if (isExists.selected) {
     throw new AppError(409, 'You have Already Answered This Question');
   }
@@ -62,27 +74,47 @@ const AnswerTheTestQuestion = async (
     throw new Error('Selected answer is required');
   }
 
-  if (testId && selected === correctAnswer) {
+  if (selected === correctAnswer) {
     const answer = await prisma.testQuestion.update({
-      where:{
-        id:questionId
+      where: {
+        id: questionId
       },
-      data:{
-        isCorrect:true,
-        selected:payload.selected
+      data: {
+        isCorrect: true,
+        selected: payload.selected
       }
     })
 
-    const testResult = await prisma.testResult.update({
+    if (selectedCount === (totalquestions - 1)) {
+      isCompleted = true;
+    }
+
+    let testResult = await prisma.testResult.update({
       where: {
         testId: testId as string,
         topicId: isTestExists.topicId,
       },
       data: {
-        percentage: ((totalscore?.score ?? 0) / (totalquestions || 1)) * 100,
         score: {
           increment: 1,
         },
+      },
+    });
+
+
+    const scoreData = testResult?.score ? testResult.score : 0;
+    const questionData = totalquestions ? totalquestions : 0;
+    const percentageData = (scoreData / questionData) * 100
+    // console.log('score , questions',scoreData,questionData)
+
+
+    testResult = await prisma.testResult.update({
+      where: {
+        testId: testId as string,
+        topicId: isTestExists.topicId,
+      },
+      data: {
+        percentage: Number(percentageData),
       },
     });
     return {
@@ -105,7 +137,7 @@ const AnswerTheTestQuestion = async (
 
     const testResult = await prisma.testResult.findUnique({
       where: {
-        id: testId, 
+        id: testId,
         topicId: isTestExists.topicId,
       },
     });
@@ -119,22 +151,24 @@ const AnswerTheTestQuestion = async (
 
 //test questions data
 
-const MyQuestions = async (userId: string, page: number = 1) => {
-  const limit = 1;
-  const skip = (page - 1) * limit;
+const MyQuestions = async (userId: string, query: any, testId: string) => {
+  const page = Number(query.page) > 0 ? Number(query.page) : 1;
+  const limit = Number(query.limit) > 0 ? Number(query.limit) : 1;
+  const skip = (Number(page) - 1) * Number(limit);
 
-  // 1. Get total count
+  // 1. Total count
   const total = await prisma.testQuestion.count({
     where: {
-      userId
+      userId,
+      testId
     }
   });
-
-  // 2. Fetch the paginated question
+  // console.log(total) 
+  // 2. Paginated questions
   const questions = await prisma.testQuestion.findMany({
-    where: { userId },
-    skip,
-    take: limit,
+    where: { userId, testId },
+    skip: Number(skip),
+    take: Number(limit),
     include: {
       question: {
         include: {
@@ -142,7 +176,7 @@ const MyQuestions = async (userId: string, page: number = 1) => {
           comments: {
             include: {
               upVote: true,
-              downVote: true
+              downVote: true,
             }
           }
         }
@@ -150,7 +184,7 @@ const MyQuestions = async (userId: string, page: number = 1) => {
     }
   });
 
-  // 3. Return with meta
+  // 3. Return result with meta
   return {
     meta: {
       total,
@@ -158,9 +192,10 @@ const MyQuestions = async (userId: string, page: number = 1) => {
       limit,
       totalPages: Math.ceil(total / limit),
       data: questions
-    }
+    },
   };
 };
+
 
 export const testQService = {
   AnswerTheTestQuestion,

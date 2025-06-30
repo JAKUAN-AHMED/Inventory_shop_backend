@@ -16,6 +16,7 @@ import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route
 import { LicenseTypesRouter } from '../modules/LicenseTypes/lstypes.routes';
 import { SaveRoutes } from '../modules/SaveTest/savetest.routes';
 import { PaymentRoutes } from '../modules/Payment/payment.routes';
+import { AdminDashRoutes } from '../modules/AdminReport/admin.routes';
 
 
 const router = express.Router();
@@ -83,6 +84,10 @@ const moduleRoutes = [
   {
     path:'/payment',
     route:PaymentRoutes
+  },
+  {
+    path:'/admin',
+    route:AdminDashRoutes
   }
 ];
 

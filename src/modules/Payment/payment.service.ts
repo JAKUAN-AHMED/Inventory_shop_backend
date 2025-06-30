@@ -12,7 +12,7 @@ const getAllPayments = async (userId: string, role: string, query: any) => {
             .sort(['-createdAt'])
             .paginate()
             .include({
-                payments: true
+                payments:true
             })
             .execute();
 

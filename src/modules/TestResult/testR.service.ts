@@ -42,6 +42,7 @@ const getMyTestResult = async (userId: string) => {
     select:{
       id:true,
       percentage:true,
+      status:true,
       score:true,
       topic:{
         select:{

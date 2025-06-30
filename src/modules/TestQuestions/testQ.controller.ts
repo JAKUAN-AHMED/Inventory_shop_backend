@@ -27,7 +27,7 @@ const AnswerTheTestQuestion = catchAsync(async (req, res) => {
 
 
 const MyQuestions = catchAsync(async (req, res) => {
-    const result = await testQService.MyQuestions(req.user.id as string);
+    const result = await testQService.MyQuestions(req.user.id as string,req.query,req.params.testId);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 404,
