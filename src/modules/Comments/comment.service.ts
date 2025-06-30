@@ -1,134 +1,268 @@
-import { Comment, DownVote } from "@prisma/client";
-import { prisma } from "../../prisma/client";
-import { NotFound } from "../../utils/utility";
+import { Comment, DownVote, UpVotes } from '@prisma/client';
+import { prisma } from '../../prisma/client';
+import { isExistUserById, NotFound } from '../../utils/utility';
+import QueryBuilder from '../../builder/QueryBuilder';
+import AppError from '../../errors/AppError';
 
-
-const createCommnent = async (userId:string,payload: Comment) => {
-    const { questionId,text } = payload;
-    return await prisma.comment.create({
-        data: {
-            questionId,
-            userId,
-            text
-        }
-    })
-}
-
-
-const updateComment = async (id: string, payload: Partial<Comment>) => {
-    const { text } = payload;
-    return await prisma.comment.update({
-        where: {
-            id
-        },
-        data: {
-            text
-        }
-    })
-}
-
-const deleteComment = async (id: string) => {
-  return await prisma.$transaction(async (tx) => {
-    const isExistComment = await tx.comment.findUnique({
-      where: { id },
-    });
-
-    await NotFound(isExistComment, "Comment");
-
-    // Delete related upvotes
-    await tx.upVotes.deleteMany({
-      where: { commentId: id },
-    });
-
-    // Delete related downvotes
-    await tx.downVote.deleteMany({
-      where: { commentId: id },
-    });
-
-    // Delete replies
-    await tx.reply.deleteMany({
-      where: { commentId: id },
-    });
-
-    // Now safely delete the comment
-    return await tx.comment.delete({
-      where: { id },
-    });
+const createCommnent = async (userId: string, payload: Comment) => {
+  const { questionId, text } = payload;
+  return await prisma.comment.create({
+    data: {
+      questionId,
+      userId,
+      text,
+    },
   });
 };
 
+const updateComment = async (
+  id: string,
+  userId: string,
+  payload: Partial<Comment>,
+) => {
+  const isExistComment = await prisma.comment.findUnique({
+    where: {
+      id,
+      userId,
+    },
+  });
 
+  await NotFound(isExistComment, 'Comment');
+  const { text } = payload;
+  return await prisma.comment.update({
+    where: {
+      id,
+      userId,
+    },
+    data: {
+      text,
+    },
+  });
+};
 
+const deleteComment = async (id: string,userId:string, role: string) => {
+  if (role !== 'ADMIN') {
+    return await prisma.$transaction(async (tx) => {
+      const isExistComment = await tx.comment.findUnique({
+        where: { id,userId },
+      });
 
-const downVoteToComment = async (payload:DownVote) => {
-    const { commentId, userId,vote } = payload;
-    return await prisma.downVote.create({
-        data: {
-            commentId,
-            userId,
-            vote
-        }
-    })
-}
+      await NotFound(isExistComment, 'Comment');
 
-const upVoteToComment = async (payload:DownVote) => {
-    const { commentId, userId,vote } = payload;
-    return await prisma.downVote.create({
-        data: {
-            commentId,
-            userId,
-            vote
-        }
-    })
-}
+      // Delete related upvotes
+      await tx.upVotes.deleteMany({
+        where: { commentId: id },
+      });
 
+      // Delete related downvotes
+      await tx.downVote.deleteMany({
+        where: { commentId: id },
+      });
 
-const removeDownVoteFromComment = async (id: string) => {
-    return await prisma.downVote.delete({
-        where: {
-            id
-        }
-    })
-}   
+      // Delete replies
+      await tx.reply.deleteMany({
+        where: { commentId: id },
+      });
 
-const removeUpVoteFromComment = async (id: string) => {
-    return await prisma.downVote.delete({
-        where: {
-            id
-        }
-    })
-}
+      // Now safely delete the comment
+      return await tx.comment.delete({
+        where: { id ,userId},
+      });
+    });
+  }
+  else{
+     return await prisma.$transaction(async (tx) => {
+      const isExistComment = await tx.comment.findUnique({
+        where: { id},
+      });
 
-const getComment = async (id: string) => {
-    return await prisma.comment.findUnique({
-        where: {
-            id
-        },
-        include: {
-            user: true,
-            downVote: true,
-            upVote: true
-        }
-    })
-}
+      await NotFound(isExistComment, 'Comment');
 
-const getComments=async()=>{
-    return await prisma.comment.findMany({
-        include: {
-            user: true,
-            downVote: true,
-            upVote: true
-        }
-    })
-}
+      // Delete related upvotes
+      await tx.upVotes.deleteMany({
+        where: { commentId: id },
+      });
+
+      // Delete related downvotes
+      await tx.downVote.deleteMany({
+        where: { commentId: id },
+      });
+
+      // Delete replies
+      await tx.reply.deleteMany({
+        where: { commentId: id },
+      });
+
+      // Now safely delete the comment
+      return await tx.comment.delete({
+        where: { id},
+      });
+    });
+  }
+};
+
+const downVoteToComment = async (payload: DownVote) => {
+  const { commentId, userId,isVoted} = payload;
+  const comment=await prisma.comment.findUnique({
+    where:{
+        id:commentId
+    }
+  })
+  await NotFound(comment,'Comment');
+  if(!isVoted){
+    throw new AppError(404,'User not voted Successfully');
+  }
+
+  const isAlreadyVoted=await prisma.downVote.findFirst({
+    where:{
+        userId
+    }
+  })
+  let vote=1;
+  if(isAlreadyVoted?.isVoted){
+    vote=0;
+  }
+ if(isAlreadyVoted?.isVoted)
+ {
+     return await prisma.downVote.update({
+    where: {
+      userId
+    },
+    data:{
+        vote
+    }
+  });
+ }
+  return await prisma.downVote.create({
+    data:{
+        vote,
+        isVoted,
+        commentId,
+        userId
+    }
+  });
+};
+
+const upVoteToComment = async (payload: UpVotes) => {
+  const { commentId, userId,isVoted} = payload;
+  const comment=await prisma.comment.findUnique({
+    where:{
+        id:commentId
+    }
+  })
+  await NotFound(comment,'Comment');
+  if(!isVoted){
+    throw new AppError(404,'User not voted Successfully');
+  }
+
+  const isAlreadyVoted=await prisma.upVotes.findUnique({
+    where:{
+        userId
+    }
+  })
+  let vote=1;
+  if(isAlreadyVoted?.isVoted){
+    vote=0;
+  }
+ if(isAlreadyVoted?.isVoted)
+ {
+     return await prisma.upVotes.update({
+    where: {
+      userId
+    },
+    data:{
+        vote
+    }
+  });
+ }
+  return await prisma.upVotes.create({
+    data:{
+        vote,
+        isVoted,
+        commentId,
+        userId
+    }
+  });
+};
+
+// const removeDownVoteFromComment = async (id: string) => {
+//   return await prisma.downVote.delete({
+//     where: {
+//       id,
+//     },
+//   });
+// };
+
+// const removeUpVoteFromComment = async (id: string) => {
+//   return await prisma.downVote.delete({
+//     where: {
+//       id,
+//     },
+//   });
+// };
+
+const getComment = async (id: string, userId: string) => {
+  return await prisma.comment.findUnique({
+    where: {
+      id,
+      userId,
+    },
+    include: {
+      user: true,
+      downVote: true,
+      upVote: true,
+    },
+  });
+};
+
+const getComments = async (userId: string, role: string, query: any) => {
+  await isExistUserById(userId);
+  if (role !== 'ADMIN') {
+    const builder = new QueryBuilder(query, prisma.comment);
+    const result = await builder
+      .paginate()
+      .include({
+        user: true,
+        downVote: true,
+        upVote: true,
+      })
+      .execute();
+
+    const meta = await builder.countTotal();
+
+    return {
+      result,
+      meta,
+    };
+  } else {
+    const builder = new QueryBuilder(query, prisma.comment);
+    const result = await builder
+      .rawFilter({
+        userId,
+      })
+      .paginate()
+      .include({
+        user: true,
+        downVote: true,
+        upVote: true,
+      })
+      .execute();
+
+    const meta = await builder.countTotal();
+    return {
+      result,
+      meta,
+    };
+  }
+};
 export const CommentService = {
-    createCommnent,
-    updateComment,
-    deleteComment,
-    downVoteToComment,
-    upVoteToComment,
-    removeDownVoteFromComment,
-    removeUpVoteFromComment,
-    getComment,
-    getComments
-}
+  createCommnent,
+  updateComment,
+  deleteComment,
+  downVoteToComment,
+  upVoteToComment,
+//   removeDownVoteFromComment,
+//   removeUpVoteFromComment,
+  getComment,
+  getComments,
+};
