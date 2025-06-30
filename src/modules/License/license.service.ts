@@ -23,9 +23,6 @@ const getAllLicense = async (query: any) => {
 
   const result = await builder
     .paginate()
-    .include({
-      topics: true
-    })
     .execute();
 
   const meta = await builder.countTotal();
