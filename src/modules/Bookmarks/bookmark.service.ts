@@ -2,6 +2,7 @@ import { Bookmark } from "@prisma/client"
 import { prisma } from "../../prisma/client"
 import { NotFound } from "../../utils/utility";
 import AppError from "../../errors/AppError";
+import QueryBuilder from "../../builder/QueryBuilder";
 
 
 const addToBookmarks = async (payload: Bookmark) => {
@@ -47,69 +48,83 @@ const addToBookmarks = async (payload: Bookmark) => {
 }
 
 
-const getMyBookmarks = async (userId: string) => {
-    return prisma.bookmark.findMany({
-        where: {
-            userId: userId
-        },
-        select: {
-            id:true,
-            test: {
-                select: {
-                    topic: {
-                        select: {
-                            name: true
-                        }
-                    },
-                    license: {
-                        select: {
-                            name: true,
-                        }
-                    }
-                }
-            },
-            question: {
-                select: {
-                    text: true,
-                    options: true,
-                    explanation: true,
-                    correctAnswer: true,
-                    comments: {
-                        select: {
-                            replies: {
+export const getMyBookmarks = async (userId: string, query: any) => {
+  const staticFilter = { userId };
 
-                                select: {
-                                    text: true,
-                                    user: {
-                                        select: {
-                                            name: true
-                                        }
-                                    }
-                                }
-                            },
-                            text: true,
-                            upVote: {
-                                select: {
-                                    vote: true
-                                }
-                            },
-                            downVote: {
-                                select: {
-                                    vote: true
-                                }
-                            },
-                            user: {
-                                select: {
-                                    name: true,
-                                }
-                            }
-                        }
-                    }
-                }
+  const queryBuilder = new QueryBuilder(query, prisma.bookmark, staticFilter);
+
+  const select = {
+    id: true,
+    test: {
+      select: {
+        topic: {
+          select: {
+            name: true,
+          },
+        },
+        license: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    },
+    question: {
+      select: {
+        text: true,
+        options: true,
+        explanation: true,
+        correctAnswer: true,
+        comments: {
+          select: {
+            text: true,
+            user: {
+              select: {
+                name: true,
+              },
             },
-        }
-    })
-}
+            upVote: {
+              select: {
+                vote: true,
+              },
+            },
+            downVote: {
+              select: {
+                vote: true,
+              },
+            },
+            replies: {
+              select: {
+                text: true,
+                user: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const bookmarks = await queryBuilder
+    .paginate()
+    .sort(["createdAt"]) // optional, or pass user-defined `query.sort`
+    .getAllQueries()
+  const data = await prisma.bookmark.findMany({
+    ...bookmarks,
+    select,
+  });
+
+  const paginationMeta = await queryBuilder.countTotal();
+
+  return {
+    meta: paginationMeta,
+    data,
+  };
+};
 
 const deleteMyBookmark = async (userId: string, bookmarkId: string) => {
     const isExistBookmark=await prisma.bookmark.findUnique({
