@@ -11,7 +11,6 @@ import { testResultRoute } from '../modules/TestResult/testR.route';
 import { bookmarkRoute } from '../modules/Bookmarks/bookmark.route';
 import { CommentRoutes } from '../modules/Comments/comment.route';
 import { ReplyRoutes } from '../modules/Reply/reply.route';
-import { VoteRoutes } from '../modules/Vote/vote.route';
 import {  SubscriptionRoutes } from '../modules/Subscriptions/subscription.route';
 import { LicenseTypesRouter } from '../modules/LicenseTypes/lstypes.routes';
 import { SaveRoutes } from '../modules/SaveTest/savetest.routes';
@@ -70,9 +69,6 @@ const moduleRoutes = [
   },{
     path:"/reply",
     route:ReplyRoutes
-  },{
-    path:'/vote',
-    route:VoteRoutes
   }
   ,{
     path:"/subscription",

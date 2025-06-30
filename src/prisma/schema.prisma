@@ -250,7 +250,7 @@ model DownVote {
   userId    String   @db.ObjectId @unique
   comment   Comment  @relation(fields: [commentId], references: [id])
   commentId String   @db.ObjectId
-  isVoted Boolean @default(false)
+  isVoted Boolean 
   vote      Int? @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -265,7 +265,7 @@ model UpVotes {
   comment   Comment  @relation(fields: [commentId], references: [id])
   commentId String   @db.ObjectId
   vote      Int? @default(0)
-  isVoted Boolean @default(false)
+  isVoted Boolean 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

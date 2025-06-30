@@ -40,11 +40,11 @@ const updateComment = async (
   });
 };
 
-const deleteComment = async (id: string,userId:string, role: string) => {
+const deleteComment = async (id: string, userId: string, role: string) => {
   if (role !== 'ADMIN') {
     return await prisma.$transaction(async (tx) => {
       const isExistComment = await tx.comment.findUnique({
-        where: { id,userId },
+        where: { id, userId },
       });
 
       await NotFound(isExistComment, 'Comment');
@@ -66,14 +66,14 @@ const deleteComment = async (id: string,userId:string, role: string) => {
 
       // Now safely delete the comment
       return await tx.comment.delete({
-        where: { id ,userId},
+        where: { id, userId },
       });
     });
   }
-  else{
-     return await prisma.$transaction(async (tx) => {
+  else {
+    return await prisma.$transaction(async (tx) => {
       const isExistComment = await tx.comment.findUnique({
-        where: { id},
+        where: { id },
       });
 
       await NotFound(isExistComment, 'Comment');
@@ -95,94 +95,116 @@ const deleteComment = async (id: string,userId:string, role: string) => {
 
       // Now safely delete the comment
       return await tx.comment.delete({
-        where: { id},
+        where: { id },
       });
     });
   }
 };
 
 const downVoteToComment = async (payload: DownVote) => {
-  const { commentId, userId,isVoted} = payload;
-  const comment=await prisma.comment.findUnique({
-    where:{
-        id:commentId
-    }
-  })
-  await NotFound(comment,'Comment');
-  if(!isVoted){
-    throw new AppError(404,'User not voted Successfully');
-  }
-
-  const isAlreadyVoted=await prisma.downVote.findFirst({
-    where:{
-        userId
-    }
-  })
-  let vote=1;
-  if(isAlreadyVoted?.isVoted){
-    vote=0;
-  }
- if(isAlreadyVoted?.isVoted)
- {
-     return await prisma.downVote.update({
+   const { commentId, userId } = payload;
+  const comment = await prisma.comment.findUnique({
     where: {
-      userId
+      id: commentId
+    }
+  })
+  await NotFound(comment, 'Comment');
+ 
+
+
+  const isAlreadyVoted = await prisma.downVote.findFirst({
+    where: {
+      userId,
     },
-    data:{
-        vote
-    }
   });
- }
-  return await prisma.downVote.create({
-    data:{
-        vote,
-        isVoted,
-        commentId,
+
+  let vote = 1;
+  if (isAlreadyVoted && isAlreadyVoted?.vote===1) {
+    vote = 0;
+    return await prisma.downVote.update({
+      where: {
         userId
+      },
+      data: {
+        vote,
+        isVoted:false
+      }
+    });
+  }
+  else if (isAlreadyVoted && isAlreadyVoted?.vote===0) {
+    return await prisma.downVote.update({
+      where: {
+        userId
+      },
+      data: {
+        vote,
+        isVoted:true
+      }
+    });
+  }
+  else{
+    return await prisma.upVotes.create({
+    data: {
+      vote,
+      isVoted:true,
+      commentId,
+      userId
     }
   });
+  }
 };
 
 const upVoteToComment = async (payload: UpVotes) => {
-  const { commentId, userId,isVoted} = payload;
-  const comment=await prisma.comment.findUnique({
-    where:{
-        id:commentId
-    }
-  })
-  await NotFound(comment,'Comment');
-  if(!isVoted){
-    throw new AppError(404,'User not voted Successfully');
-  }
-
-  const isAlreadyVoted=await prisma.upVotes.findUnique({
-    where:{
-        userId
-    }
-  })
-  let vote=1;
-  if(isAlreadyVoted?.isVoted){
-    vote=0;
-  }
- if(isAlreadyVoted?.isVoted)
- {
-     return await prisma.upVotes.update({
+  const { commentId, userId } = payload;
+  const comment = await prisma.comment.findUnique({
     where: {
-      userId
+      id: commentId
+    }
+  })
+  await NotFound(comment, 'Comment');
+ 
+
+
+  const isAlreadyVoted = await prisma.upVotes.findFirst({
+    where: {
+      userId,
     },
-    data:{
-        vote
-    }
   });
- }
-  return await prisma.upVotes.create({
-    data:{
-        vote,
-        isVoted,
-        commentId,
+
+  let vote = 1;
+  if (isAlreadyVoted && isAlreadyVoted?.vote===1) {
+    vote = 0;
+    return await prisma.upVotes.update({
+      where: {
         userId
+      },
+      data: {
+        vote,
+        isVoted:false
+      }
+    });
+  }
+  else if (isAlreadyVoted && isAlreadyVoted?.vote===0) {
+    return await prisma.upVotes.update({
+      where: {
+        userId
+      },
+      data: {
+        vote,
+        isVoted:true
+      }
+    });
+  }
+  else{
+    return await prisma.upVotes.create({
+    data: {
+      vote,
+      isVoted:true,
+      commentId,
+      userId
     }
   });
+  }
 };
 
 // const removeDownVoteFromComment = async (id: string) => {
@@ -261,8 +283,8 @@ export const CommentService = {
   deleteComment,
   downVoteToComment,
   upVoteToComment,
-//   removeDownVoteFromComment,
-//   removeUpVoteFromComment,
+  //   removeDownVoteFromComment,
+  //   removeUpVoteFromComment,
   getComment,
   getComments,
 };
