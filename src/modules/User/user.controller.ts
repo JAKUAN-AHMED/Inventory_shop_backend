@@ -62,11 +62,23 @@ const getUserTestAnalytics = catchAsync(async (req, res) => {
         Data: isOk ? result : [],
     });
 })
+
+const packagesApi = catchAsync(async (req, res) => {
+    const result = await UserServices.packagesApi(req.user.id as string);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Retrived PackageInfo of a  User' : 'Failed to Retrieve Package Info of a  User',
+        Data: isOk ? result : [],
+    });
+})
 export const UserController = {
     getSingleUser,
     deleteUser,
     updateProfile,
     getUserTestAnalytics,
-    getAllUser
+    getAllUser,
+    packagesApi
 
 };

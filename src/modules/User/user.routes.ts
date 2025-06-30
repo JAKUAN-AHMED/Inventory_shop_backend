@@ -22,4 +22,5 @@ router.patch('/updateProfile/:id',
 
 router.get('/user-analytics',auth('STUDENT','ADMIN'),UserController.getUserTestAnalytics);
 
+router.get('/package-info',auth('ADMIN','STUDENT'),UserController.packagesApi);
 export const UserRoutes = router;
