@@ -124,8 +124,29 @@ const MyQuestions = async (userId: string, query: any, testId: string) => {
           bookmarks: true,
           comments: {
             include: {
-              upVote: true,
-              downVote: true,
+              user:{
+                select:{
+                  name:true,
+                  profileImage:true
+                }
+              },
+              replies:{
+                select:{
+                  text:true,
+                  user:{
+                    select:{
+                      name:true,
+                      profileImage:true
+                    }
+                  }
+                }
+              },
+               _count:{
+              select:{
+                upVote:true,
+                downVote:true
+              }
+             }
             }
           }
         }

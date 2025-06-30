@@ -20,6 +20,6 @@ router.patch('/updateProfile/:id',
         next();
     }, auth('ADMIN', 'INSTRUCTOR', 'STUDENT'), UserController.updateProfile);
 
-
+router.get('/user-analytics',auth('STUDENT','ADMIN'),UserController.getUserTestAnalytics);
 
 export const UserRoutes = router;

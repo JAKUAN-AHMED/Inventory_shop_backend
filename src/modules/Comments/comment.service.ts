@@ -245,6 +245,7 @@ const getComments = async (userId: string, role: string, query: any) => {
       .paginate()
       .include({
         user: true,
+        replies:true,
         downVote: true,
         upVote: true,
       })

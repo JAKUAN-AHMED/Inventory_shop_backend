@@ -154,14 +154,15 @@ const AllQuestions = async (query: any) => {
             {
                 comments: {
                     include: {
-                        upVote: {
+                        replies: {
                             select: {
-                                vote: true
+                                text: true
                             }
                         },
-                        downVote: {
+                        _count: {
                             select: {
-                                vote: true
+                                upVote: true,
+                                downVote: true
                             }
                         }
                     }
@@ -182,7 +183,25 @@ const QuestionById = async (id: string) => {
     return await prisma.question.findUnique({
         where: { id },
         include: {
-            comments: true,
+            comments: {
+                include: {
+                    replies: {
+                        select: {
+                            text: true
+                        }
+                    },
+                    upVote: {
+                        select: {
+                            vote: true
+                        }
+                    },
+                    downVote: {
+                        select: {
+                            vote: true
+                        }
+                    }
+                }
+            },
             testQuestions: true
 
         }
@@ -192,9 +211,9 @@ const QuestionById = async (id: string) => {
 
 //upload excel file
 
-const uploadQuestionsWithExcelFile = async (file:Express.Multer.File) => {
+const uploadQuestionsWithExcelFile = async (file: Express.Multer.File) => {
     if (!file) {
-        throw new AppError(404,'File Not Found');
+        throw new AppError(404, 'File Not Found');
     }
 
     const workbook = xlsx.read(file.buffer, { type: 'buffer' });
@@ -204,26 +223,26 @@ const uploadQuestionsWithExcelFile = async (file:Express.Multer.File) => {
     const jsonData = xlsx.utils.sheet_to_json(sheet);
 
     const formattedData = jsonData.map((row: any) => ({
-      topicId: row.topicId,
-      text: row.text,
-      explanation: {
-        text: row['explanation.text']
-      },
-      options: [
-        { label: 'A', value: row.A },
-        { label: 'B', value: row.B },
-        { label: 'C', value: row.C },
-        { label: 'D', value: row.D }
-      ],
-      correctAnswer: row.correctAnswer
+        topicId: row.topicId,
+        text: row.text,
+        explanation: {
+            text: row['explanation.text']
+        },
+        options: [
+            { label: 'A', value: row.A },
+            { label: 'B', value: row.B },
+            { label: 'C', value: row.C },
+            { label: 'D', value: row.D }
+        ],
+        correctAnswer: row.correctAnswer
     }));
 
     // Create questions in database
     const result = await prisma.question.createMany({
-      data: formattedData,
+        data: formattedData,
     });
     return formattedData;
-  
+
 };
 
 
@@ -233,5 +252,5 @@ export const QuestionService = {
     deleteQuestion,
     AllQuestions,
     QuestionById,
-   uploadQuestionsWithExcelFile
+    uploadQuestionsWithExcelFile
 }

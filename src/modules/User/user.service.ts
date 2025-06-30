@@ -3,7 +3,7 @@ import { prisma } from '../../prisma/client';
 import { upload, uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import { isExistUserById } from '../../utils/utility';
 import { IUser } from './user.interface';
-
+import { addMonths, format, subMonths } from 'date-fns';
 
 
 // get user by user id
@@ -19,7 +19,7 @@ const getingSigleuser = async (userId: string) => {
 const deleteduser = async (userId: string) => {
 
 
-    const isExist=await isExistUserById(userId);
+    const isExist = await isExistUserById(userId);
     return await prisma.user.delete({
         where: {
             id: userId,
@@ -35,8 +35,8 @@ const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => 
     let imageUrls: string = '';
     if (file) {
         // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-        const {location}=await uploadToDigitalOceanAWS(file);
-        imageUrls=location;
+        const { location } = await uploadToDigitalOceanAWS(file);
+        imageUrls = location;
     }
     if (imageUrls) {
         payload.profileImage = imageUrls;
@@ -66,11 +66,89 @@ const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => 
     return result;
 }
 
+
+
+//analytis for every month
+type MonthlyAnalytics = {
+  month: string;
+  testsCompleted: number;
+  results: {
+    testName: string;
+    licenseName: string;
+    percentage: number;
+    date: string;
+  }[];
+};
+
+const getUserTestAnalytics = async (userId: string):Promise<MonthlyAnalytics[]> => {
+const now = new Date();
+  const fromDate = subMonths(now, 11); // 12 months ago
+
+  // Step 1: Initialize 12 months
+  const monthlyData: Record<string, MonthlyAnalytics> = {};
+  for (let i = 0; i < 12; i++) {
+    const monthDate = addMonths(fromDate, i);
+    const monthKey = format(monthDate, "MMMM yyyy"); // e.g., "July 2024"
+    monthlyData[monthKey] = {
+      month: monthKey,
+      testsCompleted: 0,
+      results: [],
+    };
+  }
+
+  // Step 2: Fetch test results for those 12 months
+  const testResults = await prisma.testResult.findMany({
+    where: {
+      userId,
+      status: "COMPLETED",
+      date: {
+        gte: new Date(fromDate.getFullYear(), fromDate.getMonth(), 1),
+        lte: new Date(now.getFullYear(), now.getMonth() + 1, 0), // end of this month
+      },
+    },
+    include: {
+      test: {
+        select: {
+          date: true,
+          topic: { select: { name: true } },
+          license: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  // Step 3: Group results by month
+  testResults.forEach((result) => {
+    const month = format(new Date(result.date), "MMMM yyyy");
+
+    if (monthlyData[month]) {
+      monthlyData[month].testsCompleted += 1;
+      monthlyData[month].results.push({
+        testName: result.test?.topic?.name || "Untitled Test",
+        licenseName: result.test?.license?.name || "N/A",
+        percentage: result.percentage ?? 0,
+        date: format(new Date(result.date), "yyyy-MM-dd"),
+      });
+    }
+  });
+
+  // Step 4: Return sorted array of months
+  const sortedAnalytics = Object.values(monthlyData).sort((a, b) => {
+    const dateA = new Date(a.month);
+    const dateB = new Date(b.month);
+    return dateA.getTime() - dateB.getTime();
+  });
+
+  return sortedAnalytics;
+
+};
+
 export const UserServices = {
 
     getingSigleuser,
     deleteduser,
     updateProfile,
-    getAllUser
+    getAllUser,
+    getUserTestAnalytics
 };
 

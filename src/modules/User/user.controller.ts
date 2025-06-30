@@ -29,7 +29,7 @@ const deleteUser = catchAsync(async (req, res) => {
 const updateProfile = catchAsync(async (req, res) => {
 
     const file = req.file as Express.Multer.File;
-    const result = await UserServices.updateProfile(file,req.params.id, req.body);
+    const result = await UserServices.updateProfile(file, req.params.id, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -52,10 +52,21 @@ const getAllUser = catchAsync(async (req, res) => {
     });
 })
 
+const getUserTestAnalytics = catchAsync(async (req, res) => {
+    const result = await UserServices.getUserTestAnalytics(req.user.id as string);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Retrived User Analytics' : 'Failed to Retrieve User Analytics',
+        Data: isOk ? result : [],
+    });
+})
 export const UserController = {
     getSingleUser,
     deleteUser,
     updateProfile,
+    getUserTestAnalytics,
     getAllUser
 
 };
