@@ -52,16 +52,7 @@ const getAllUser = catchAsync(async (req, res) => {
     });
 })
 
-const getUserTestAnalytics = catchAsync(async (req, res) => {
-    const result = await UserServices.getUserTestAnalytics(req.user.id as string);
-    const isOk = result ? true : false;
-    sendResponse(res, {
-        statusCode: isOk ? 200 : 400,
-        success: isOk,
-        message: isOk ? 'Successfully Retrived User Analytics' : 'Failed to Retrieve User Analytics',
-        Data: isOk ? result : [],
-    });
-})
+
 
 const packagesApi = catchAsync(async (req, res) => {
     const result = await UserServices.packagesApi(req.user.id as string);
@@ -77,7 +68,6 @@ export const UserController = {
     getSingleUser,
     deleteUser,
     updateProfile,
-    getUserTestAnalytics,
     getAllUser,
     packagesApi
 

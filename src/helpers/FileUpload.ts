@@ -48,12 +48,3 @@ export const upload = multer({
 });
 
 
-// const example = upload.fields([{ name: "galleryImage", maxCount: 5 }]);
-
-// const anotherExample = upload.single("avatar");
-
-// const uploadRefunds = multer({ storage: createStorage("refund") });
-
-// const uploadMultiple = uploadRefunds.fields([
-//   { name: "galleryImage", maxCount: 5 },
-// ]);

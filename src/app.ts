@@ -4,7 +4,6 @@ import globalErrorHandler from './middlewares/globalErrorHandler';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import NotFound from './middlewares/NotFound';
-import { SubscriptionController } from './modules/Subscriptions/subscription.controller';
 import path from 'path';
 
 const app = express();
@@ -14,18 +13,10 @@ export const corsOptions = {
     'http://localhost:8090','https://justuska-2.vercel.app',
    
   ],
-
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
-
-
-app.post(
-  '/api/webhook',
-  express.raw({ type: 'application/json' }),
-  SubscriptionController.webhook,
-);
 
 //middleware
 app.use(cors(corsOptions));
@@ -46,8 +37,6 @@ const test = async (req: Request, res: Response) => {
 app.get('/', test);
 //gloabal err handler
 app.use(globalErrorHandler);
-
-
 
 //Not Found Route
 app.use(NotFound);

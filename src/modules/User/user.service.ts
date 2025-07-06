@@ -80,68 +80,7 @@ type MonthlyAnalytics = {
   }[];
 };
 
-const getUserTestAnalytics = async (userId: string): Promise<MonthlyAnalytics[]> => {
-  const now = new Date();
-  const fromDate = subMonths(now, 11); // 12 months ago
 
-  // Step 1: Initialize 12 months
-  const monthlyData: Record<string, MonthlyAnalytics> = {};
-  for (let i = 0; i < 12; i++) {
-    const monthDate = addMonths(fromDate, i);
-    const monthKey = format(monthDate, "MMMM yyyy"); // e.g., "July 2024"
-    monthlyData[monthKey] = {
-      month: monthKey,
-      testsCompleted: 0,
-      results: [],
-    };
-  }
-
-  // Step 2: Fetch test results for those 12 months
-  const testResults = await prisma.testResult.findMany({
-    where: {
-      userId,
-      status: "IN_PROGRESS",
-      date: {
-        gte: new Date(fromDate.getFullYear(), fromDate.getMonth(), 1),
-        lte: new Date(now.getFullYear(), now.getMonth() + 1, 0), // end of this month
-      },
-    },
-    include: {
-      test: {
-        select: {
-          date: true,
-          topic: { select: { name: true } },
-          license: { select: { name: true } },
-        },
-      },
-    },
-  });
-
-  // Step 3: Group results by month
-  testResults.forEach((result) => {
-    const month = format(new Date(result.date), "MMMM yyyy");
-
-    if (monthlyData[month]) {
-      monthlyData[month].testsCompleted += 1;
-      monthlyData[month].results.push({
-        testName: result.test?.topic?.name || "Untitled Test",
-        licenseName: result.test?.license?.name || "N/A",
-        percentage: result.percentage ?? 0,
-        date: format(new Date(result.date), "yyyy-MM-dd"),
-      });
-    }
-  });
-
-  // Step 4: Return sorted array of months
-  const sortedAnalytics = Object.values(monthlyData).sort((a, b) => {
-    const dateA = new Date(a.month);
-    const dateB = new Date(b.month);
-    return dateA.getTime() - dateB.getTime();
-  });
-
-  return sortedAnalytics;
-
-};
 
 
 const packagesApi = async (userId: string) => {
@@ -194,7 +133,6 @@ export const UserServices = {
   deleteduser,
   updateProfile,
   getAllUser,
-  getUserTestAnalytics,
   packagesApi
 };
 
