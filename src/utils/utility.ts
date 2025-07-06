@@ -7,7 +7,7 @@ import { prisma } from "../prisma/client"
 export  async function isExistByEmail(email:string){
     const existingUser=await prisma.user.findUnique({
         where:{
-            email:email
+            email
         }
     })
     return existingUser;
@@ -35,11 +35,11 @@ export async function NotFound (value:any,msg?:string){
     }
 }
 
-
 type optionsType = {
     label: "A" | "B" | "C" | "D",
     value: string
 }
+
 
 
 

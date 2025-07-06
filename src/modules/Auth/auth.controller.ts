@@ -6,7 +6,7 @@ import { AuthServices } from './auth.service';
 
 
 const register = catchAsync(async (req, res) => {
- 
+  
 
    const file = req.file as Express.Multer.File;
 
