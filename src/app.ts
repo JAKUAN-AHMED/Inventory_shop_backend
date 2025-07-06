@@ -1,10 +1,10 @@
 import express, { Request, Response } from 'express';
-import router from './routes/routes';
 import globalErrorHandler from './middlewares/globalErrorHandler';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import NotFound from './middlewares/NotFound';
 import path from 'path';
+import router from './routes/routes';
 
 const app = express();
 

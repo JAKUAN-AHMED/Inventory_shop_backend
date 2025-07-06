@@ -24,8 +24,8 @@ export async function sendEmail(
 
   const payload = {
     sender: {
-      name: 'Justuska',
-      email: 'jakuanresult@gmail.com',
+      name: 'Inventory Team',
+      email: 'jakuanultimate777@gmail.com',
     },
     to,
     subject,
