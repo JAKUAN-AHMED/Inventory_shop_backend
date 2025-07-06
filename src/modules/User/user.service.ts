@@ -83,56 +83,11 @@ type MonthlyAnalytics = {
 
 
 
-const packagesApi = async (userId: string) => {
-  const result = await prisma.subscription.findUnique({
-    where: {
-      userId,
-    },
-    select: {
-      isActive:true,
-      startDate: true,
-      endDate: true,
-      plan: {
-        select: {
-          productName: true
-        }
-      }
-    }
-  })
-
-  if(result?.isActive===false)
-  {
-    throw new AppError(404,'User Does Not Have Active Subscription');
-  }
-
-  const packageName = result?.plan.productName;
-  const startDate = result?.startDate ? new Date(result.startDate) : null;
-  const endDate = result?.endDate ? new Date(result.endDate) : null;
-
-  let daysLeft = 0;
-
-  if (endDate) {
-    const today = new Date();
-
-    // Get difference in milliseconds
-    const diff = endDate.getTime() - today.getTime();
-
-    // Convert milliseconds to full days
-    daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  }
-
-  return {
-    packageName,
-    daysLeft
-  }
-
-}
 
 export const UserServices = {
   getingSigleuser,
   deleteduser,
   updateProfile,
   getAllUser,
-  packagesApi
 };
 

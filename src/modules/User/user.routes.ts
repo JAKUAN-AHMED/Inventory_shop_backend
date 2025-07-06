@@ -18,6 +18,5 @@ router.patch('/updateProfile/:id',
             req.body = JSON.parse(req.body.data);
         }
         next();
-    }, auth('ADMIN', 'INSTRUCTOR', 'STUDENT'), UserController.updateProfile);
-router.get('/package-info',auth('ADMIN','STUDENT'),UserController.packagesApi);
+    }, auth('ADMIN', 'STAF', 'BUSINESS','USER'), UserController.updateProfile);
 export const UserRoutes = router;
