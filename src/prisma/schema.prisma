@@ -12,19 +12,9 @@ enum UserRole {
   STUDENT
 }
 
-model LicenseType {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  title String @unique
 
-  @@map("licenseTypes")
-}
 
-enum TestStatus {
-  IN_PROGRESS
-  COMPLETED
-  PAUSED
-  CANCELLED
-}
+
 
 enum SubscriptionStatus {
   PENDING
@@ -54,15 +44,6 @@ model User {
   joinDate                DateTime       @default(now())
   lastLogin               DateTime?
   subscriptions           Subscription[]
-  testResults             TestResult[]
-  bookmarks               Bookmark[]
-  saveTest                SaveTest[]
-  comments                Comment[]
-  downVotes               DownVote[]
-  upVotes                 UpVotes[]
-  replies                 Reply[]
-  tests                   Test[]
-  testQuesitons           TestQuestion[]
   // Report                  MyReport?
   createdAt               DateTime       @default(now())
   updatedAt               DateTime       @updatedAt
@@ -70,221 +51,7 @@ model User {
   @@map("users")
 }
 
-// model MyReport{
-//   id  String              @id @default(auto()) @map("_id") @db.ObjectId
-//   user  User              @relation(fields: [userId],references: [id])
-//   userId String @unique @db.ObjectId 
 
-//   @@map("report")
-
-// }
-model License {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String         @unique
-  type          String?
-  description   String?
-  price         Float?
-  tests         Test[]
-  licenseTopics LicenseTopic[]
-  saveTest      SaveTest[]
-  plan          Plan[]
-
-  @@map("licenses")
-}
-
-model Topic {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  name          String         @unique
-  description   String?
-  questions     Question[]
-  saveTest      SaveTest[]
-  licenseTopics LicenseTopic[]
-  tests         Test[]
-  testResults   TestResult[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@map("topics")
-}
-
-model LicenseTopic {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  license   License @relation(fields: [licenseId], references: [id])
-  licenseId String  @db.ObjectId
-
-  topic   Topic  @relation(fields: [topicId], references: [id])
-  topicId String @db.ObjectId
-
-  @@unique([licenseId, topicId])
-  @@map("license_topics")
-}
-
-enum SelectedOption {
-  A
-  B
-  C
-  D
-}
-
-model Question {
-  id            String         @id @default(auto()) @map("_id") @db.ObjectId
-  topic         Topic          @relation(fields: [topicId], references: [id])
-  topicId       String         @db.ObjectId
-  text          String         @unique
-  explanation   Json
-  options       Json[]
-  correctAnswer SelectedOption
-  bookmarks     Bookmark[]
-  comments      Comment[]
-  testQuestions TestQuestion[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@map("questions")
-}
-
-model Test {
-  id          String         @id @default(auto()) @map("_id") @db.ObjectId
-  user        User           @relation(fields: [userId], references: [id])
-  userId      String         @db.ObjectId
-  license     License        @relation(fields: [licenseId], references: [id])
-  licenseId   String         @db.ObjectId
-  topic       Topic          @relation(fields: [topicId], references: [id])
-  topicId     String         @db.ObjectId
-  date        DateTime       @default(now())
-  total       Int //total number of question for he want to take t
-  status      TestStatus     @default(IN_PROGRESS)
-  questions   TestQuestion[]
-  bookmarks   Bookmark[]
-  testResults TestResult[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  @@map("tests")
-}
-
-model TestQuestion {
-  id         String          @id @default(auto()) @map("_id") @db.ObjectId
-  test       Test            @relation(fields: [testId], references: [id])
-  testId     String          @db.ObjectId
-  question   Question        @relation(fields: [questionId], references: [id])
-  questionId String          @db.ObjectId
-  user       User            @relation(fields: [userId], references: [id])
-  userId     String          @db.ObjectId
-  selected   SelectedOption?
-  isCorrect  Boolean?
-  timeLimit  Int             @default(1)
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-
-  @@unique([testId, questionId])
-  @@map("testQuestions")
-}
-
-model TestResult {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  user       User       @relation(fields: [userId], references: [id])
-  userId     String     @db.ObjectId
-  test       Test       @relation(fields: [testId], references: [id])
-  testId     String     @db.ObjectId
-  topic      Topic      @relation(fields: [topicId], references: [id])
-  topicId    String     @unique @db.ObjectId
-  date       DateTime   @default(now())
-  score      Float?     @default(0)
-  status     TestStatus @default(IN_PROGRESS)
-  percentage Float?     @default(0)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-
-  @@map("testResults")
-}
-
-model Bookmark {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  user       User     @relation(fields: [userId], references: [id])
-  userId     String   @db.ObjectId
-  question   Question @relation(fields: [questionId], references: [id])
-  questionId String   @db.ObjectId
-  test       Test?    @relation(fields: [testId], references: [id])
-  testId     String?  @db.ObjectId
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([userId, questionId])
-  @@map("bookmarks")
-}
-
-model SaveTest {
-  id        String   @id() @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId
-  topic     Topic    @relation(fields: [topicId], references: [id])
-  topicId   String   @db.ObjectId
-  license   License  @relation(fields: [licenseId], references: [id])
-  licenseId String   @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("save_test")
-}
-
-model Comment {
-  id         String     @id @default(auto()) @map("_id") @db.ObjectId
-  user       User       @relation(fields: [userId], references: [id])
-  userId     String     @db.ObjectId
-  question   Question   @relation(fields: [questionId], references: [id])
-  questionId String     @db.ObjectId
-  text       String
-  downVote   DownVote[]
-  upVote     UpVotes[]
-  createdAt  DateTime   @default(now())
-  replies    Reply[]
-  updatedAt  DateTime   @updatedAt
-
-  @@map("comments")
-}
-
-model DownVote {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId @unique
-  comment   Comment  @relation(fields: [commentId], references: [id])
-  commentId String   @db.ObjectId
-  isVoted Boolean 
-  vote      Int? @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("downVotes")
-}
-
-model UpVotes {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String   @db.ObjectId @unique
-  comment   Comment  @relation(fields: [commentId], references: [id])
-  commentId String   @db.ObjectId
-  vote      Int? @default(0)
-  isVoted Boolean 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("upVotes")
-}
-
-model Reply {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  comment   Comment @relation(fields: [commentId], references: [id])
-  commentId String  @db.ObjectId
-  user      User    @relation(fields: [userId], references: [id])
-  userId    String  @db.ObjectId
-  text      String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("replies")
-}
 
 enum BillingInterval {
   day
@@ -333,7 +100,6 @@ model Plan {
   productId          String?
   stripePriceId      String?         @unique
   interval           BillingInterval
-  license            License         @relation(fields: [licenseId], references: [id])
   licenseId          String          @db.ObjectId
   Duration           Int?            @default(0)
   productDescription String
