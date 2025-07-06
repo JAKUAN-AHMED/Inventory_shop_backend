@@ -39,7 +39,7 @@ const register = async (file:any,payload: IUser) => {
   const result = await prisma.user.create({
     data: {
       ...payload,
-      role: "STUDENT",
+      role: "USER",
       password,
       verificationToken,
       verificationTokenExpiry,

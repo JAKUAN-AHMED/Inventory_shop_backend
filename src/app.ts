@@ -10,7 +10,7 @@ const app = express();
 
 export const corsOptions = {
   origin: [
-    'http://localhost:8090','https://justuska-2.vercel.app',
+    'http://localhost:4000',
    
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],

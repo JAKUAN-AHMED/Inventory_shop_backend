@@ -2,7 +2,9 @@ import { TRole } from './user.interface';
 
 export const USER_ROLE = {
     ADMIN: 'ADMIN',
-    STUDENT:'STUDENT',
-    INSTRUCTOR:'INSTRUCTOR'
+    STAF:'STAF',
+    USER:'USER',
+    BUSINESS:'BUSINESS',
+    SUPERADMIN:'SUPERADMIN',
 } as const;
-export const Role: TRole[] = ['ADMIN','STUDENT','INSTRUCTOR'];
+export const Role: TRole[] = ['ADMIN','STAF','SUPERADMIN','BUSINESS','USER'];
