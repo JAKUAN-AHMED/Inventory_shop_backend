@@ -1,9 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+// import { PrismaClient } from '@prisma/client';
 import app from './app';
 import config from './config';
 import { Server } from 'http';
+import { prisma } from './prisma/client';
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 let server: Server;
 
 async function main() {

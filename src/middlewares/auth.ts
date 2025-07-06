@@ -26,7 +26,7 @@ const auth = (...requiredRoles: TuserRole[]) => {
 
 
     // Verify the token asynchronously
-    const decoded = jwt.verify(
+    const decoded =jwt.verify(
       token,
       config.access_token_secret as string,
     ) as JwtPayload;
@@ -37,7 +37,7 @@ const auth = (...requiredRoles: TuserRole[]) => {
 
     //check if the user has the required role to access the route
 
-    const { role, email, iat } = decoded;
+    const { role, email } = decoded;
     // checking if the user is exist
     const user = await prisma.user.findUnique({
       where: { email },

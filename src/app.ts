@@ -26,6 +26,7 @@ app.post(
   express.raw({ type: 'application/json' }),
   SubscriptionController.webhook,
 );
+
 //middleware
 app.use(cors(corsOptions));
 app.use(cookieParser());
