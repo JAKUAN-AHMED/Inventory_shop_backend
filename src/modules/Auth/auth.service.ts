@@ -8,9 +8,11 @@ import AppError from '../../errors/AppError';
 import { sendPasswordResetEmail, sendVerificationEmail } from '../../helpers/emailSender/emails';
 import { alreadyExist, isExistByEmail, NotFound } from '../../utils/utility';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import { User } from '@prisma/client';
 
 
-const register = async (file:any,payload: IUser) => {
+const register = async (file:any,payload: User) => {
+  const {name,email,password,address,phone}=payload;
 
   //check user is already exist or not 
   const existingUser = await isExistByEmail(payload.email);
@@ -23,8 +25,8 @@ const register = async (file:any,payload: IUser) => {
     imageUrls=location as string;
   }
   // Hash the password
-  const password = await bcrypt.hash(
-    payload.password,
+  const hashedpassword = await bcrypt.hash(
+    password,
     10,
   );
 
@@ -38,14 +40,18 @@ const register = async (file:any,payload: IUser) => {
   // Explicitly set the role to a valid value (e.g., "USER")
   const result = await prisma.user.create({
     data: {
-      ...payload,
+      name,
+      email,
+      phone,
+      address,
+      password:hashedpassword,
       role: "USER",
-      password,
       verificationToken,
       verificationTokenExpiry,
       profileImage: imageUrls ? imageUrls : "https://ibb.co/q36v3f9w"
     },
   });
+
   return result;
 };
 
