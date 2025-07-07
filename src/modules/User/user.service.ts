@@ -32,6 +32,7 @@ const getAllUser = async () => {
 
 const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => {
 
+  
   let imageUrls: string = '';
   if (file) {
     // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
