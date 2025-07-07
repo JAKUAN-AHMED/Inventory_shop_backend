@@ -18,6 +18,8 @@ const register = async (file:any,payload: User) => {
   const existingUser = await isExistByEmail(payload.email);
   await alreadyExist(existingUser, 'Already Exist This Email');
 
+
+
   let imageUrls: string = '';
   if ( file ) {
     //  imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;

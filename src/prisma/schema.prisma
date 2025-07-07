@@ -43,7 +43,8 @@ model Staf {
   email   String
   Address String
   phone   String
-  shop Shop[]
+  shop    Shop @relation(fields: [shopId],references: [id])
+  shopId   String @db.ObjectId
   @@map("stafs")
 }
 
@@ -54,8 +55,18 @@ model Shop {
   name String @unique
   shopImg String
   email String
-  staf  Staf  @relation(fields: [stafId],references: [id])
-  stafId String @db.ObjectId
-
+  staf  Staf[]
   @@map("shops")
 }
+
+
+/*
+*file -file - img
+*name -text - value
+*
+*
+*
+*/
+
+
+//modules shop - routes - controller -services
