@@ -1,8 +1,6 @@
 import config from '../../config';
-import { prisma } from '../../prisma/client';
 import { ILoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
-import { IUser } from '../User/user.interface';
 import { createToken, verifyToken } from './auth.utils';
 import AppError from '../../errors/AppError';
 import {
@@ -11,6 +9,7 @@ import {
 } from '../../helpers/emailSender/emails';
 import { alreadyExist, isExistByEmail, NotFound } from '../../utils/utility';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import { prisma } from '../../prisma/client';
 import { User } from '@prisma/client';
 
 const register = async (file: any, payload: User) => {
