@@ -61,8 +61,10 @@ model Shop {
 
 
 /*
-*file -file - img
+*file -file - img  
 *name -text - value
+*userId - req.user.id
+*email - req.user.email
 *
 *
 *
