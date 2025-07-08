@@ -9,8 +9,8 @@ const shopIntoFromDB = async (
   let imageUrls: string = '';
   if (file) {
     // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-    const { location } = await uploadToDigitalOceanAWS(file);
-    imageUrls = location;
+    // const { location } = await uploadToDigitalOceanAWS(file);
+    // imageUrls = location;
   }
   if (imageUrls) {
     payload.profileImage = imageUrls;
