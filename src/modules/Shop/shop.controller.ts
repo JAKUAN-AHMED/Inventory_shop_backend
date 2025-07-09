@@ -10,7 +10,7 @@ const shopFromDb = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: isok ? 201 : 400,
     success: isok,
-    message: isok ? 'Shop Successfull' : 'Registration Failed',
+    message: isok ? 'Shop Created Successfull' : 'Registration Failed',
     Data: isok ? result : [],
   });
 });
