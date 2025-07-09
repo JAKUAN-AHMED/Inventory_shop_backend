@@ -1,36 +1,34 @@
 import config from '../../config';
-import { prisma } from '../../prisma/client';
 import { ILoginUser } from './auth.interface';
 import bcrypt from 'bcrypt';
-import { IUser } from '../User/user.interface';
 import { createToken, verifyToken } from './auth.utils';
 import AppError from '../../errors/AppError';
-import { sendPasswordResetEmail, sendVerificationEmail } from '../../helpers/emailSender/emails';
+import {
+  sendPasswordResetEmail,
+  sendVerificationEmail,
+} from '../../helpers/emailSender/emails';
 import { alreadyExist, isExistByEmail, NotFound } from '../../utils/utility';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import { prisma } from '../../prisma/client';
 import { User } from '@prisma/client';
 
+const register = async (file: any, payload: User) => {
+  const { name, email, password, address, phone } = payload;
 
-const register = async (file:any,payload: User) => {
-  const {name,email,password,address,phone}=payload;
-
-  //check user is already exist or not 
+  //check user is already exist or not
   const existingUser = await isExistByEmail(payload.email);
   await alreadyExist(existingUser, 'Already Exist This Email');
 
 
 
   let imageUrls: string = '';
-  if ( file ) {
+  if (file) {
     //  imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-    const {location}=await uploadToDigitalOceanAWS(file);
-    imageUrls=location as string;
+    const { location } = await uploadToDigitalOceanAWS(file);
+    imageUrls = location as string;
   }
   // Hash the password
-  const hashedpassword = await bcrypt.hash(
-    password,
-    10,
-  );
+  const hashedpassword = await bcrypt.hash(password, 10);
 
   //verification token
   const verificationToken = Math.floor(
@@ -46,11 +44,11 @@ const register = async (file:any,payload: User) => {
       email,
       phone,
       address,
-      password:hashedpassword,
-      role: "USER",
+      password: hashedpassword,
+      role: 'USER',
       verificationToken,
       verificationTokenExpiry,
-      profileImage: imageUrls ? imageUrls : "https://ibb.co/q36v3f9w"
+      profileImage: imageUrls ? imageUrls : 'https://ibb.co/q36v3f9w',
     },
   });
 
@@ -126,22 +124,21 @@ const login = async (payload: ILoginUser) => {
       password: true,
       role: true,
       profileImage: true,
-      isVerified: true
+      isVerified: true,
     },
   });
-
 
   if (!user?.isVerified) {
     throw new AppError(403, 'Please Verify Your Email');
   }
   const updatedUserLastLogin = await prisma.user.update({
     where: {
-      email: payload.email
+      email: payload.email,
     },
     data: {
-      lastLogin: new Date()
-    }
-  })
+      lastLogin: new Date(),
+    },
+  });
 
   if (!user) {
     throw new Error('Invalid credentials');
@@ -158,9 +155,8 @@ const login = async (payload: ILoginUser) => {
   const JwtPayload = {
     userId: user?.id,
     email: user.email,
-    role: user.role
-  }
-
+    role: user.role,
+  };
 
   //create toke and send to the client
   const accessToken = createToken(
@@ -176,28 +172,24 @@ const login = async (payload: ILoginUser) => {
     config.refresh_token_expires as string,
   );
 
-
   const userData = {
     id: user.id,
     name: user.name,
     email: user.email,
     role: user.role,
-    imgUrl: user?.profileImage ? user?.profileImage : null
-
-  }
+    imgUrl: user?.profileImage ? user?.profileImage : null,
+  };
   return {
     user: userData,
     accessToken,
     refreshToken,
   };
-
 };
-
 
 const forgotPassword = async (email: string) => {
   await NotFound(email, 'Email is required');
   const user = await isExistByEmail(email);
-  await NotFound(user, "User");
+  await NotFound(user, 'User');
 
   if (!user?.id || !user?.email || !user?.role) {
     throw new Error('User data is incomplete for token generation');
@@ -205,12 +197,12 @@ const forgotPassword = async (email: string) => {
   const JwtPayload = {
     userId: user?.id,
     email: user?.email,
-    role: user?.role
-  }
+    role: user?.role,
+  };
   const token = createToken(
     JwtPayload,
     config.access_token_secret as string,
-    config.access_token_expires as string
+    config.access_token_expires as string,
   );
   const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
   // console.log('token : ', token);
@@ -224,15 +216,13 @@ export const resetPassword = async (
   token: string,
   password: string,
 ) => {
-
-
-  const user = await isExistByEmail(email)
+  const user = await isExistByEmail(email);
   await NotFound(user);
 
   const verification = verifyToken(token, config.access_token_secret as string);
   await NotFound(verification);
 
-  const hashedPassword = await bcrypt.hash(password,10);
+  const hashedPassword = await bcrypt.hash(password, 10);
 
   await prisma.user.update({
     where: {
@@ -251,7 +241,7 @@ const changePassword = async (
   oldPassword: string,
   newPassword: string,
 ) => {
-  const user = await isExistByEmail(email)
+  const user = await isExistByEmail(email);
   await NotFound(user, 'User not found with this email');
   if (!user?.password) {
     throw new Error('User password is missing');
@@ -308,8 +298,8 @@ const refreshToken = async (refreshToken: string) => {
   const JwtPayload = {
     userId: user?.id,
     email: user?.email,
-    role: user?.role
-  }
+    role: user?.role,
+  };
   const accessToken = createToken(
     JwtPayload,
     config.access_token_secret as string,
@@ -318,7 +308,6 @@ const refreshToken = async (refreshToken: string) => {
 
   return { accessToken };
 };
-
 
 //resend verification Email
 const resendVerifyEmail = async (email: string) => {
@@ -353,31 +342,29 @@ const resendVerifyEmail = async (email: string) => {
   return true;
 };
 
-
 interface IMakeAdmin {
   name: string;
   password: string;
   email: string;
   phone: string;
-
 }
 
 const makeAdmin = async (email: string) => {
   const user = await prisma.user.findUnique({
     where: {
-      email
+      email,
     },
   });
 
-  await NotFound(user,'User')
+  await NotFound(user, 'User');
 
   const result = await prisma.user.update({
-    where:{
-      email
+    where: {
+      email,
     },
-    data:{
-      role:"ADMIN"
-    }
+    data: {
+      role: 'ADMIN',
+    },
   });
 
   return result;
@@ -392,5 +379,5 @@ export const AuthServices = {
   refreshToken,
   makeAdmin,
   verifyEmail,
-  resendVerifyEmail
+  resendVerifyEmail,
 };

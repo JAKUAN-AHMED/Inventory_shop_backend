@@ -1,10 +1,12 @@
 import AppError from '../../errors/AppError';
 import { prisma } from '../../prisma/client';
-import { upload, uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
+import {
+  upload,
+  uploadToDigitalOceanAWS,
+} from '../../utils/sendImageToCloudinary';
 import { isExistUserById } from '../../utils/utility';
 import { IUser } from './user.interface';
 import { addMonths, format, subMonths } from 'date-fns';
-
 
 // get user by user id
 const getingSigleuser = async (userId: string) => {
@@ -15,24 +17,24 @@ const getingSigleuser = async (userId: string) => {
   });
 };
 
-
 const deleteduser = async (userId: string) => {
-
-
   const isExist = await isExistUserById(userId);
   return await prisma.user.delete({
     where: {
       id: userId,
     },
   });
-}
+};
 const getAllUser = async () => {
   return await prisma.user.findMany();
-}
+};
 
-const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => {
 
-  
+const updateProfile = async (
+  file: any,
+  id: string,
+  payload: Partial<IUser>,
+) => {
   let imageUrls: string = '';
   if (file) {
     // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
@@ -59,30 +61,13 @@ const updateProfile = async (file: any, id: string, payload: Partial<IUser>) => 
 
   const result = await prisma.user.update({
     where: {
-      id
+      id,
     },
-    data: prismaPayload
-  })
+    data: prismaPayload,
+  });
 
   return result;
-}
-
-
-
-//analytis for every month
-type MonthlyAnalytics = {
-  month: string;
-  testsCompleted: number;
-  results: {
-    testName: string;
-    licenseName: string;
-    percentage: number;
-    date: string;
-  }[];
 };
-
-
-
 
 
 export const UserServices = {
@@ -91,4 +76,3 @@ export const UserServices = {
   updateProfile,
   getAllUser,
 };
-
