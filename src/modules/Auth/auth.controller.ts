@@ -4,13 +4,10 @@ import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthServices } from './auth.service';
 
-
 const register = catchAsync(async (req, res) => {
-  
-
-   const file = req.file as Express.Multer.File;
-
-  const result = await AuthServices.register(file,req.body);
+  const file = req.file as Express.Multer.File;
+  const userId = req.user.id;
+  const result = await AuthServices.register(file, req.body);
   const isok = result ? true : false;
   sendResponse(res, {
     statusCode: isok ? 201 : 400,
@@ -39,7 +36,6 @@ const verifyEmail = catchAsync(async (req, res) => {
   });
 });
 
-
 const resendVerifyEmail = catchAsync(async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -56,7 +52,6 @@ const resendVerifyEmail = catchAsync(async (req, res) => {
   });
 });
 
-
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
   // console.log(email, password);
@@ -71,23 +66,26 @@ const login = catchAsync(async (req, res) => {
   });
 });
 
-
 const forgotPassword = catchAsync(async (req, res) => {
   const { email } = req.body;
-   await AuthServices.forgotPassword(email);
-   sendResponse(res, {
-    statusCode:200 ,
+  await AuthServices.forgotPassword(email);
+  sendResponse(res, {
+    statusCode: 200,
     success: true,
-    message: "Check Your email",
+    message: 'Check Your email',
   });
 });
 
 const resetPassword = catchAsync(async (req, res) => {
   const token = req.headers.authorization;
-  const email=req.user.email;
+  const email = req.user.email;
   const { newPassword } = req.body;
 
-  const result = await AuthServices.resetPassword(email, token as string, newPassword);
+  const result = await AuthServices.resetPassword(
+    email,
+    token as string,
+    newPassword,
+  );
   const isok = result ? true : false;
 
   sendResponse(res, {
@@ -99,7 +97,7 @@ const resetPassword = catchAsync(async (req, res) => {
 
 const changePassword = catchAsync(async (req, res) => {
   const { email } = (req as any).user;
-  const {newPassword,oldPassword } =req.body;
+  const { newPassword, oldPassword } = req.body;
   const result = await AuthServices.changePassword(
     email,
     oldPassword,
@@ -125,10 +123,9 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
-
 const makeAdmin = catchAsync(async (req, res) => {
-  const {email } = req.body;
-  if (!email ) {
+  const { email } = req.body;
+  if (!email) {
     throw new AppError(400, 'Email is required! Please try again');
   }
   const result = await AuthServices.makeAdmin(email);
@@ -151,5 +148,5 @@ export const AuthController = {
   refreshToken,
   makeAdmin,
   verifyEmail,
-  resendVerifyEmail
+  resendVerifyEmail,
 };

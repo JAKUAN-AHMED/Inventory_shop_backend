@@ -29,6 +29,7 @@ const getAllUser = async () => {
   return await prisma.user.findMany();
 };
 
+
 const updateProfile = async (
   file: any,
   id: string,
@@ -68,17 +69,6 @@ const updateProfile = async (
   return result;
 };
 
-//analytis for every month
-type MonthlyAnalytics = {
-  month: string;
-  testsCompleted: number;
-  results: {
-    testName: string;
-    licenseName: string;
-    percentage: number;
-    date: string;
-  }[];
-};
 
 export const UserServices = {
   getingSigleuser,
