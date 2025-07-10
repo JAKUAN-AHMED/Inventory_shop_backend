@@ -2,7 +2,6 @@ import { Request, Router, Response, NextFunction } from 'express';
 import { UserController } from './user.controller';
 import auth from '../../middlewares/auth';
 import { upload } from '../../utils/sendImageToCloudinary';
-// import { upload } from '../../helpers/FileUpload';
 
 
 const router = Router();

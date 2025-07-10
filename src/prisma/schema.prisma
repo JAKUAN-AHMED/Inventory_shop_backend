@@ -21,7 +21,7 @@ model User {
   email                   String    @unique
   password                String
   phone                   String
-  address                   String
+  address                 String
   role                    UserRole  @default(USER)
   isVerified              Boolean   @default(false)
   verificationToken       String?   @unique
@@ -38,38 +38,77 @@ model User {
 
 model Staf {
   id      String  @id @default(auto()) @map("_id") @db.ObjectId
-  name    String 
-  img     String? 
+  name    String
+  img     String?
   email   String
   Address String
   phone   String
-  shop    Shop @relation(fields: [shopId],references: [id])
-  shopId   String @db.ObjectId
+  shop    Shop    @relation(fields: [shopId], references: [id])
+  shopId  String  @db.ObjectId
+
   @@map("stafs")
 }
 
-model Shop {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  user User @relation(fields: [userId],references: [id])
-  userId String @db.ObjectId
-  name String @unique
-  shopImg String
-  email String
-  staf  Staf[]
-  @@map("shops")
+model Customer {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  fatherName  String?
+  motherName  String?
+  dateOfBirth String?
+  Ref         String?
+  email       String?
+  phone       String
+  address     String?
+  upazilla    String?
+  zipCode     String?
+  road        String?
+  shop        Shop    @relation(fields: [shopId], references: [id])
+  shopId      String  @db.ObjectId
+
+  @@map("customers")
 }
 
+model Suppliers {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  phone        String
+  email        String
+  prevdueMoney String
+  CompanyName  String
+  address      String
+  city         String
+  zipCode      String
+  country      String
+  domain       String
+  bankAccount  String
+  file         String?
+  shop         Shop    @relation(fields: [shopId], references: [id])
+  shopId       String  @db.ObjectId
 
-/*
-*file -file - img  
-*name -text - value
-*userId - req.user.id
-*email - req.user.email
-*
-*
-*
-*/
+  @@map("suppliers")
+}
 
+model Product {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  img         String
+  price       String
+  description String
+  shop        Shop   @relation(fields: [shopId], references: [id])
+  shopId      String @db.ObjectId
+  @@map("products")
+}
 
-//modules shop - routes - controller -services
-
+model Shop {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  user      User        @relation(fields: [userId], references: [id])
+  userId    String      @db.ObjectId @unique
+  name      String      @unique
+  shopImg   String
+  email     String
+  staf      Staf[]
+  suppliers Suppliers[]
+  customers Customer[]
+  products   Product[]
+  @@map("shops")
+}

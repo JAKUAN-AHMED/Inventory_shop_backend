@@ -10,7 +10,8 @@ const app = express();
 
 export const corsOptions = {
   origin: [
-    'http://localhost:4000',
+    'http://localhost:3000',
+    'https://inventory-softwere.vercel.app',
    
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -27,7 +28,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
 
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); 
+// app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); 
 
 //test route
 const test = async (req: Request, res: Response) => {
