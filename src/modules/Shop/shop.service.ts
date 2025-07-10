@@ -1,38 +1,193 @@
-import { prisma } from '../../prisma/client';
-import { IUser } from '../User/user.interface';
+import { Shop } from "@prisma/client"
+import { prisma } from "../../prisma/client";
+import { alreadyExist, isExistUserById, isShopExist, isShopExistByShopId, NotFound } from "../../utils/utility";
+import QueryBuilder from "../../builder/QueryBuilder";
+import AppError from "../../errors/AppError";
+import { deleteFromDigitalOceanAWS } from "../../utils/sendImageToCloudinary";
 
-const shopIntoFromDB = async (
-  file: any,
-  id: string,
-  payload: Partial<IUser>,
-) => {
-  let imageUrls: string = '';
-  if (file) {
-    // imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-    // const { location } = await uploadToDigitalOceanAWS(file);
-    // imageUrls = location;
+const createShop = async (payload: Shop) => {
+  const { name, email, shopImg, userId } = payload;
+
+  await isExistUserById(userId);
+
+  const isExistShop = await isShopExist(userId);
+
+  await alreadyExist(isExistShop,'Shop Already Exist');
+
+  
+  const [shop, shopKeeper] = await prisma.$transaction([
+    prisma.shop.create({
+      data: {
+        userId,
+        name,
+        email,
+        shopImg,
+      },
+    }),
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        role: 'BUSINESS',
+      },
+    }),
+  ]);
+
+  if (!shop || !shopKeeper) {
+    throw new AppError(400, 'Failed to create shop or update user role');
   }
-  if (imageUrls) {
-    payload.profileImage = imageUrls;
-  }
 
-  const prismaPayload: any = { ...payload };
-
-  // If role is present, ensure it matches the Prisma enum type
-  if (payload.role) {
-    prismaPayload.role = payload.role as any; // Cast to 'any' or directly to 'UserRole' if imported
-  }
-
-  const result = await prisma.user.update({
-    where: {
-      id,
-    },
-    data: prismaPayload,
-  });
-
-  return result;
+  return shop;
 };
 
-export const ShopServices = {
-  shopIntoFromDB,
-};
+
+const getAllShop=async(query:any)=>{
+    const builder=new QueryBuilder(query,prisma.shop);
+    const result=await builder
+    .paginate()
+    .include({
+        stafs:true,
+        customers:true,
+        products:true,
+        suppliers:true
+    })
+    .execute();
+
+    const meta=await builder.countTotal();
+
+    return {
+        meta,
+        result
+    }
+
+}
+
+
+const getMyShop=async(userId:string)=>{
+    return await prisma.shop.findUnique({
+        where:{
+            userId
+        },
+        include:{
+            customers:true,
+            suppliers:true,
+            products:true,
+            staf:true
+        }
+    })
+}
+
+
+const updateShop=async(payload:Partial<Shop>)=>{
+    const userId=payload.userId as string;
+    await isExistUserById(userId);
+    const isExistShop=await isShopExist(userId);
+    await NotFound(isExistShop,'Shop');
+    return await prisma.shop.update({
+        where:{
+            userId
+        },
+        data:{
+            ...payload
+        }
+    })
+}
+
+
+const deleteShop=async(id:string)=>{
+    const isExistShop=await isShopExistByShopId(id);
+    await NotFound(isExistShop,'Shop');
+    if(isExistShop?.shopImg)
+    {
+        await deleteFromDigitalOceanAWS(isExistShop.shopImg as string);
+    }
+
+    const isExistStaf=await prisma.staf.deleteMany({
+        where:{
+            shopId:isExistShop?.id as string
+        }
+    })
+    if(isExistStaf){
+        await prisma.staf.deleteMany({
+            where:{
+                shopId:isExistShop?.id as string
+            }
+        })
+    }
+
+    const isExistCustomers=await prisma.customer.findMany({
+        where:{
+            shopId:isExistShop?.id as string
+        }
+    })
+
+    if(isExistCustomers)
+    {
+          await prisma.customer.deleteMany({
+            where:{
+                shopId:isExistShop?.id as string
+            }
+        })
+    }
+    const isExistProducts=await prisma.product.findMany({
+        where:{
+            shopId:isExistShop?.id as string
+        }
+    })
+
+    if(isExistProducts)
+    {
+          await prisma.product.deleteMany({
+            where:{
+                shopId:isExistShop?.id as string
+            }
+        })
+    }
+    const isExistSuppliers=await prisma.suppliers.findMany({
+        where:{
+            shopId:isExistShop?.id as string
+        }
+    })
+
+    if(isExistSuppliers)
+    {
+          await prisma.suppliers.deleteMany({
+            where:{
+                shopId:isExistShop?.id as string
+            }
+        })
+    }
+
+    //safely delete
+
+    return await prisma.shop.delete({
+        where:{
+            id
+        }
+    })
+}
+
+
+const singleShop=async(id:string)=>{
+    return await prisma.shop.findUnique({
+        where:{
+            id
+        },
+        include:{
+            customers:true,
+            products:true,
+            suppliers:true,
+            staf:true
+        }
+    })
+}
+
+
+
+export const ShopServices={
+  createShop,
+  updateShop,
+  deleteShop,
+  singleShop,
+  getAllShop,
+  getMyShop
+}
