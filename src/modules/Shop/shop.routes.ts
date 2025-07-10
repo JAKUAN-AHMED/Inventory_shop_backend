@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { createShopValidation, updateValidationSchema } from './shop.validation';
@@ -12,10 +12,22 @@ const router = Router();
 
 router.post('/create-shop',auth('USER'),
 upload.single('file'),
+ (req: Request, res: Response, next: NextFunction) => {
+    if (typeof req.body.data === 'string') {
+      req.body = JSON.parse(req.body.data);
+    }
+    next();
+  },
 validateRequest(createShopValidation),ShopController.createShop);
 
 router.patch('/update-shop/:id',auth('BUSINESS'),
 upload.single('file'),
+ (req: Request, res: Response, next: NextFunction) => {
+    if (typeof req.body.data === 'string') {
+      req.body = JSON.parse(req.body.data);
+    }
+    next();
+  },
 validateRequest(updateValidationSchema),ShopController.updateShop);
 
 router.get('/all-shop',auth('ADMIN'),ShopController.getAllShop);

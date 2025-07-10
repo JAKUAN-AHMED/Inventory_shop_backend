@@ -3,7 +3,8 @@ import { AuthController } from './auth.controller';
 import validateRequest from '../../middlewares/validateRequest';
 import { authValidation } from './auth.validation';
 import auth from '../../middlewares/auth';
-import { upload } from '../../helpers/FileUpload';
+import { upload } from '../../utils/sendImageToCloudinary';
+
 
 
 const router = Router();
@@ -11,12 +12,12 @@ const router = Router();
 router.post(
   '/register',
    upload.single('file'),
-  // (req: Request, res: Response, next: NextFunction) => {
-  //   if (typeof req.body.data === 'string') {
-  //     req.body = JSON.parse(req.body.data);
-  //   }
-  //   next();
-  // },
+  (req: Request, res: Response, next: NextFunction) => {
+    if (typeof req.body.data === 'string') {
+      req.body = JSON.parse(req.body.data);
+    }
+    next();
+  },
   validateRequest(authValidation.UserRegisterValidationSchema),
   AuthController.register,
 );
