@@ -94,7 +94,7 @@ model Product {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   img         String
-  price       String
+  price       Float
   description String
   shop        Shop   @relation(fields: [shopId], references: [id])
   shopId      String @db.ObjectId
