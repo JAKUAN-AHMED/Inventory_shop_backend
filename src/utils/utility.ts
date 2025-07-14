@@ -40,3 +40,4 @@ export async function isShopExistByShopId(id:string) {
     where: { id },
   });
 }
+
