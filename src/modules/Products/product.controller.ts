@@ -73,7 +73,7 @@ const updateProduct = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
     success: isOk,
-    message: isOk ? 'Successfully Created Product' : 'Failed to Create Product',
+    message: isOk ? 'Successfully Updated Product' : 'Failed to update a Product',
     Data: isOk ? result : [],
   });
 });

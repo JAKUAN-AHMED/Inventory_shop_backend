@@ -57,17 +57,38 @@ model Customer {
   fatherName  String?
   motherName  String?
   dateOfBirth String?
+  DueLimit    String?
+  shopName    String?
   Ref         String?
   email       String?
   phone       String
   address     String?
   upazilla    String?
   zipCode     String?
+  orders      Order[]
   road        String?
   shop        Shop    @relation(fields: [shopId], references: [id])
   shopId      String  @db.ObjectId
 
   @@map("customers")
+}
+
+model Order{
+  id String  @id @default(auto())@map("_id")@db.ObjectId 
+  customer  Customer  @relation(fields: [customerId],references: [id])
+  customerId  String @db.ObjectId
+  total Float
+  discount Float
+  transportFare Float
+  LabourCost  Float
+  invoiceBill Float
+  prevDue  Float
+  Vat  Float
+  payment Float
+  totalDue Float
+
+  @@map("orders")
+
 }
 
 model Suppliers {
