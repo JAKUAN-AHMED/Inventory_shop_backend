@@ -17,6 +17,7 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
     address,
     shopName,
     upazilla,
+    status,
     road,
     zipCode,
     shopId,
@@ -43,6 +44,7 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
       shopName,
       zipCode,
       upazilla,
+      status,
       road,
     },
   });

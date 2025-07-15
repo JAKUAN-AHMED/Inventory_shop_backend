@@ -1,11 +1,31 @@
+import { prisma } from '../../prisma/client';
 import catchAsync from '../../utils/catchAsync';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
+import { isExistUserById } from '../../utils/utility';
 import { productService } from './product.service';
 
 
 const createProduct = catchAsync(async (req, res) => {
+  const userId=req.user.id as string;
+  
+  const normaluser=await prisma.user.findUnique({
+    where:{
+      id:userId
+    }
+  })
+
+  const staf=await prisma.staf.findUnique({
+    where:{
+      id:userId
+    }
+  })
+  const user=normaluser ?  normaluser : staf;
+
+  const shopId=user?.shop as string;
+  req.body.shopId=shopId as string;
   const result = await productService.createProduct(
+    userId,
     req.file as Express.Multer.File,
     req.body,
   );
@@ -65,8 +85,15 @@ const updateProduct = catchAsync(async (req, res) => {
     const { location } = await uploadToDigitalOceanAWS(file);
     req.body.img = location as string;
   }
-  req.body.userId = req.user.id;
-  req.body.email = req.user.email;
+   const userId=req.user.id as string;
+  const user=await prisma.staf.findUnique({
+    where:{
+      id:userId
+    }
+  })
+
+  const shopId=user?.shopId as string;
+  req.body.shopId=shopId as string;
 
   const result = await productService.updateProduct(req.params.id as string,req.body);
   const isOk = result ? true : false;

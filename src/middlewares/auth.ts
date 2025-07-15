@@ -39,9 +39,16 @@ const auth = (...requiredRoles: TuserRole[]) => {
 
     const { role, email } = decoded;
     // checking if the user is exist
-    const user = await prisma.user.findUnique({
+    const normaluser= await prisma.user.findUnique({
       where: { email },
     });
+    const staf=await prisma.staf.findFirst
+    ({
+      where:{
+        email
+      }
+    }) ;
+    let user = normaluser ?  normaluser :  staf;
 
     if (!user) {
       throw new AppError(httpStatus.NOT_FOUND, 'This user is not found !');

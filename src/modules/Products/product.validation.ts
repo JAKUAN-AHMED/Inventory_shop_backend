@@ -9,7 +9,7 @@ export const productValidationSchema=z.object({
     }),
     description:z.string({
         message:"description is required"
-    })
+    }),
 })
 
 export const updateproductValidationSchema=productValidationSchema.partial();

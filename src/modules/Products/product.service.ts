@@ -4,12 +4,10 @@ import { isExistUserById, isShopExist, isShopExistByShopId, NotFound } from "../
 import { deleteFromDigitalOceanAWS, uploadToDigitalOceanAWS } from "../../utils/sendImageToCloudinary";
 import QueryBuilder from "../../builder/QueryBuilder";
 import AppError from "../../errors/AppError";
-const createProduct=async(file:any,payload:Product)=>{
-    const { title, img, price, description,shopId } = payload;
+const createProduct=async(userId:string,file:any,payload:Product)=>{
+    const { title, img, price, description,shopId,status,categoryId,variantId } = payload;
       
-
     //check shop exist or not
-
     const isExistShop=await isShopExistByShopId(shopId);
     await NotFound(isExistShop,'Shop');
 
@@ -37,6 +35,9 @@ const createProduct=async(file:any,payload:Product)=>{
       const result = await prisma.product.create({
         data: {
           title,
+          categoryId,
+          variantId,
+          status,
           price,
           description,
           img,
@@ -114,7 +115,6 @@ const updateProduct=async(id:string,payload:Partial<Product>)=>{
         }
     })
 }
-
 
 
 export const productService={
