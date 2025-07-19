@@ -41,3 +41,18 @@ export async function isShopExistByShopId(id:string) {
   });
 }
 
+export async function calculateDiscount(originalPrice:number, discountPercent:number) {
+  if (originalPrice <= 0 || discountPercent < 0) {
+    throw new Error("Invalid input: price and discount must be positive.");
+  }
+
+  const discountAmount = (originalPrice * discountPercent) / 100;
+  const finalPrice = originalPrice - discountAmount;
+
+  return {
+    originalPrice,
+    discountPercent,
+    discountAmount,
+    finalPrice,
+  };
+}

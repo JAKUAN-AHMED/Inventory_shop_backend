@@ -1,26 +1,8 @@
+//if shop want to delete have to delete those
 
-
-// when a user select license and topic at that time will show two option 
-
-
-option => 1 is      ----- ------  study 
-option => 2 is      ----- ------  Exam
-
-
-//when create a test there will be created testquestions
-and answer will do user from there
-
-
-//save test
-//my report
-//last 2 test details
-
-//subscription
-//payment
-
-//comment
-//reply
-
-//logic behind access
-
-//admin dashboard data
+customers:true,
+suppliers:true,
+products:true,
+staf:true,
+orders:true,
+CustomerGroups:true

@@ -21,7 +21,7 @@ router.post(
 
 //all  customer
 router.get('/all- customer',auth('BUSINESS','ADMIN','STAF'),customerController.allcustomers);
-router.get('/single- customer/:id',auth('BUSINESS','ADMIN','USER','STAF'),customerController.singlecustomer);
+router.get('/single- customer/:id',auth('BUSINESS','ADMIN','STAF'),customerController.singlecustomer);
 router.delete('/delete- customer/:id',auth('BUSINESS','STAF'),customerController.deletecustomer);
 
 //update customer

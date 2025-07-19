@@ -25,8 +25,8 @@ router.post(
 );
 
 //all  product
-router.get('/all- product',auth('BUSINESS','ADMIN','USER','STAF'),ProductController.allProducts);
-router.get('/single- product/:id',auth('BUSINESS','ADMIN','USER','STAF'),ProductController.singleProduct);
+router.get('/all- product',auth('BUSINESS','STAF'),ProductController.allProducts);
+router.get('/single- product/:id',auth('BUSINESS','STAF'),ProductController.singleProduct);
 router.delete('/delete- product/:id',auth('BUSINESS','STAF'),ProductController.deleteProduct);
 
 //update product

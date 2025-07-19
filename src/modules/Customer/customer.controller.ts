@@ -7,14 +7,25 @@ import { customerService } from './customer.service';
 const createcustomer = catchAsync(async (req, res) => {
   const userId = req.user.id as string;
   req.body.userId = userId;
+  const normaluser=await prisma.user.findUnique({
+    where:{
+      id:userId
+    }
+  })
 
-  const user = await prisma.staf.findUnique({
-    where: {
-      id: userId,
-    },
-  });
+  const staf=await prisma.staf.findUnique({
+    where:{
+      id:userId
+    }
+  })
+  const user=normaluser ?  normaluser : staf;
+  const shop=await prisma.shop.findUnique({
+    where:{
+      userId:user?.id as string
+    }
+  })
 
-  const shopId = user?.shopId as string;
+  const shopId = shop?.id as string;
   req.body.shopId = shopId as string;
   const result = await customerService.createCustomer(req.body);
   const isOk = result ? true : false;
@@ -44,7 +55,7 @@ const allcustomers = catchAsync(async (req, res) => {
   });
 });
 const singlecustomer = catchAsync(async (req, res) => {
-  const result = await customerService.singlecustomer(req.params.id as string);
+  const result = await customerService.singlecustomer(req.user.id as string,req.params.id as string);
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 201 : 404,
@@ -56,7 +67,7 @@ const singlecustomer = catchAsync(async (req, res) => {
   });
 });
 const deletecustomer = catchAsync(async (req, res) => {
-  const result = await customerService.deletecustomer(req.params.id as string);
+  const result = await customerService.deletecustomer(req.user.id as string,req.params.id as string);
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 201 : 404,
@@ -79,6 +90,7 @@ const updatecustomer = catchAsync(async (req, res) => {
   req.body.email = req.user.email;
 
   const result = await customerService.updatecustomer(
+    req.user.id as string,
     req.params.id as string,
     req.body,
   );

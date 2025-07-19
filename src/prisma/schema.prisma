@@ -90,6 +90,8 @@ model customerGroup {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   customer   Customer @relation(fields: [customerId], references: [id])
   customerId String   @db.ObjectId
+  shop       Shop  @relation(fields: [shopId],references: [id])
+  shopId     String @db.ObjectId
   name       String
   date       DateTime
 
@@ -102,21 +104,34 @@ model PaymentInfo {
   productId  String   @db.ObjectId
   customer   Customer @relation(fields: [customerId], references: [id])
   customerId String   @db.ObjectId
+  shop Shop @relation(fields: [shopId],references: [id])
+  shopId  String @db.ObjectId
 }
 
+
+enum OrderStatus{
+    PROCESSING
+    ACCEPTED
+    DELIVERED
+    COMPLETED
+}
 model Order {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   customer      Customer @relation(fields: [customerId], references: [id])
   customerId    String   @db.ObjectId
-  total         Float
+  shop          Shop @relation(fields: [shopId],references: [id])
+  shopId        String @db.ObjectId
+  method        String?
+  totalOriginalPrice         Float
+  status         OrderStatus
   discount      Float
-  transportFare Float
-  LabourCost    Float
+  transportFare Float?
+  LabourCost    Float?
   invoiceBill   Float
-  prevDue       Float
+  prevDue       Float?
   Vat           Float
   payment       Float
-  totalDue      Float
+  totalDue      Float?
 
   @@map("orders")
 }
@@ -183,9 +198,13 @@ model Shop {
   email     String
   address   String
   staf      Staf[]
+  orders    Order[]
+  CustomerGroups  customerGroup[]
   suppliers Suppliers[]
   customers Customer[]
   products  Product[]
+  payment  PaymentInfo[]
 
   @@map("shops")
 }
+

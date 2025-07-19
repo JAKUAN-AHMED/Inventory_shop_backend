@@ -8,7 +8,6 @@ import { productService } from './product.service';
 
 const createProduct = catchAsync(async (req, res) => {
   const userId=req.user.id as string;
-  
   const normaluser=await prisma.user.findUnique({
     where:{
       id:userId
@@ -22,10 +21,13 @@ const createProduct = catchAsync(async (req, res) => {
   })
   const user=normaluser ?  normaluser : staf;
 
-  const shopId=user?.shop as string;
-  req.body.shopId=shopId as string;
+  const shop=await prisma.shop.findUnique({
+    where:{
+      userId:user?.id as string
+    }
+  })
+  req.body.shopId=shop?.id as string;
   const result = await productService.createProduct(
-    userId,
     req.file as Express.Multer.File,
     req.body,
   );
@@ -53,6 +55,7 @@ const allProducts = catchAsync(async (req, res) => {
 });
 const singleProduct = catchAsync(async (req, res) => {
   const result = await  productService.singleProduct(
+    req.user.id as string,
     req.params.id as string
   );
   const isOk = result ? true : false;
@@ -65,6 +68,7 @@ const singleProduct = catchAsync(async (req, res) => {
 });
 const deleteProduct = catchAsync(async (req, res) => {
   const result = await  productService.deleteProduct(
+    req.user.id as string,
     req.params.id as string
   );
   const isOk = result ? true : false;
@@ -95,7 +99,7 @@ const updateProduct = catchAsync(async (req, res) => {
   const shopId=user?.shopId as string;
   req.body.shopId=shopId as string;
 
-  const result = await productService.updateProduct(req.params.id as string,req.body);
+  const result = await productService.updateProduct(req.user.id as string,req.params.id as string,req.body);
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
