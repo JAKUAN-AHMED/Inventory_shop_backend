@@ -5,15 +5,10 @@ import cookieParser from 'cookie-parser';
 import NotFound from './middlewares/NotFound';
 import path from 'path';
 import router from './routes/routes';
-
 const app = express();
 
 export const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://inventory-softwere.vercel.app',
-   
-  ],
+  origin: ['http://localhost:3000', 'https://inventory-softwere.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -27,8 +22,7 @@ app.use('/api', router);
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-
-// app.use("/uploads", express.static(path.join(process.cwd(), "uploads"))); 
+// app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 //test route
 const test = async (req: Request, res: Response) => {
@@ -41,5 +35,4 @@ app.use(globalErrorHandler);
 
 //Not Found Route
 app.use(NotFound);
-
 export default app;

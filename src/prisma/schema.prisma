@@ -15,6 +15,16 @@ enum UserRole {
   USER
 }
 
+enum ProductStatus {
+  IN_STOCK
+  OUT_OF_STOCK
+}
+
+enum customerStatus {
+  ACTIVE
+  DISABLED
+}
+
 model User {
   id                      String    @id @default(auto()) @map("_id") @db.ObjectId
   name                    String
@@ -37,35 +47,93 @@ model User {
 }
 
 model Staf {
-  id      String  @id @default(auto()) @map("_id") @db.ObjectId
-  name    String
-  img     String?
-  email   String
-  Address String
-  phone   String
-  shop    Shop    @relation(fields: [shopId], references: [id])
-  shopId  String  @db.ObjectId
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String
+  password     String
+  address      String
+  role         String  @default("STAF")
+  profileImage String? @default("https://ibb.co/q36v3f9w")
+  phone        String
+  shop         Shop    @relation(fields: [shopId], references: [id])
+  shopId       String  @db.ObjectId
 
   @@map("stafs")
 }
 
 model Customer {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   fatherName  String?
   motherName  String?
   dateOfBirth String?
+  DueLimit    String?
+  shopName    String?
   Ref         String?
   email       String?
   phone       String
   address     String?
+  status      customerStatus
   upazilla    String?
   zipCode     String?
+  orders      Order[]
+  group       customerGroup[]
+  payment     PaymentInfo[]
   road        String?
-  shop        Shop    @relation(fields: [shopId], references: [id])
-  shopId      String  @db.ObjectId
+  shop        Shop            @relation(fields: [shopId], references: [id])
+  shopId      String          @db.ObjectId
 
   @@map("customers")
+}
+
+model customerGroup {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String   @db.ObjectId
+  shop       Shop  @relation(fields: [shopId],references: [id])
+  shopId     String @db.ObjectId
+  name       String
+  date       DateTime
+
+  @@map("customerGroups")
+}
+
+model PaymentInfo {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  product    Product  @relation(fields: [productId], references: [id])
+  productId  String   @db.ObjectId
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId String   @db.ObjectId
+  shop Shop @relation(fields: [shopId],references: [id])
+  shopId  String @db.ObjectId
+}
+
+
+enum OrderStatus{
+    PROCESSING
+    ACCEPTED
+    DELIVERED
+    COMPLETED
+}
+model Order {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  customer      Customer @relation(fields: [customerId], references: [id])
+  customerId    String   @db.ObjectId
+  shop          Shop @relation(fields: [shopId],references: [id])
+  shopId        String @db.ObjectId
+  method        String?
+  totalOriginalPrice         Float
+  status         OrderStatus
+  discount      Float
+  transportFare Float?
+  LabourCost    Float?
+  invoiceBill   Float
+  prevDue       Float?
+  Vat           Float
+  payment       Float
+  totalDue      Float?
+
+  @@map("orders")
 }
 
 model Suppliers {
@@ -89,26 +157,54 @@ model Suppliers {
 }
 
 model Product {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   img         String
-  price       String
+  price       Float
   description String
-  shop        Shop   @relation(fields: [shopId], references: [id])
-  shopId      String @db.ObjectId
+  status      ProductStatus
+  shop        Shop          @relation(fields: [shopId], references: [id])
+  shopId      String        @db.ObjectId
+  payment     PaymentInfo[]
+  category    PCateory      @relation(fields: [categoryId], references: [id])
+  categoryId  String        @db.ObjectId
+  variant     Pvariant      @relation(fields: [variantId], references: [id])
+  variantId   String        @db.ObjectId
+
   @@map("products")
+}
+
+model Pvariant {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  type        String
+  description String
+  product     Product[]
+  @@map("pvariant")
+}
+model PCateory {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  product     Product[]
+  @@map("pcategory")
 }
 
 model Shop {
   id        String      @id @default(auto()) @map("_id") @db.ObjectId
   user      User        @relation(fields: [userId], references: [id])
-  userId    String      @db.ObjectId @unique
+  userId    String      @unique @db.ObjectId
   name      String      @unique
   shopImg   String
   email     String
+  address   String
   staf      Staf[]
+  orders    Order[]
+  CustomerGroups  customerGroup[]
   suppliers Suppliers[]
   customers Customer[]
-  products   Product[]
+  products  Product[]
+  payment  PaymentInfo[]
+
   @@map("shops")
 }
+

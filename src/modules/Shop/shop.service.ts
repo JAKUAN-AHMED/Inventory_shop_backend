@@ -12,7 +12,7 @@ import AppError from '../../errors/AppError';
 import { deleteFromDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 
 const createShop = async (payload: Shop) => {
-  const { name, email, shopImg, userId } = payload;
+  const { name, email, shopImg, userId, address } = payload;
 
   await isExistUserById(userId);
 
@@ -24,6 +24,7 @@ const createShop = async (payload: Shop) => {
     prisma.shop.create({
       data: {
         userId,
+        address,
         name,
         email,
         shopImg,
