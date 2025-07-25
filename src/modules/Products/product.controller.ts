@@ -2,7 +2,6 @@ import { prisma } from '../../prisma/client';
 import catchAsync from '../../utils/catchAsync';
 import { uploadToDigitalOceanAWS } from '../../utils/sendImageToCloudinary';
 import sendResponse from '../../utils/sendResponse';
-import { isExistUserById } from '../../utils/utility';
 import { productService } from './product.service';
 
 
