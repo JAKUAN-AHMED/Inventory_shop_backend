@@ -13,6 +13,9 @@ export const stafValidationSchema=z.object({
     address:z.string({
         message:"address required"
     }),
+    position:z.string({
+        message:"position required"
+    }),
     phone:z.string({
   required_error: "Phone number is required",
 }).min(11, { message: "Phone number must be at least 11 digits" })

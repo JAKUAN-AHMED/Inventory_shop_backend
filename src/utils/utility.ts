@@ -9,6 +9,14 @@ export async function isExistByEmail(email: string) {
   });
   return existingUser;
 }
+export async function isExistStafByEmail(email: string) {
+  const existingUser = await prisma.staf.findUnique({
+    where: {
+      email,
+    },
+  });
+  return existingUser;
+}
 
 export async function alreadyExist(param: any, msg?: string) {
   if (param) {
@@ -16,6 +24,13 @@ export async function alreadyExist(param: any, msg?: string) {
   }
 }
 
+export async function isExistStafById(id: string) {
+  return await prisma.staf.findUnique({
+    where: {
+      id,
+    },
+  });
+}
 export async function isExistUserById(id: string) {
   return await prisma.user.findUnique({
     where: {
@@ -35,9 +50,9 @@ export async function isShopExist(userId:string) {
     where: { userId },
   });
 }
-export async function isShopExistByShopId(id:string) {
+export async function isShopExistByShopId(shopId:string) {
   return await prisma.shop.findUnique({
-    where: { id },
+    where: { id: shopId },
   });
 }
 

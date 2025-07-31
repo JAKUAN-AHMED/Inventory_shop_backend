@@ -15,7 +15,6 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
     fatherName,
     motherName,
     address,
-    shopName,
     upazilla,
     status,
     road,
@@ -39,7 +38,7 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
       address,
       DueLimit,
       shopId,
-      shopName,
+      shopName:isExistShop?.name as string,
       zipCode,
       upazilla,
       status,
@@ -51,8 +50,8 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
 };
 
 //all customer
-const allCustomers = async (query: any, userId: string) => {
-  const shop = await isShopExist(userId);
+const allCustomers = async (query: any, shopId: string) => {
+  const shop = await isShopExistByShopId(shopId);
   await NotFound(shop, 'Shop');
   const builder = new QueryBuilder(query, prisma.customer);
   const result = await builder
@@ -75,8 +74,8 @@ const allCustomers = async (query: any, userId: string) => {
 };
 
 //single customer
-const singlecustomer = async (userId: string, id: string) => {
-  const isExistShop = await isShopExist(userId);
+const singlecustomer = async (shopId: string, id: string) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
   return await prisma.customer.findUnique({
     where: {
@@ -87,8 +86,8 @@ const singlecustomer = async (userId: string, id: string) => {
 };
 
 //delete a customer
-const deletecustomer = async (userId: string, id: string) => {
-  const isExistShop = await isShopExist(userId);
+const deletecustomer = async (shopId: string, id: string) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
   const customer = await prisma.customer.findUnique({
     where: {
@@ -106,11 +105,11 @@ const deletecustomer = async (userId: string, id: string) => {
 
 //update customer
 const updatecustomer = async (
-  userId: string,
+  shopId: string,
   id: string,
   payload: Partial<Customer>,
 ) => {
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
   const isExistcustomer = await prisma.customer.findUnique({
     where: {

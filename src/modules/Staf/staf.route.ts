@@ -26,4 +26,22 @@ router.post(
 router.get('/all-staf',auth('BUSINESS'),StafController.allStaf);
 router.get('/single-staf/:id',auth('BUSINESS'),StafController.singleStaf);
 router.delete('/delete-staf/:id',auth('BUSINESS'),StafController.deleteStaf);
+
+router.post(
+  '/login',
+  StafController.login,
+);
+
+router.post('/forgot-password', StafController.forgotPassword);
+router.post('/reset-password',auth('STAF','BUSINESS','ADMIN'), StafController.resetPassword);
+
+router.post(
+  '/change-password',
+  auth('ADMIN','BUSINESS','STAF'),
+  StafController.changePassword,
+);
+
+router.post('/verify-email', StafController.verifyEmail);
+router.post('/resend-verify-email-token', StafController.resendVerifyEmail);
+router.post('/refresh-token', StafController.refreshToken);
 export const StafRoutes = router;

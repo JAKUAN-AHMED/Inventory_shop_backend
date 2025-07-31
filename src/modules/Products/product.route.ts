@@ -25,17 +25,18 @@ router.post(
 );
 
 //all  product
-router.get('/all- product',auth('BUSINESS','STAF'),ProductController.allProducts);
-router.get('/single- product/:id',auth('BUSINESS','STAF'),ProductController.singleProduct);
-router.delete('/delete- product/:id',auth('BUSINESS','STAF'),ProductController.deleteProduct);
+router.get('/all-product',auth('BUSINESS','STAF'),ProductController.allProducts);
+router.get('/single-product/:id',auth('BUSINESS','STAF'),ProductController.singleProduct);
+router.delete('/delete-product/:id',auth('BUSINESS','STAF'),ProductController.deleteProduct);
 
 //update product
-router.patch('/updated- product/:id',auth('BUSINESS','STAF'),
+router.patch('/update-product/:id',auth('BUSINESS','STAF'),
 upload.single('file'),
 (req:Request,res:Response,next:NextFunction)=>{
   if(typeof req.body.data==='string'){
     req.body=JSON.parse(req.body.data)
   }
+  next();
 },
 validateRequest(updateproductValidationSchema),
 ProductController.updateProduct);

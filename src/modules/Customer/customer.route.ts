@@ -20,18 +20,12 @@ router.post(
 );
 
 //all  customer
-router.get('/all- customer',auth('BUSINESS','ADMIN','STAF'),customerController.allcustomers);
-router.get('/single- customer/:id',auth('BUSINESS','ADMIN','STAF'),customerController.singlecustomer);
-router.delete('/delete- customer/:id',auth('BUSINESS','STAF'),customerController.deletecustomer);
+router.get('/all-customer',auth('BUSINESS','ADMIN','STAF'),customerController.allcustomers);
+router.get('/single-customer/:id',auth('BUSINESS','ADMIN','STAF'),customerController.singlecustomer);
+router.delete('/delete-customer/:id',auth('BUSINESS','STAF'),customerController.deletecustomer);
 
 //update customer
-router.patch('/updated- customer/:id',auth('BUSINESS','STAF'),
-upload.single('file'),
-(req:Request,res:Response,next:NextFunction)=>{
-  if(typeof req.body.data==='string'){
-    req.body=JSON.parse(req.body.data)
-  }
-},
+router.patch('/update-customer/:id',auth('BUSINESS','STAF'),
 validateRequest(updatecustomerValidationSchema),
 customerController.updatecustomer);
 export const  customerRoutes = router;

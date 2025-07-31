@@ -1,16 +1,24 @@
 import { customerGroup } from '@prisma/client';
-import { alreadyExist, isShopExist, NotFound } from '../../utils/utility';
+import {
+  alreadyExist,
+  isShopExist,
+  isShopExistByShopId,
+  NotFound,
+} from '../../utils/utility';
 import { prisma } from '../../prisma/client';
 
 //creat group
-const creatCg = async (userId: string, payload: customerGroup) => {
-  const { name, customerId, shopId, date } = payload;
-  const isExistShop = await isShopExist(userId);
+const createCg = async (
+  shopId: string,
+  payload: { name: string; date: Date },
+) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
   const isAlreadyExist = await prisma.customerGroup.findFirst({
     where: {
-      name,
+      name: payload.name,
+      shopId: isExistShop?.id,
     },
   });
 
@@ -18,27 +26,27 @@ const creatCg = async (userId: string, payload: customerGroup) => {
 
   return await prisma.customerGroup.create({
     data: {
-      name,
-      customerId,
-      shopId,
-      date,
+      name: payload.name,
+      date: payload.date,
+      shopId: isExistShop?.id as string,
     },
   });
 };
 
 //update group
 const updateCg = async (
-  userId: string,
+  shopId: string,
   id: string,
   payload: Partial<customerGroup>,
 ) => {
-  const { name, customerId, shopId, date } = payload;
-  const isExistShop = await isShopExist(userId);
+  const { name, date } = payload;
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
   const isExist = await prisma.customerGroup.findUnique({
     where: {
       id,
+      shopId: isExistShop?.id as string,
     },
   });
 
@@ -51,50 +59,43 @@ const updateCg = async (
 };
 
 //get all gruops
-const getAllMyCGroups = async (userId: string) => {
-  const isExistShop = await isShopExist(userId);
+const getAllMyCGroups = async (shopId: string) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
-  return await prisma.customerGroup.findMany(
-    {
-        where:{shopId:isExistShop?.id as string}
-    }
-  );
+  return await prisma.customerGroup.findMany({
+    where: { shopId: isExistShop?.id as string },
+  });
 };
 
 //single group
-const singleCGroup = async (userId: string,id:string) => {
- const isExistShop = await isShopExist(userId);
+const singleCGroup = async (shopId: string, id: string) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
-  return await prisma.customerGroup.findUnique(
-    {
-        where:{
-            id,
-            shopId:isExistShop?.id as string
-        }
-    }
-  );
+  return await prisma.customerGroup.findUnique({
+    where: {
+      id,
+      shopId: isExistShop?.id as string,
+    },
+  });
 };
-
 
 //delete group
 
-const deleteCGroup = async (userId: string,id:string) => {
- const isExistShop = await isShopExist(userId);
+const deleteCGroup = async (shopId: string, id: string) => {
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
-  return await prisma.customerGroup.delete(
-    {
-        where:{
-            id,
-            shopId:isExistShop?.id as string
-        }
-    }
-  );
+  return await prisma.customerGroup.delete({
+    where: {
+      id,
+      shopId: isExistShop?.id as string,
+    },
+  });
 };
 
-export const customerGroupServices={
-    creatCg,
-    updateCg,
-    deleteCGroup,
-    getAllMyCGroups,
-    singleCGroup
-}
+export const customerGroupServices = {
+  createCg,
+  updateCg,
+  deleteCGroup,
+  getAllMyCGroups,
+  singleCGroup,
+};

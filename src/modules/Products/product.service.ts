@@ -8,11 +8,10 @@ import {
 } from '../../utils/utility';
 import {
   deleteFromDigitalOceanAWS,
-  uploadToDigitalOceanAWS,
 } from '../../utils/sendImageToCloudinary';
 import QueryBuilder from '../../builder/QueryBuilder';
 import AppError from '../../errors/AppError';
-const createProduct = async (file: any, payload: Product) => {
+const createProduct = async (payload: Product) => {
   const {
     title,
     img,
@@ -39,12 +38,7 @@ const createProduct = async (file: any, payload: Product) => {
     throw new AppError(409, 'Already Exist Prodouct');
   }
 
-  let imageUrls: string = '';
-  if (file) {
-    //  imageUrls = `${process.env.BACKEND_LIVE_URL}/uploads/${file.filename}`;
-    const { location } = await uploadToDigitalOceanAWS(file);
-    imageUrls = location as string;
-  }
+ 
 
   const result = await prisma.product.create({
     data: {
@@ -56,6 +50,7 @@ const createProduct = async (file: any, payload: Product) => {
       description,
       img,
       shopId,
+      
     },
   });
 
@@ -63,8 +58,8 @@ const createProduct = async (file: any, payload: Product) => {
 };
 
 //all product
-const allProducts = async (query: any, userId: string) => {
-  const shop = await isShopExist(userId);
+const allProducts = async (query: any, shopId: string) => {
+  const shop = await isShopExistByShopId(shopId);
   await NotFound(shop, 'Shop');
   const builder = new QueryBuilder(query, prisma.product);
   const result = await builder
@@ -82,8 +77,8 @@ const allProducts = async (query: any, userId: string) => {
 };
 
 //single product
-const singleProduct = async (userId: string, id: string) => {
-  const shop = await isShopExist(userId);
+const singleProduct = async (shopId: string, id: string) => {
+  const shop = await isShopExistByShopId(shopId);
   await NotFound(shop, 'Shop');
   return await prisma.product.findUnique({
     where: {
@@ -94,8 +89,8 @@ const singleProduct = async (userId: string, id: string) => {
 };
 
 //delete a product
-const deleteProduct = async (userId: string, id: string) => {
-  const shop = await isShopExist(userId);
+const deleteProduct = async (shopId: string, id: string) => {
+  const shop = await isShopExistByShopId(shopId);
   await NotFound(shop, 'Shop');
   const product = await prisma.product.findUnique({
     where: {
@@ -115,11 +110,10 @@ const deleteProduct = async (userId: string, id: string) => {
 
 //update product
 const updateProduct = async (
-  userId: string,
   id: string,
   payload: Partial<Product>,
 ) => {
-  const shop = await isShopExist(userId);
+  const shop = await isShopExistByShopId(payload.shopId as string);
   await NotFound(shop, 'Shop');
   const isExistProduct = await prisma.product.findUnique({
     where: {
