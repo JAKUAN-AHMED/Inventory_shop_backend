@@ -9,6 +9,7 @@ import { VariantRoutes } from '../modules/Variant/variant.routes';
 import { CategoryRoutes } from '../modules/Category/category.route';
 import { CgRoutes } from '../modules/CustomerGroup/cg.route';
 import { OrderRoutes } from '../modules/Order/order.routes';
+import { suppliersRouter } from '../modules/Suppliers/suppliers.route';
 
 const router = express.Router();
 
@@ -52,6 +53,10 @@ const moduleRoutes = [
   {
     path: '/order',
     route: OrderRoutes,
+  },
+  {
+    path: '/suppliers',
+    route: suppliersRouter,
   },
 ];
 

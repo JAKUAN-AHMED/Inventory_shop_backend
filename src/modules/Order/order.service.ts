@@ -1,9 +1,9 @@
 import { Order } from '@prisma/client';
-import { isShopExist, NotFound } from '../../utils/utility';
+import { isShopExist, isShopExistByShopId, NotFound } from '../../utils/utility';
 import { prisma } from '../../prisma/client';
 import QueryBuilder from '../../builder/QueryBuilder';
 
-const createOrder = async (userId: string, payload: Order) => {
+const createOrder = async (payload: Order) => {
   const {
     customerId,
     shopId,
@@ -20,13 +20,13 @@ const createOrder = async (userId: string, payload: Order) => {
     payment,
   } = payload;
 
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
   return await prisma.order.create({
     data: {
       customerId,
-      shopId,
+      shopId:isExistShop?.id as string,
       method,
       totalOriginalPrice,
       status,
@@ -41,9 +41,9 @@ const createOrder = async (userId: string, payload: Order) => {
     },
   });
 };
-const updateOrder = async (userId: string, id:string,payload: Partial<Order>) => {
+const updateOrder = async (id:string,payload: Partial<Order>) => {
 
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(payload?.shopId as string);
   await NotFound(isExistShop, 'Shop');
 
   return await prisma.order.update({
@@ -56,9 +56,9 @@ const updateOrder = async (userId: string, id:string,payload: Partial<Order>) =>
     },
   });
 };
-const deleteOrder = async (userId: string, id:string) => {
+const deleteOrder = async (shopId: string, id:string) => {
 
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
   return await prisma.order.delete({
@@ -69,9 +69,9 @@ const deleteOrder = async (userId: string, id:string) => {
    
   });
 };
-const allOrder = async (userId: string,query:any) => {
+const allOrder = async (shopId: string,query:any) => {
 
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
 
@@ -94,9 +94,9 @@ const allOrder = async (userId: string,query:any) => {
   }
  
 };
-const singleOrder = async (userId: string,id:string) => {
+const singleOrder = async (shopId: string,id:string) => {
 
-  const isExistShop = await isShopExist(userId);
+  const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
 

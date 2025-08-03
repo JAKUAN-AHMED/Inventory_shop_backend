@@ -14,6 +14,9 @@ upload.single('file'),
     if (typeof req.body.data === 'string') {
       req.body = JSON.parse(req.body.data);
     }
+    if(req.body.prevdueMoney){
+      req.body.prevdueMoney = parseFloat(req.body.prevdueMoney);
+    }
     next();
   },
 validateRequest(createSchemaValidation),
@@ -26,6 +29,9 @@ upload.single('file'),
 (req: Request, res: Response, next: NextFunction) => {
     if (typeof req.body.data === 'string') {
       req.body = JSON.parse(req.body.data);
+    }
+     if(req.body.prevdueMoney){
+      req.body.prevdueMoney = parseFloat(req.body.prevdueMoney);
     }
     next();
   }

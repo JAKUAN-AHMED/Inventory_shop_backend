@@ -136,7 +136,8 @@ model Order {
   Vat                Float
   payment            Float
   totalDue           Float?
-
+ createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
   @@map("orders")
 }
 
@@ -145,7 +146,7 @@ model Suppliers {
   name         String
   phone        String
   email        String
-  prevdueMoney String
+  prevdueMoney Float?
   CompanyName  String
   address      String
   city         String
@@ -156,7 +157,8 @@ model Suppliers {
   file         String?
   shop         Shop    @relation(fields: [shopId], references: [id])
   shopId       String  @db.ObjectId
-
+ createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   @@map("suppliers")
 }
 

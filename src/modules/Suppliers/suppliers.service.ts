@@ -1,33 +1,18 @@
 import { Suppliers } from "@prisma/client";
-import { isShopExist, NotFound } from "../../utils/utility";
+import { isShopExist, isShopExistByShopId, NotFound } from "../../utils/utility";
 import { prisma } from "../../prisma/client";
 import QueryBuilder from "../../builder/QueryBuilder";
+import e from "express";
 
-const createSupplier = async (payload:Suppliers & {userId:string}) => {
-    const {shopId,userId,CompanyName,city,country,address,prevdueMoney,zipCode,email,bankAccount,domain,file,name,phone}=payload;
-     if(!shopId
-        || !userId
-        || !CompanyName
-        || !city
-        || !country
-        || !address
-        || !prevdueMoney
-        || !zipCode
-        || !email
-        || !bankAccount
-        || !domain
-        || !file
-        || !name
-        || !phone
-    ){
-        throw new Error("required field is missing");
-    }
-    const isExistShop=await isShopExist(userId);
+const createSupplier = async (payload:Suppliers) => {
+    const {shopId,CompanyName,city,country,address,prevdueMoney,zipCode,email,bankAccount,domain,file,name,phone}=payload;
+
+    const isExistShop=await isShopExistByShopId(shopId);
     await NotFound(isExistShop, "Shop");
 
     const result=await prisma.suppliers.create({
         data: { 
-            shopId,
+            shopId: isExistShop?.id as string,
             phone,
             prevdueMoney,
             zipCode,
@@ -47,16 +32,16 @@ const createSupplier = async (payload:Suppliers & {userId:string}) => {
 
 
 //update supplier
-const updateSupplier = async (payload:Partial<Suppliers> & {userId:string}) => {
-    const {id,shopId,userId,CompanyName,city,country,address,prevdueMoney,zipCode,email,bankAccount,domain,file,name,phone}=payload;
+const updateSupplier = async (payload:Partial<Suppliers> ) => {
+    const {id,shopId,CompanyName,city,country,address,prevdueMoney,zipCode,email,bankAccount,domain,file,name,phone}=payload;
     if (!id) throw new Error("Supplier ID is required for update");
-    const isExistShop=await isShopExist(userId);
+    const isExistShop=await isShopExistByShopId(shopId as string);
     await NotFound(isExistShop, "Shop");
 
     const result=await prisma.suppliers.update({
         where: { id,shopId: isExistShop?.id },
         data: { 
-            shopId,
+            shopId:isExistShop?.id as string,
             phone,
             prevdueMoney,
             zipCode,
@@ -75,9 +60,9 @@ const updateSupplier = async (payload:Partial<Suppliers> & {userId:string}) => {
 }
 
 //delete supplier
-const deleteSupplier = async (id: string, userId: string) => {
+const deleteSupplier = async (id: string, shopId: string) => {
     if (!id) throw new Error("Supplier ID is required for deletion");
-    const isExistShop = await isShopExist(userId);
+    const isExistShop = await isShopExistByShopId(shopId);
     await NotFound(isExistShop, "Shop");
 
     const result = await prisma.suppliers.delete({
@@ -87,16 +72,19 @@ const deleteSupplier = async (id: string, userId: string) => {
 }
 
 //get all suppliers
-const getAllSuppliers = async (userId: string,query:any) => {
-    const isExistShop = await isShopExist(userId);
+const getAllSuppliers = async (shopId: string,query:any) => {
+    const isExistShop = await isShopExistByShopId(shopId);
     await NotFound(isExistShop, "Shop");
     const builder=new QueryBuilder(query,prisma.suppliers);
     const result=await builder
-        .search(["CompanyName","city","country","address","email","bankAccount","domain","name","phone"])
-        .filter(["CompanyName","city","country","address","email","bankAccount","domain","name","phone"])
+        .include({
+            shop: true,
+        })
         .rawFilter({
             shopId: isExistShop?.id
         })
+        //  .search(["CompanyName","city","country","address","email","bankAccount","domain","name","phone"])
+        // .filter(["CompanyName","city","country","address","email","bankAccount","domain","name","phone"])
         .sort(["-createdAt"])
         .paginate()
         .execute();
@@ -116,9 +104,9 @@ const getAllSuppliers = async (userId: string,query:any) => {
 }
 
 //get supplier by id
-const getSupplierById = async (id: string, userId: string) => {
+const getSupplierById = async (id: string, shopId: string) => {
     if (!id) throw new Error("Supplier ID is required for retrieval");
-    const isExistShop = await isShopExist(userId);
+    const isExistShop = await isShopExistByShopId(shopId);
     await NotFound(isExistShop, "Shop");
 
     const result = await prisma.suppliers.findFirst({

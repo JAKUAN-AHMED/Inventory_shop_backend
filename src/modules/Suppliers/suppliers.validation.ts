@@ -11,7 +11,7 @@ export const createSchemaValidation=z.object({
     zipCode: z.string().min(1, "Zip Code is required"),
     email: z.string().email("Invalid email format"),
     bankAccount: z.string().min(1, "Bank Account is required"),
-    domain: z.string().url("Invalid URL format"),
+    domain: z.string({message: "Domain is required"}).optional(),
     file: z.string().optional(),
     phone: z.string().min(1, "Phone number is required"),
 });

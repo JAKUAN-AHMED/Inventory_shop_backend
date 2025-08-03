@@ -2,10 +2,38 @@ import { all } from 'axios';
 import catchAsync from '../../utils/catchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { OrderServices } from './order.service';
+import { NotFound } from '../../utils/utility';
+import { prisma } from '../../prisma/client';
 
 const createOrder = catchAsync(async (req, res) => {
+   const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+  await NotFound(user, 'User');
+
+  let shop = null;
+  if (user && 'shopId' in user && user.shopId !== null) {
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: user.shopId as string,
+      },
+    });
+  }
+
+  await NotFound(shop, 'Shop');
+  const shopId = shop?.id as string;
+  req.body.shopId = shopId;
   const result = await OrderServices.createOrder(
-    req.user.id as string,
     req.body,
   );
   const isOk = result ? true : false;
@@ -17,55 +45,163 @@ const createOrder = catchAsync(async (req, res) => {
   });
 });
 const updateOrder = catchAsync(async (req, res) => {
+
+
+   const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+  await NotFound(user, 'User');
+
+  let shop = null;
+  if (user && 'shopId' in user && user.shopId !== null) {
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: user.shopId as string,
+      },
+    });
+  }
+
+  await NotFound(shop, 'Shop');
+  const shopId = shop?.id as string;
+  req.body.shopId = shopId;
   const result = await OrderServices.updateOrder(
-    req.user.id as string,
     req.params.id  as string,
     req.body,
   );
   const isOk = result ? true : false;
   sendResponse(res, {
-    statusCode: isOk ? 201 : 404,
+    statusCode: isOk ? 200 : 404,
     success: isOk,
     message: isOk ? 'Successfully Updated a Order' : 'Failed to update a Order',
     Data: isOk ? result : [],
   });
 });
 const deleteOrder = catchAsync(async (req, res) => {
+   const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+  await NotFound(user, 'User');
+
+  let shop = null;
+  if (user && 'shopId' in user && user.shopId !== null) {
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: user.shopId as string,
+      },
+    });
+  }
+
+  await NotFound(shop, 'Shop');
+  const shopId = shop?.id as string;
   const result = await OrderServices.deleteOrder(
-    req.user.id as string,
+    shopId,
     req.params.id  as string,
   );
   const isOk = result ? true : false;
   sendResponse(res, {
-    statusCode: isOk ? 201 : 404,
+    statusCode: isOk ? 200 : 404,
     success: isOk,
     message: isOk ? 'Successfully deleted a Order' : 'Failed to delete a Order',
     Data: isOk ? result : [],
   });
 });
 const allOrder = catchAsync(async (req, res) => {
+   const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+  await NotFound(user, 'User');
+
+  let shop = null;
+  if (user && 'shopId' in user && user.shopId !== null) {
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: user.shopId as string,
+      },
+    });
+  }
+
+  await NotFound(shop, 'Shop');
+  const shopId = shop?.id as string;
+ 
   const result = await OrderServices.allOrder(
-    req.user.id as string,
+    shopId as string,
     req.query
   );
   const isOk = result ? true : false;
   sendResponse(res, {
-    statusCode: isOk ? 201 : 404,
+    statusCode: isOk ? 200 : 404,
     success: isOk,
     message: isOk ? 'Successfully retrived  Orders' : 'Failed to retrieved  Order',
     Data: isOk ? result : [],
   });
 });
 const singleOrder = catchAsync(async (req, res) => {
+   const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+  await NotFound(user, 'User');
+
+  let shop = null;
+  if (user && 'shopId' in user && user.shopId !== null) {
+    shop = await prisma.shop.findUnique({
+      where: {
+        id: user.shopId as string,
+      },
+    });
+  }
+
+  await NotFound(shop, 'Shop');
+  const shopId = shop?.id as string;
+
   const result = await OrderServices.singleOrder(
-    req.user.id as string,
+   shopId as string,
     req.params.id as string
   );
   const isOk = result ? true : false;
   sendResponse(res, {
-    statusCode: isOk ? 201 : 404,
+    statusCode: isOk ? 200 : 404,
     success: isOk,
-    message: isOk ? 'Successfully retrived  a Orders' : 'Failed to retrieve a Order',
+    message: isOk ? 'Successfully retrived  a Order' : 'Failed to retrieve a Order',
     Data: isOk ? result : [],
   });
 });
