@@ -4,7 +4,7 @@ import { PaymentController } from "./payment.controller";
 
 const router=Router();
 //create payment
-router.post('/create-payment',auth('BUSINESS'),PaymentController.createPayment);
+router.post('/create-payment',auth('BUSINESS','STAF'),PaymentController.createPayment);
 
 //all payments
 router.get('/all-payment',auth('BUSINESS','STAF'),PaymentController.allpayment);

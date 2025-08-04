@@ -10,6 +10,7 @@ import { CategoryRoutes } from '../modules/Category/category.route';
 import { CgRoutes } from '../modules/CustomerGroup/cg.route';
 import { OrderRoutes } from '../modules/Order/order.routes';
 import { suppliersRouter } from '../modules/Suppliers/suppliers.route';
+import { PaymentRoutes } from '../modules/payment/payment.route';
 
 const router = express.Router();
 
@@ -57,6 +58,10 @@ const moduleRoutes = [
   {
     path: '/suppliers',
     route: suppliersRouter,
+  },
+  {
+    path: '/payment',
+    route: PaymentRoutes,
   },
 ];
 
