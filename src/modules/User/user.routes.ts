@@ -7,10 +7,11 @@ import { upload } from '../../utils/sendImageToCloudinary';
 const router = Router();
 
 
+router.get("/me",auth('ADMIN','BUSINESS','STAF','SUPERADMIN') ,UserController.getMe);
 router.get("/singleuser/:id", UserController.getSingleUser);
 router.delete("/deleteUser/:id", auth('ADMIN'), UserController.deleteUser);
 router.get('/alluser', auth('ADMIN'), UserController.getAllUser);
-router.patch('/updateProfile/:id',
+router.patch('/updateProfile/me',
     upload.single('file'),
     (req: Request, res: Response, next: NextFunction) => {
         if (typeof req.body.data === 'string') {

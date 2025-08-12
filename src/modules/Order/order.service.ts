@@ -23,6 +23,24 @@ const createOrder = async (payload: Order) => {
   const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
 
+
+  //customter
+
+  const isCustomerExist=await prisma.customer.findUnique({
+    where:{
+      id: customerId,
+      shopId:isExistShop?.id as string
+    },
+    include:{
+      shop:true,
+      orders:true,
+      payment:true,
+    }
+  })
+
+  await NotFound(isCustomerExist, 'Customer');
+
+
   return await prisma.order.create({
     data: {
       customerId,

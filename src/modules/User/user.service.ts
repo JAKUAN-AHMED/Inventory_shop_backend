@@ -1,3 +1,4 @@
+import { get } from 'http';
 import AppError from '../../errors/AppError';
 import { prisma } from '../../prisma/client';
 import {
@@ -69,10 +70,22 @@ const updateProfile = async (
   return result;
 };
 
+//me
+
+const getMe = async (userId: string) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  return user;
+}
+
 
 export const UserServices = {
   getingSigleuser,
   deleteduser,
   updateProfile,
   getAllUser,
+  getMe,
 };

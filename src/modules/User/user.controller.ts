@@ -29,7 +29,8 @@ const deleteUser = catchAsync(async (req, res) => {
 const updateProfile = catchAsync(async (req, res) => {
 
     const file = req.file as Express.Multer.File;
-    const result = await UserServices.updateProfile(file, req.params.id, req.body);
+    const userId=req.user.id;
+    const result = await UserServices.updateProfile(file, userId as string, req.body);
     const isOk = result ? true : false;
     sendResponse(res, {
         statusCode: isOk ? 200 : 400,
@@ -53,11 +54,23 @@ const getAllUser = catchAsync(async (req, res) => {
 })
 
 
-
+//me
+const getMe = catchAsync(async (req, res) => {
+    const userId = req.user.id;
+    const result = await UserServices.getMe(userId as string);
+    const isOk = result ? true : false;
+    sendResponse(res, {
+        statusCode: isOk ? 200 : 400,
+        success: isOk,
+        message: isOk ? 'Successfully Retrieved Your Profile' : 'Failed to Retrieve Your Profile',
+        Data: isOk ? result : [],
+    });
+});
 export const UserController = {
     getSingleUser,
     deleteUser,
     updateProfile,
     getAllUser,
+    getMe,
 
 };
