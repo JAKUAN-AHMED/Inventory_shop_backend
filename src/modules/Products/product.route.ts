@@ -7,8 +7,8 @@ import { ProductController } from './product.controller';
 import { productValidationSchema, updateproductValidationSchema } from './product.validation';
 
 
-const router = Router();
 
+const router = Router();
 //create  product and send password to him
 router.post(
   '/create-product',

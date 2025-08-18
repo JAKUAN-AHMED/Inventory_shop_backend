@@ -20,6 +20,12 @@ enum ProductStatus {
   OUT_OF_STOCK
 }
 
+enum OrderStatus {
+  PROCESSING
+  ACCEPTED
+  DELIVERED
+  COMPLETED
+}
 enum customerStatus {
   ACTIVE
   DISABLED
@@ -125,12 +131,6 @@ model PaymentItem {
 }
 
 
-enum OrderStatus {
-  PROCESSING
-  ACCEPTED
-  DELIVERED
-  COMPLETED
-}
 
 model Order {
   id                 String      @id @default(auto()) @map("_id") @db.ObjectId
