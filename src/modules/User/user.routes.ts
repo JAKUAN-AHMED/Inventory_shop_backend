@@ -7,7 +7,7 @@ import { upload } from '../../utils/sendImageToCloudinary';
 const router = Router();
 
 
-router.get("/me",auth('ADMIN','BUSINESS','STAF','SUPERADMIN') ,UserController.getMe);
+router.get("/me",auth('ADMIN','BUSINESS','STAF','SUPERADMIN','USER') ,UserController.getMe);
 router.get("/singleuser/:id", UserController.getSingleUser);
 router.delete("/deleteUser/:id", auth('ADMIN'), UserController.deleteUser);
 router.get('/alluser', auth('ADMIN'), UserController.getAllUser);
