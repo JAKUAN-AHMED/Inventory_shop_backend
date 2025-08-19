@@ -250,7 +250,8 @@ const forgotPassword = async (email: string) => {
     config.access_token_secret as string,
     config.access_token_expires as string,
   );
-  const link = `${config.live_url}/reset-password?email=${email}&token=${token}`;
+  const redirectUrl=config.node_env==="production"? config.live_url : config.development_url;
+  const link = `${redirectUrl}/reset-password?email=${email}&token=${token}`;
   // console.log('token : ', token);
 
   const res = await sendPasswordResetEmail(email, link);

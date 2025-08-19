@@ -3,6 +3,7 @@ dotenv.config();
 
 export default {
   port: process.env.PORT,
+  node_env: process.env.NODE_ENV || 'development',
   salt_round:process.env.SALT_ROUND,
   stripe_api_secret: process.env.STRIPE_SECRET_KEY,
   brevo: {
@@ -18,7 +19,6 @@ export default {
     do_space_secret_key: process.env.DO_SPACE_SECRET_KEY!,
   },
   db_url: process.env.DB_URL,
-  node_env: process.env.NODE_ENV || 'development',
   access_token_secret: process.env.JWT_ACCESS_TOKEN,
   access_token_expires: process.env.JWT_TOKEN_EXPIRES,
   refress_token_secret: process.env.JWT_REFRESH_TOKEN,
@@ -32,6 +32,8 @@ export default {
     smtp_email: process.env.SMTP_EMAIL,
     smtp_app_pass: process.env.SMTP_PASS,
   },
-  live_url: process.env.Frontend_Live_URL
+  development_url: process.env.Frontend_development,
+  live_url: process.env.frontend_production
+
 };
 
