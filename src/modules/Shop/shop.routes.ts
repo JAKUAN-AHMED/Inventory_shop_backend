@@ -43,7 +43,7 @@ router.patch(
 router.get('/all-shop', auth('ADMIN'), ShopController.getAllShop);
 router.get(
   '/my-shop',
-  auth('BUSINESS', 'STAF', 'ADMIN'),
+  auth('BUSINESS', 'STAF', 'ADMIN','USER'),
   ShopController.getMyShop,
 );
 
