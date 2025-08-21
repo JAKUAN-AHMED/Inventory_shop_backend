@@ -167,6 +167,7 @@ const verifyEmail = async (email: string, token: string) => {
 };
 
 const login = async (payload: ILoginUser) => {
+  console.log('hitted');
   const staf = await prisma.staf.findUnique({
     where: {
       email: payload.email,
@@ -182,7 +183,8 @@ const login = async (payload: ILoginUser) => {
     },
   });
 
-  if (!staf?.isVerified) {
+  console.log('staf', staf);
+  if (staf?.isVerified === false) {
     throw new AppError(403, 'Please Verify Your Email');
   }
 

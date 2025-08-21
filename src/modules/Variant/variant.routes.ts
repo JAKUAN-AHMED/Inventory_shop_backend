@@ -5,19 +5,19 @@ import { VariantController } from "./variant.controller";
 const router=Router();
 
 //create
-router.post('/create',auth('STAF','ADMIN'),VariantController.createVariant);
+router.post('/create',auth('STAF','BUSINESS'),VariantController.createVariant);
 
 //update
-router.patch('/update/:id',auth('STAF','ADMIN'),VariantController.updatevariant);
+router.patch('/update/:id',auth('STAF','BUSINESS'),VariantController.updatevariant);
 
 //delete
-router.delete('/delete/:id',auth('STAF','ADMIN'),VariantController.deleteVariant);
+router.delete('/delete/:id',auth('STAF','BUSINESS'),VariantController.deleteVariant);
 
 //all variant
-router.get('/all-variant',auth('STAF','ADMIN'),VariantController.allVariant);
+router.get('/all-variant',auth('STAF','BUSINESS'),VariantController.allVariant);
 
 //single variant
-router.get('/single-variant/:id',auth('STAF','ADMIN'),VariantController.singleVariant);
+router.get('/single-variant/:id',auth('STAF','BUSINESS'),VariantController.singleVariant);
 
 
 export const VariantRoutes=router;

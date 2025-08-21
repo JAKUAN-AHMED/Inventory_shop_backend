@@ -10,7 +10,17 @@ const createVariant = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -18,20 +28,19 @@ const createVariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
+  console.log('req.body.shopId', req.body.shopId);
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
   const result = await VariantService.createVariant(req.body);
   const isOk = result ? true : false;
   sendResponse(res, {
@@ -47,7 +56,17 @@ const updatevariant = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -55,21 +74,23 @@ const updatevariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
+  console.log('req.body.shopId', req.body.shopId);
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
-  const result = await VariantService.updateVariant(req.params.id as string,req.body);
+  const result = await VariantService.updateVariant(
+    req.params.id as string,
+    req.body,
+  );
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
@@ -85,7 +106,17 @@ const deleteVariant = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -93,26 +124,30 @@ const deleteVariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  
-  const result = await VariantService.deleteVariant(req.params.id as string,shopId);
+
+  const result = await VariantService.deleteVariant(
+    req.params.id as string,
+    shopId! as string,
+  );
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
     success: isOk,
-    message: isOk ? 'Successfully Deleted Variant' : 'Failed to Deleted Variant',
+    message: isOk
+      ? 'Successfully Deleted Variant'
+      : 'Failed to Deleted Variant',
     Data: isOk ? result : [],
   });
 });
@@ -122,7 +157,17 @@ const singleVariant = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -130,26 +175,30 @@ const singleVariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
 
-  const result = await VariantService.singleVariant(req.params.id as string,shopId);
+  const result = await VariantService.singleVariant(
+    req.params.id as string,
+    shop?.id as string,
+  );
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
     success: isOk,
-    message: isOk ? 'Successfully Retrieved a  Variant' : 'Failed to Retrieve a  Variant',
+    message: isOk
+      ? 'Successfully Retrieved a  Variant'
+      : 'Failed to Retrieve a  Variant',
     Data: isOk ? result : [],
   });
 });
@@ -159,7 +208,17 @@ const allVariant = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -167,36 +226,36 @@ const allVariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+ 
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
 
-  const result = await VariantService.allVariant(req.query,shopId);
+  const result = await VariantService.allVariant(req.query, shop?.id as string);
   const isOk = result ? true : false;
   sendResponse(res, {
     statusCode: isOk ? 200 : 404,
     success: isOk,
-    message: isOk ? 'Successfully Retrieved Variant' : 'Failed to Retrieved Variant',
+    message: isOk
+      ? 'Successfully Retrieved Variant'
+      : 'Failed to Retrieved Variant',
     Data: isOk ? result : [],
   });
 });
 
-
-
-export const VariantController={
-    createVariant,
-    updatevariant,
-    deleteVariant,
-    allVariant,
-    singleVariant
-}
+export const VariantController = {
+  createVariant,
+  updatevariant,
+  deleteVariant,
+  allVariant,
+  singleVariant,
+};

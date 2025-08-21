@@ -98,6 +98,8 @@ const resendVerifyEmail = catchAsync(async (req, res) => {
 });
 
 const login = catchAsync(async (req, res) => {
+
+    console.log('hitted');
   const { email, password } = req.body;
   // console.log(email, password);
   const result = await StafService.login({ email, password });

@@ -7,6 +7,17 @@ const createVariant = async (payload: Pvariant) => {
   const { type, shopId, description } = payload;
   const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop, 'Shop');
+
+
+  const isExistVariant = await prisma.pvariant.findFirst({
+    where: {
+      type,
+      shopId: isExistShop?.id as string,
+    },
+  });
+  if (isExistVariant) {
+    throw new Error('Variant already exists for this shop');
+  }
   return await prisma.pvariant.create({
     data: {
       type,
