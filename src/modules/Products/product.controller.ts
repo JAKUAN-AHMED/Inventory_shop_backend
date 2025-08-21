@@ -15,7 +15,17 @@ const createProduct = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -23,20 +33,18 @@ const createProduct = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
   if (!req.file) {
     throw new AppError(404, 'Image is required');
   }
@@ -60,36 +68,45 @@ const createProduct = catchAsync(async (req, res) => {
 });
 
 const allProducts = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
-   const normaluser = await prisma.user.findUnique({
-     where: {
-       id: userId,
-     },
-   });
- 
-   const staf = await prisma.staf.findUnique({
-     where: {
-       id: userId,
-     },
-   });
-   const user = normaluser ? normaluser : staf;
-   await NotFound(user, 'User');
- 
-   let shop = null;
-   if (user && 'shopId' in user && user.shopId !== null) {
-     shop = await prisma.shop.findUnique({
-       where: {
-         id: user.shopId as string,
-       },
-     });
-   }
- 
-   await NotFound(shop, 'Shop');
-   const shopId = shop?.id as string;
-   
+  const userId = req.user.id as string;
+  const normaluser = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
+  });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
+
+  const staf = await prisma.staf.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+  const user = normaluser ? normaluser : staf;
+
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
+
+  await NotFound(shop, 'Shop');
+
   const result = await productService.allProducts(
     req.query,
-   shopId as string,
+    shop?.id as string,
   );
   const isOk = result ? true : false;
   sendResponse(res, {
@@ -107,7 +124,17 @@ const singleProduct = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -115,19 +142,18 @@ const singleProduct = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const result = await productService.singleProduct(
     shopId as string,
     req.params.id as string,
@@ -148,7 +174,17 @@ const deleteProduct = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -156,19 +192,18 @@ const deleteProduct = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const isExistProduct = await prisma.product.findUnique({
     where: {
       id: req.params.id,
@@ -207,7 +242,17 @@ const updateProduct = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -215,20 +260,18 @@ const updateProduct = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
   if (req.file) {
     const { location } = await uploadToDigitalOceanAWS(
       req.file as Express.Multer.File,
