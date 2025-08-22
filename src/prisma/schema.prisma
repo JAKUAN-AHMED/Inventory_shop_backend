@@ -197,11 +197,20 @@ model Pvariant {
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   type        String
   description String
+  variant      Variant[]
   shop       Shop      @relation(fields: [shopId], references: [id])
   shopId      String    @db.ObjectId
   product     Product[]
 
   @@map("pvariant")
+}
+
+model Variant{
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  pvariant    Pvariant  @relation(fields: [pvariantId], references: [id])
+  pvariantId  String    @db.ObjectId
+  variant        String[]
+  @@map("variant")
 }
 
 model PCateory {

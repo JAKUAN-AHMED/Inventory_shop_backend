@@ -132,7 +132,7 @@ const deleteSupplier = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -182,7 +182,7 @@ const getAllSuppliers = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -236,7 +236,7 @@ const getSingleSupplier = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 

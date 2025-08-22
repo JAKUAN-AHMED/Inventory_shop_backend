@@ -78,7 +78,7 @@ const updateCg = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   req.body.shopId = staf?.shopId || userShopId;
 
@@ -223,7 +223,7 @@ const userId = req.user.id as string;
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 

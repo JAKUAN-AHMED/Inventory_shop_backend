@@ -49,28 +49,22 @@ const createCustomer = async (payload: Customer & { userId: string }) => {
   return result;
 };
 
-//all customer
 const allCustomers = async (query: any, shopId: string) => {
   const shop = await isShopExistByShopId(shopId);
   await NotFound(shop, 'Shop');
+
   const builder = new QueryBuilder(query, prisma.customer);
+
   const result = await builder
-    .rawFilter({
-      shopId: shop?.id as string,
-    })
-    .include({
-      orders:true,
-      group:true,
-      payment:true
-    })
+    .rawFilter({ shopId: shop?.id })          
+    .filter(['status','name', 'email', 'phone', 'address', 'zipCode', 'upazilla', 'road', 'shopName'])                        
+    .include({ orders:true, group:true, payment:true })
     .paginate()
     .execute();
+
   const meta = await builder.countTotal();
 
-  return {
-    meta,
-    result,
-  };
+  return { meta, result };
 };
 
 //single customer

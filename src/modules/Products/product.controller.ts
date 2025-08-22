@@ -34,7 +34,7 @@ const createProduct = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   req.body.shopId = staf?.shopId || userShopId;
 
@@ -92,7 +92,7 @@ const allProducts = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -143,7 +143,7 @@ const singleProduct = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -193,7 +193,7 @@ const deleteProduct = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -261,7 +261,7 @@ const updateProduct = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   req.body.shopId = staf?.shopId || userShopId;
 

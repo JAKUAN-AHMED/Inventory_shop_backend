@@ -125,7 +125,7 @@ const deleteCategory = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 

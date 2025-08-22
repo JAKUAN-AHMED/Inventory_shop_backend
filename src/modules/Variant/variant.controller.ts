@@ -28,8 +28,6 @@ const createVariant = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-
-  console.log('user', user);
   await NotFound(user, 'User');
   req.body.shopId = staf?.shopId || userShopId;
   console.log('req.body.shopId', req.body.shopId);
@@ -75,7 +73,7 @@ const updatevariant = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   req.body.shopId = staf?.shopId || userShopId;
   console.log('req.body.shopId', req.body.shopId);
@@ -125,7 +123,7 @@ const deleteVariant = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -176,7 +174,7 @@ const singleVariant = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
 
@@ -227,7 +225,7 @@ const allVariant = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
 
-  console.log('user', user);
+  
   await NotFound(user, 'User');
   const shopId = staf?.shopId || userShopId;
  
