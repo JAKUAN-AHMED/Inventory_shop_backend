@@ -35,12 +35,11 @@ const createCg = async (
 
 //update group
 const updateCg = async (
-  shopId: string,
   id: string,
   payload: Partial<customerGroup>,
 ) => {
-  const { name, date } = payload;
-  const isExistShop = await isShopExistByShopId(shopId);
+  const { name, date,shopId } = payload;
+  const isExistShop = await isShopExistByShopId(shopId as string);
   await NotFound(isExistShop, 'Shop');
 
   const isExist = await prisma.customerGroup.findUnique({

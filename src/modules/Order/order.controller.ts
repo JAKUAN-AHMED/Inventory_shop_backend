@@ -6,12 +6,22 @@ import { NotFound } from '../../utils/utility';
 import { prisma } from '../../prisma/client';
 
 const createOrder = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+  const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -19,20 +29,17 @@ const createOrder = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
   const result = await OrderServices.createOrder(
     req.body,
   );
@@ -46,13 +53,22 @@ const createOrder = catchAsync(async (req, res) => {
 });
 const updateOrder = catchAsync(async (req, res) => {
 
-
-   const userId = req.user.id as string;
+const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -61,19 +77,15 @@ const updateOrder = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId;
   const result = await OrderServices.updateOrder(
     req.params.id  as string,
     req.body,
@@ -87,12 +99,22 @@ const updateOrder = catchAsync(async (req, res) => {
   });
 });
 const deleteOrder = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+  const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -100,21 +122,20 @@ const deleteOrder = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id:shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const result = await OrderServices.deleteOrder(
-    shopId,
+    shopId as string,
     req.params.id  as string,
   );
   const isOk = result ? true : false;
@@ -126,12 +147,22 @@ const deleteOrder = catchAsync(async (req, res) => {
   });
 });
 const allOrder = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -140,18 +171,15 @@ const allOrder = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+const shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
  
   const result = await OrderServices.allOrder(
     shopId as string,
@@ -166,12 +194,22 @@ const allOrder = catchAsync(async (req, res) => {
   });
 });
 const singleOrder = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+  const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -179,20 +217,18 @@ const singleOrder = catchAsync(async (req, res) => {
     },
   });
   const user = normaluser ? normaluser : staf;
-  await NotFound(user, 'User');
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  console.log('user', user);
+  await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
+
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
 
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-
   const result = await OrderServices.singleOrder(
    shopId as string,
     req.params.id as string

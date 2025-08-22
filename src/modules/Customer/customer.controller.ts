@@ -7,12 +7,21 @@ import { customerService } from './customer.service';
 
 const createcustomer = catchAsync(async (req, res) => {
   const userId = req.user.id as string;
-  req.body.userId = userId;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -21,18 +30,16 @@ const createcustomer = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
+
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
-  req.body.shopId = shopId as string;
+  req.body.userId = userId;
   const result = await customerService.createCustomer(req.body);
   const isOk = result ? true : false;
   sendResponse(res, {
@@ -51,7 +58,17 @@ const allcustomers = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -60,17 +77,15 @@ const allcustomers = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
+
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const result = await customerService.allCustomers(
     req.query,
     shopId as string,
@@ -91,7 +106,17 @@ const singlecustomer = catchAsync(async (req, res) => {
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -100,17 +125,15 @@ const singlecustomer = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
+
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const result = await customerService.singlecustomer(
     shopId as string,
     req.params.id as string,
@@ -126,12 +149,22 @@ const singlecustomer = catchAsync(async (req, res) => {
   });
 });
 const deletecustomer = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+  const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -140,19 +173,17 @@ const deletecustomer = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  const shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: shopId as string,
+    },
+  });
+
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
   const result = await customerService.deletecustomer(
-   shopId as string,
+    shopId as string,
     req.params.id as string,
   );
   const isOk = result ? true : false;
@@ -167,12 +198,22 @@ const deletecustomer = catchAsync(async (req, res) => {
 });
 
 const updatecustomer = catchAsync(async (req, res) => {
-   const userId = req.user.id as string;
+const userId = req.user.id as string;
   const normaluser = await prisma.user.findUnique({
     where: {
       id: userId,
     },
+    include: {
+      shop: {
+        select: { id: true },
+      },
+    },
   });
+
+  let userShopId =
+    normaluser?.shop && normaluser.shop.length > 0
+      ? (normaluser.shop[0].id as string)
+      : null;
 
   const staf = await prisma.staf.findUnique({
     where: {
@@ -181,20 +222,17 @@ const updatecustomer = catchAsync(async (req, res) => {
   });
   const user = normaluser ? normaluser : staf;
   await NotFound(user, 'User');
+  req.body.shopId = staf?.shopId || userShopId;
 
-  let shop = null;
-  if (user && 'shopId' in user && user.shopId !== null) {
-    shop = await prisma.shop.findUnique({
-      where: {
-        id: user.shopId as string,
-      },
-    });
-  }
+  const shop = await prisma.shop.findUnique({
+    where: {
+      id: req.body.shopId as string,
+    },
+  });
+
   await NotFound(shop, 'Shop');
-  const shopId = shop?.id as string;
 
   const result = await customerService.updatecustomer(
-    shopId as string,
     req.params.id as string,
     req.body,
   );

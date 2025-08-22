@@ -15,10 +15,10 @@ router.patch('/update/:id',auth('STAF','BUSINESS'),CategoryController.updateCate
 router.delete('/delete/:id',auth('STAF','BUSINESS'),CategoryController.deleteCategory);
 
 //all Category
-router.get('/all-Category',auth('STAF','ADMIN','BUSINESS'),CategoryController.allCategory);
+router.get('/all-Category',auth('STAF','BUSINESS'),CategoryController.allCategory);
 
 //single Category
-router.get('/single-Category/:id',auth('STAF','ADMIN','BUSINESS'),CategoryController.singleCategory);
+router.get('/single-Category/:id',auth('STAF','BUSINESS'),CategoryController.singleCategory);
 
 
 export const CategoryRoutes=router;

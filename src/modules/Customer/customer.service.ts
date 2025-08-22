@@ -105,11 +105,11 @@ const deletecustomer = async (shopId: string, id: string) => {
 
 //update customer
 const updatecustomer = async (
-  shopId: string,
   id: string,
   payload: Partial<Customer>,
 ) => {
-  const isExistShop = await isShopExistByShopId(shopId);
+  const {shopId}= payload;
+  const isExistShop = await isShopExistByShopId(shopId as string);
   await NotFound(isExistShop, 'Shop');
   const isExistcustomer = await prisma.customer.findUnique({
     where: {
