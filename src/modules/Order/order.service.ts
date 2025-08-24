@@ -2,7 +2,6 @@ import { Order } from '@prisma/client';
 import { isShopExistByShopId, NotFound } from '../../utils/utility';
 import { prisma } from '../../prisma/client';
 import QueryBuilder from '../../builder/QueryBuilder';
-
 type Items = {
   productId: string;
   quantity: number;

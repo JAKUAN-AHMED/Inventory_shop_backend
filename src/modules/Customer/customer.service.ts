@@ -76,6 +76,7 @@ const singlecustomer = async (shopId: string, id: string) => {
       id,
       shopId: isExistShop?.id as string,
     },
+    include: { orders:true, group:true, payment:true },
   });
 };
 
