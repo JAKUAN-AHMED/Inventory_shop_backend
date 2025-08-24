@@ -55,6 +55,8 @@ const createProduct = catchAsync(async (req, res) => {
     req.body.img = location as string;
   }
   req.body.price = parseFloat(req.body.price);
+  req.body.quantity = parseInt(req.body.quantity);
+  req.body.discountedPrice = parseFloat(req.body.discountedPrice);
   const result = await productService.createProduct(req.body);
   const isOk = result ? true : false;
   sendResponse(res, {
