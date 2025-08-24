@@ -1,4 +1,3 @@
-import { PaymentInfo } from '@prisma/client';
 import {
   isShopExist,
   isShopExistByShopId,
@@ -10,7 +9,6 @@ import QueryBuilder from '../../builder/QueryBuilder';
 type PaymentItemInput = {
   productId: string;
   quantity: number;
-  price: number;
 };
 
 type CreatePaymentInput = {
@@ -21,70 +19,75 @@ type CreatePaymentInput = {
   totalpaid:number;
 };
 const createPayment = async (payload: CreatePaymentInput) => {
-  const { customerId, shopId, items,totalpaid,totalDue } = payload;
+  const { customerId, shopId, items, totalpaid } = payload;
+  if(!customerId || !shopId || !items || !totalpaid ) throw new Error('some fields are required.');
+  if(!totalpaid && totalpaid !== 0) throw new Error('Total paid is required.');
+  if(totalpaid < 0) throw new Error('Total paid cannot be negative.');
+ 
 
+  const customerExist = await prisma.customer.findUnique({ where: { id: customerId } });
+  if (!customerExist) throw new Error('Customer does not exist.');
 
-  const customerExist=await prisma.customer.findUnique({
-    where: {
-      id: customerId,
-    },  
+  const productIds = items.map(i => i.productId);
+  const products = await prisma.product.findMany({
+    where: { id: { in: productIds }, shopId },
   });
-  if (!customerExist) {
-    throw new Error('Customer does not exist.');
+
+  if (products.length !== items.length) throw new Error('One or more products do not exist in the shop.');
+
+  for (const item of items) {
+    const product = products.find(p => p.id === item.productId);
+    if (!product) throw new Error(`Product ${item.productId} not found.`);
+    if (item.quantity > product.quantity) {
+      throw new Error(`Insufficient quantity for ${product.id}. Available: ${product.quantity}, Requested: ${item.quantity}`);
+    }
   }
-
-
 
   const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop);
-  if (!items || items.length === 0) {
-    throw new Error('Payment must contain at least one product.');
-  }
+  if (!items.length) throw new Error('Payment must contain at least one product.');
 
-  let  totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const prevdue=customerExist.prevDue as number;
-  if (totalDue < 0) {
-    throw new Error('Total due cannot be negative.');
-  }
+  let totalAmount = items.reduce((sum, item) => {
+    const product = products.find(p => p.id === item.productId)!;
+    return sum + product.price * item.quantity;
+  }, 0);
 
-  if (totalpaid < 0) {
-    throw new Error('Total paid cannot be negative.');
-  }
-  totalAmount+=customerExist.prevDue as number;
-  const totaldue= totalAmount - totalpaid;
-  if (totaldue < 0) {
-    throw new Error('Total due cannot be negative after payment.');
-  }
+  const prevdue = customerExist.prevDue ?? 0;
+  totalAmount += prevdue;
 
-  const updatecustomer= await prisma.customer.update({
-    where: {
-      id: customerId,
-    },
+  const totaldue = totalAmount - totalpaid;
+  if (totaldue < 0) throw new Error('Total due cannot be negative after payment.');
+
+  await prisma.customer.update({
+    where: { id: customerId },
     data: {
       totalpayment: totalpaid,
       prevDue: totaldue,
     },
   });
+
   return await prisma.paymentInfo.create({
     data: {
       customerId,
       shopId,
       totalAmount,
       products: {
-        create: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price,
-        })),
+        create: items.map((item) => {
+          const product = products.find(p => p.id === item.productId)!;
+          return {
+            productId: product.id,
+            quantity: item.quantity,
+            price: product.price,
+          };
+        }),
       },
       totalDue: totaldue,
       totalpaid,
-      prevDue:prevdue,
+      prevDue: prevdue,
     },
   });
-
-
 };
+
 const allpayment = async (shopId: string, query: any) => {
   const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop);
