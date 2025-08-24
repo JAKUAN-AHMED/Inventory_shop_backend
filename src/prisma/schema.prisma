@@ -25,6 +25,7 @@ enum OrderStatus {
   ACCEPTED
   DELIVERED
   COMPLETED
+  CANCELLED
 }
 enum customerStatus {
   ACTIVE
@@ -93,7 +94,10 @@ model Customer {
   road        String?
   shop        Shop           @relation(fields: [shopId], references: [id])
   shopId      String         @db.ObjectId
-
+  totalpayment Float? @default(0)
+  prevDue    Float? @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   @@map("customers")
 }
 
@@ -116,6 +120,10 @@ model PaymentInfo {
   shopId       String        @db.ObjectId
   products     PaymentItem[] // Many-to-many through PaymentItem
   totalAmount  Float         // Total payment amount (sum of all product * quantity)
+  totalpaid    Float
+  totalDue     Float         // Remaining due after payment
+  prevDue      Float
+  paymentDate  DateTime      @default(now())
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -134,11 +142,13 @@ model PaymentItem {
 
 model Order {
   id                 String      @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
   customer           Customer    @relation(fields: [customerId], references: [id])
   customerId         String      @db.ObjectId
   shop               Shop        @relation(fields: [shopId], references: [id])
   shopId             String      @db.ObjectId
   method             String?
+  description        String?
   totalOriginalPrice Float
   status             OrderStatus
   discount           Float
@@ -181,6 +191,8 @@ model Product {
   img         String
   price       Float
   description String
+  quantity    Int
+  discountedPrice Float?
   status      ProductStatus
   shop        Shop          @relation(fields: [shopId], references: [id])
   shopId      String        @db.ObjectId

@@ -17,17 +17,54 @@ type CreatePaymentInput = {
   customerId: string;
   shopId: string;
   items: PaymentItemInput[];
+  totalDue:number;
+  totalpaid:number;
 };
 const createPayment = async (payload: CreatePaymentInput) => {
-  const { customerId, shopId, items } = payload;
+  const { customerId, shopId, items,totalpaid,totalDue } = payload;
+
+
+  const customerExist=await prisma.customer.findUnique({
+    where: {
+      id: customerId,
+    },  
+  });
+  if (!customerExist) {
+    throw new Error('Customer does not exist.');
+  }
+
+
+
   const isExistShop = await isShopExistByShopId(shopId);
   await NotFound(isExistShop);
   if (!items || items.length === 0) {
     throw new Error('Payment must contain at least one product.');
   }
 
-  const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  let  totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const prevdue=customerExist.prevDue as number;
+  if (totalDue < 0) {
+    throw new Error('Total due cannot be negative.');
+  }
 
+  if (totalpaid < 0) {
+    throw new Error('Total paid cannot be negative.');
+  }
+  totalAmount+=customerExist.prevDue as number;
+  const totaldue= totalAmount - totalpaid;
+  if (totaldue < 0) {
+    throw new Error('Total due cannot be negative after payment.');
+  }
+
+  const updatecustomer= await prisma.customer.update({
+    where: {
+      id: customerId,
+    },
+    data: {
+      totalpayment: totalpaid,
+      prevDue: totaldue,
+    },
+  });
   return await prisma.paymentInfo.create({
     data: {
       customerId,
@@ -40,8 +77,13 @@ const createPayment = async (payload: CreatePaymentInput) => {
           price: item.price,
         })),
       },
+      totalDue: totaldue,
+      totalpaid,
+      prevDue:prevdue,
     },
   });
+
+
 };
 const allpayment = async (shopId: string, query: any) => {
   const isExistShop = await isShopExistByShopId(shopId);

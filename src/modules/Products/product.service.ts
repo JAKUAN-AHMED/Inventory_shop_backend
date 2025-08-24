@@ -21,6 +21,8 @@ const createProduct = async (payload: Product) => {
     status,
     categoryId,
     variantId,
+    quantity,
+    discountedPrice,
   } = payload;
 
   //check shop exist or not
@@ -45,6 +47,8 @@ const createProduct = async (payload: Product) => {
       title,
       categoryId,
       variantId,
+      quantity,
+      discountedPrice,
       status,
       price,
       description,

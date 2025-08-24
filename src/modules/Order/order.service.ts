@@ -2,11 +2,14 @@ import { Order } from '@prisma/client';
 import { isShopExist, isShopExistByShopId, NotFound } from '../../utils/utility';
 import { prisma } from '../../prisma/client';
 import QueryBuilder from '../../builder/QueryBuilder';
+import status from 'http-status';
 
 const createOrder = async (payload: Order) => {
   const {
     customerId,
     shopId,
+    name,
+    description,
     method,
     totalOriginalPrice,
     status,
@@ -25,7 +28,6 @@ const createOrder = async (payload: Order) => {
 
 
   //customter
-
   const isCustomerExist=await prisma.customer.findUnique({
     where:{
       id: customerId,
@@ -39,11 +41,13 @@ const createOrder = async (payload: Order) => {
   })
 
   await NotFound(isCustomerExist, 'Customer');
-
+  
 
   return await prisma.order.create({
     data: {
       customerId,
+      name,
+      description,
       shopId:isExistShop?.id as string,
       method,
       totalOriginalPrice,
@@ -96,7 +100,8 @@ const allOrder = async (shopId: string,query:any) => {
   const builder=new QueryBuilder(query,prisma.order);
   const result=await builder
   .rawFilter({
-    shopId:isExistShop?.id as string
+    shopId:isExistShop?.id as string,
+    status:{not:"CANCELLED"}
   })
   .sort(['-createdAt'])
   .include({
