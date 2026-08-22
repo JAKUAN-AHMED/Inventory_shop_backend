@@ -4,3 +4,9 @@ dist
 .env
 uploads
 .vercel
+
+# Editor / tool settings - never commit
+.vscode/
+.claude/
+.idea/
+*.code-workspace
